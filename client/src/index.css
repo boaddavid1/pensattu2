@@ -122,7 +122,8 @@ header {
 /* ===== HERO ===== */
 .hero {
   position: relative;
-  min-height: 4in;
+  height: 100vh;
+  min-height: 600px;
   display: flex; align-items: center;
   padding: 64px 0 0;
   overflow: hidden;
