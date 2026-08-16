@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Hero() {
   return (
     <section className="hero" id="home">
@@ -10,7 +12,7 @@ export default function Hero() {
           <h1>Faith that gives your heart room to <em>breathe</em>.</h1>
           <p>PENSA TTU is a community built around honest worship, real friendship, and a Word that meets you where you are — whether this is your first Sunday or your five hundredth.</p>
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-            <a href="#book" className="btn btn-primary">Plan your visit <span className="btn-arrow">→</span></a>
+            <Link to="/about" className="btn btn-primary">About us <span className="btn-arrow">→</span></Link>
             <a href="#services" className="btn btn-ghost" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff' }}>Explore ministries</a>
           </div>
         </div>
