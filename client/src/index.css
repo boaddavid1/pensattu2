@@ -333,9 +333,37 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 /* ===== RESPONSIVE ===== */
 /* ===== MOBILE TAB BAR ===== */
 .mobile-tabbar { display: none; }
+.more-menu-backdrop {
+  position: fixed; inset: 0; z-index: 149;
+  background: rgba(10, 30, 22, 0.35);
+  animation: fadeIn .18s ease;
+}
+.more-menu {
+  position: fixed; left: 16px; right: 16px; bottom: 82px;
+  z-index: 150;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: modalPop .2s ease;
+}
+.more-menu a {
+  padding: 14px 16px;
+  border-radius: 12px;
+  color: var(--pine-deep);
+  font-weight: 600;
+  font-size: 15px;
+  transition: background .2s ease;
+}
+.more-menu a:hover { background: var(--sand); }
 
 @media (max-width: 980px) {
-  .nav-links, .nav-phone { display: none; }
+  .nav-links, .nav-right { display: none; }
+  .nav { justify-content: center; }
   .nav-links {
     position: absolute;
     top: 76px;

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 const tabs = [
   {
@@ -55,9 +55,26 @@ const tabs = [
   },
 ];
 
+const moreLinks = [
+  { to: '/#services', label: 'Ministries' },
+  { to: '/leadership', label: 'Leadership' },
+  { to: '/announcements', label: 'Announcements' },
+  { to: '/notice-board', label: 'News' },
+];
+
 export default function MobileTabBar({ moreOpen, setMoreOpen }) {
   return (
-    <nav className="mobile-tabbar" aria-label="Primary mobile navigation">
+    <>
+      {moreOpen && (
+        <div className="more-menu-backdrop" onClick={() => setMoreOpen(false)}>
+          <div className="more-menu" onClick={(e) => e.stopPropagation()}>
+            {moreLinks.map((link) => (
+              <Link key={link.to} to={link.to} onClick={() => setMoreOpen(false)}>{link.label}</Link>
+            ))}
+          </div>
+        </div>
+      )}
+      <nav className="mobile-tabbar" aria-label="Primary mobile navigation">
       {tabs.map((tab) => (
         <NavLink
           key={tab.to}
@@ -85,6 +102,7 @@ export default function MobileTabBar({ moreOpen, setMoreOpen }) {
         </span>
         <span className="mobile-tab-label">More</span>
       </button>
-    </nav>
+      </nav>
+    </>
   );
 }

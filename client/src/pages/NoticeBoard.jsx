@@ -13,7 +13,7 @@ export default function NoticeBoard() {
           <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1600&q=80" alt="Church notice board" />
         </div>
         <div className="page-hero-inner">
-          <span className="eyebrow">Notice Board</span>
+          <span className="eyebrow">News</span>
           <h1>Practical info <em>you need</em>.</h1>
           <p>Building updates, serving opportunities, parking reminders, and other housekeeping notes for the community.</p>
         </div>

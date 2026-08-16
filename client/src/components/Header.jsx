@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-export default function Header({ moreOpen, setMoreOpen }) {
+export default function Header() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [feedOpen, setFeedOpen] = useState(false);
   const aboutRef = useRef(null);
@@ -24,7 +24,6 @@ export default function Header({ moreOpen, setMoreOpen }) {
   }, [aboutOpen, feedOpen]);
 
   const closeAll = () => {
-    setMoreOpen(false);
     setAboutOpen(false);
     setFeedOpen(false);
   };
@@ -45,7 +44,7 @@ export default function Header({ moreOpen, setMoreOpen }) {
     <header>
       <nav className="nav">
         <Link to="/" className="logo">PENSA <span>TTU</span></Link>
-        <ul className={`nav-links${moreOpen ? ' open' : ''}`}>
+        <ul className="nav-links">
           <li><Link to="/" className={pathname === '/' ? 'active' : ''} onClick={closeAll}>Home</Link></li>
           <li className={`has-dropdown${aboutOpen ? ' open' : ''}`} ref={aboutRef}>
             <div className={`nav-dropdown-trigger${isAbout ? ' active' : ''}`}>
@@ -96,7 +95,7 @@ export default function Header({ moreOpen, setMoreOpen }) {
             <ul className="dropdown">
               <li><Link to="/events" onClick={closeAll}>Events</Link></li>
               <li><Link to="/announcements" onClick={closeAll}>Announcements</Link></li>
-              <li><Link to="/notice-board" onClick={closeAll}>Notice Board</Link></li>
+              <li><Link to="/notice-board" onClick={closeAll}>News</Link></li>
             </ul>
           </li>
           <li><Link to="/sermons" className={pathname === '/sermons' ? 'active' : ''} onClick={closeAll}>Sermons</Link></li>

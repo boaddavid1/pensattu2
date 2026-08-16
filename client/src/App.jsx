@@ -36,7 +36,7 @@ function AppShell() {
   return (
     <>
       <ScrollToHash />
-      <Header moreOpen={moreOpen} setMoreOpen={setMoreOpen} />
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
