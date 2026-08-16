@@ -60,6 +60,7 @@ const moreLinks = [
   { to: '/leadership', label: 'Leadership' },
   { to: '/announcements', label: 'Announcements' },
   { to: '/notice-board', label: 'News' },
+  { to: '/gallery', label: 'Gallery' },
 ];
 
 export default function MobileTabBar({ moreOpen, setMoreOpen }) {

@@ -11,6 +11,7 @@ import Contact from './pages/Contact';
 import Events from './pages/Events';
 import Announcements from './pages/Announcements';
 import NoticeBoard from './pages/NoticeBoard';
+import Gallery from './pages/Gallery';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -46,6 +47,7 @@ function AppShell() {
         <Route path="/events" element={<Events />} />
         <Route path="/announcements" element={<Announcements />} />
         <Route path="/notice-board" element={<NoticeBoard />} />
+        <Route path="/gallery" element={<Gallery />} />
       </Routes>
       <Footer />
       <MobileTabBar moreOpen={moreOpen} setMoreOpen={setMoreOpen} />
