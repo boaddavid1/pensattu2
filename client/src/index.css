@@ -591,8 +591,19 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 
 /* Past events grid (B&W until hover) */
 .past-events { background: var(--paper); padding: 90px 0; }
-.past-events-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 50px; }
-.past-event-card { border-radius: 18px; overflow: hidden; background: #fff; border: 1px solid var(--line); transition: box-shadow .3s ease, transform .3s ease; }
+.past-events-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 22px;
+  margin-top: 50px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.past-events-grid::-webkit-scrollbar { display: none; }
+.past-event-card { flex: 0 0 260px; border-radius: 18px; overflow: hidden; background: #fff; border: 1px solid var(--line); transition: box-shadow .3s ease, transform .3s ease; }
 .past-event-card:hover { box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.25); transform: translateY(-4px); }
 .past-event-img { aspect-ratio: 4/3; overflow: hidden; }
 .past-event-img img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); transition: filter .35s ease; }
@@ -752,7 +763,6 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
   .contact-grid { grid-template-columns: 1fr; }
   .times-grid { grid-template-columns: 1fr; }
   .feed-grid { grid-template-columns: repeat(2, 1fr); }
-  .past-events-grid { grid-template-columns: repeat(4, 1fr); }
   .upcoming-events-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -768,7 +778,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
   .contact-form-card .form-grid { grid-template-columns: 1fr; }
   .feed-grid { grid-template-columns: 1fr; }
   .feed-list { padding: 64px 0; }
-  .past-events-grid { grid-template-columns: 1fr; }
+  .past-event-card { flex: 0 0 220px; }
   .upcoming-events { padding: 64px 0; }
   .past-events { padding: 64px 0; }
   .upcoming-events-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
