@@ -59,19 +59,10 @@ export default function Events() {
 
       <section className="timeline-section">
         <div className="wrap">
-          <div className="timeline-head">
-            <div className="timeline-title">
-              <span className="timeline-icon">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M3 9H21" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M8 3V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  <path d="M16 3V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </span>
-              <h2>Timeline</h2>
-            </div>
-            <span className="timeline-subtitle">Showing only dates with scheduled events</span>
+          <div className="section-head">
+            <span className="eyebrow">Calendar</span>
+            <h2>The <em>timeline</em>.</h2>
+            <p>Showing only dates with scheduled events.</p>
           </div>
 
           <div className="timeline-track">

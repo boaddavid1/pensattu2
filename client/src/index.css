@@ -530,11 +530,6 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
   position: relative;
   overflow: hidden;
 }
-.timeline-head { display: flex; flex-direction: column; gap: 8px; margin-bottom: 40px; }
-.timeline-title { display: flex; align-items: center; gap: 12px; }
-.timeline-icon { color: var(--pine-deep); display: inline-flex; }
-.timeline-title h2 { font-family: 'Fraunces', serif; font-size: 34px; color: var(--pine-deep); font-weight: 700; }
-.timeline-subtitle { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--moss-deep); font-weight: 600; }
 .timeline-track {
   display: flex;
   flex-wrap: nowrap;
@@ -815,7 +810,6 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
   .event-modal-body h3 { font-size: 21px; }
   .timeline-section { padding: 48px 0; }
   .timeline-track { gap: 26px; }
-  .timeline-title h2 { font-size: 26px; }
   .timeline-date-card { padding: 12px 16px; min-width: 66px; }
   .timeline-day { font-size: 22px; }
   .map-frame { min-height: 220px; }
