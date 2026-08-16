@@ -9,7 +9,6 @@ pensa_v2/
 ├── client/          # React frontend (Vite)
 ├── server/          # Express API
 ├── database/        # MySQL schema and seed data
-├── index.html       # Original static site (kept for reference)
 └── README.md
 ```
 
