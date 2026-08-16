@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-export default function Header() {
-  const [open, setOpen] = useState(false);
+export default function Header({ moreOpen, setMoreOpen }) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [feedOpen, setFeedOpen] = useState(false);
   const aboutRef = useRef(null);
@@ -25,7 +24,7 @@ export default function Header() {
   }, [aboutOpen, feedOpen]);
 
   const closeAll = () => {
-    setOpen(false);
+    setMoreOpen(false);
     setAboutOpen(false);
     setFeedOpen(false);
   };
@@ -46,7 +45,7 @@ export default function Header() {
     <header>
       <nav className="nav">
         <Link to="/" className="logo">PENSA <span>TTU</span></Link>
-        <ul className={`nav-links${open ? ' open' : ''}`}>
+        <ul className={`nav-links${moreOpen ? ' open' : ''}`}>
           <li><Link to="/" className={pathname === '/' ? 'active' : ''} onClick={closeAll}>Home</Link></li>
           <li className={`has-dropdown${aboutOpen ? ' open' : ''}`} ref={aboutRef}>
             <div className={`nav-dropdown-trigger${isAbout ? ' active' : ''}`}>
@@ -108,13 +107,6 @@ export default function Header() {
             <div><strong>+233 24 000 0000</strong><small>Sun 9AM & 11AM</small></div>
           </div>
           <Link to="/contact" className="btn btn-dark">Contact us</Link>
-          <button className={`more-btn${open ? ' open' : ''}`} aria-label="More navigation" aria-expanded={open} onClick={() => { setOpen(!open); setAboutOpen(false); setFeedOpen(false); }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="5" cy="12" r="1.8" fill="currentColor"/>
-              <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
-              <circle cx="19" cy="12" r="1.8" fill="currentColor"/>
-            </svg>
-          </button>
         </div>
       </nav>
     </header>

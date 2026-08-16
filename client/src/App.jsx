@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -25,11 +25,18 @@ function ScrollToHash() {
   return null;
 }
 
-function App() {
+function AppShell() {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
+
   return (
-    <BrowserRouter>
+    <>
       <ScrollToHash />
-      <Header />
+      <Header moreOpen={moreOpen} setMoreOpen={setMoreOpen} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -41,7 +48,15 @@ function App() {
         <Route path="/notice-board" element={<NoticeBoard />} />
       </Routes>
       <Footer />
-      <MobileTabBar />
+      <MobileTabBar moreOpen={moreOpen} setMoreOpen={setMoreOpen} />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppShell />
     </BrowserRouter>
   );
 }

@@ -55,7 +55,7 @@ const tabs = [
   },
 ];
 
-export default function MobileTabBar() {
+export default function MobileTabBar({ moreOpen, setMoreOpen }) {
   return (
     <nav className="mobile-tabbar" aria-label="Primary mobile navigation">
       {tabs.map((tab) => (
@@ -69,6 +69,22 @@ export default function MobileTabBar() {
           <span className="mobile-tab-label">{tab.label}</span>
         </NavLink>
       ))}
+      <button
+        type="button"
+        className={`mobile-tab${moreOpen ? ' active' : ''}`}
+        aria-label="More navigation"
+        aria-expanded={moreOpen}
+        onClick={() => setMoreOpen(!moreOpen)}
+      >
+        <span className="mobile-tab-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="5" cy="12" r="1.8" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
+            <circle cx="19" cy="12" r="1.8" fill="currentColor"/>
+          </svg>
+        </span>
+        <span className="mobile-tab-label">More</span>
+      </button>
     </nav>
   );
 }

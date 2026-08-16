@@ -118,14 +118,6 @@ header {
 .nav-phone .ic { width: 38px; height: 38px; border-radius: 50%; background: var(--sand); display: flex; align-items: center; justify-content: center; }
 .nav-phone strong { display: block; font-size: 14.5px; }
 .nav-phone small { color: var(--ink-soft); font-size: 11.5px; }
-.more-btn {
-  display: none; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 50%;
-  background: var(--sand); border: none; cursor: pointer;
-  color: var(--pine-deep); position: relative; z-index: 101;
-  transition: background .2s ease, color .2s ease;
-}
-.more-btn:hover, .more-btn.open { background: var(--pine-deep); color: #fff; }
 
 /* ===== HERO ===== */
 .hero {
@@ -344,7 +336,6 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 
 @media (max-width: 980px) {
   .nav-links, .nav-phone { display: none; }
-  .more-btn { display: flex; }
   .nav-links {
     position: absolute;
     top: 76px;
@@ -418,6 +409,10 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
     color: var(--ink-soft);
     border-radius: 12px;
     transition: color .2s ease, background .2s ease;
+    background: none;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
   }
   .mobile-tab-icon { display: inline-flex; }
   .mobile-tab-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.01em; }
