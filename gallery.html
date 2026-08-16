@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gallery — Grace & Harbor Church</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine:#0E4C92; --pine-deep:#0A2E5C; --moss:#4FA6FF; --moss-deep:#2673D6;
+    --paper:#FAFBFD; --sand:#E9F1FB; --ink:#15231C; --ink-soft:#4B5B52;
+    --line: rgba(15,61,46,0.14); --radius: 22px; --shadow: 0 20px 50px -20px rgba(10,42,32,0.35);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--paper); -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+  img{max-width:100%; display:block;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  .wrap{max-width:1220px; margin:0 auto; padding:0 32px;}
+  h1,h2,h3{font-family:'Fraunces', serif; line-height:1.08; letter-spacing:-0.01em; font-weight:600;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--moss-deep); display:inline-flex; align-items:center; gap:10px; margin-bottom:16px; font-weight:500;}
+  .eyebrow::before{content:""; width:22px; height:1.5px; background:var(--moss-deep); display:inline-block;}
+  .btn{display:inline-flex; align-items:center; gap:10px; padding:15px 26px; border-radius:100px; font-weight:600; font-size:15px; cursor:pointer; border:none; transition:transform .25s ease, box-shadow .25s ease, background .25s ease; white-space:nowrap;}
+  .btn-primary{background:var(--moss); color:var(--pine-deep);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 28px -8px rgba(79,166,255,0.55);}
+  .btn-dark{background:var(--pine); color:var(--paper);}
+  .btn-dark:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
+  .btn-ghost{background:transparent; color:var(--pine); border:1.5px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--pine);}
+  .btn-arrow{width:34px; height:34px; border-radius:50%; background:var(--pine-deep); color:var(--moss); display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .btn-primary .btn-arrow{background:var(--pine-deep); color:var(--moss);}
+
+  header{position:sticky; top:0; z-index:200; background:rgba(250,251,253,0.86); backdrop-filter: blur(14px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1220px; margin:0 auto;}
+  .logo{font-family:'Fraunces', serif; font-weight:700; font-size:24px; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px;}
+  .logo span{color:var(--moss-deep);}
+  .nav-links{display:flex; gap:30px; font-size:15px; font-weight:500;}
+  .nav-links a{position:relative; padding:4px 0; color:var(--ink-soft);}
+  .nav-links a:hover, .nav-links a.active{color:var(--pine);}
+  .nav-right{display:flex; align-items:center; gap:22px;}
+  .nav-phone{display:flex; align-items:center; gap:10px; font-size:14px;}
+  .nav-phone .ic{width:38px; height:38px; border-radius:50%; background:var(--sand); display:flex; align-items:center; justify-content:center;}
+  .nav-phone strong{display:block; font-size:14.5px;}
+  .nav-phone small{color:var(--ink-soft); font-size:11.5px;}
+  .burger{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer;}
+  .burger span{width:24px; height:2px; background:var(--pine);}
+
+  /* ===== ANIMATED HERO GALLERY ===== */
+  .g-hero{
+    position:relative; height:100vh; min-height:600px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--pine-deep);
+  }
+  .g-columns{
+    position:absolute; inset:0; display:grid; grid-template-columns:repeat(5,1fr); gap:14px;
+    padding:14px; transform:rotate(0deg) scale(1.15);
+  }
+  .g-col{position:relative; overflow:hidden; border-radius:14px;}
+  .g-col-track{display:flex; flex-direction:column; gap:14px; will-change:transform;}
+  .g-col-track img{width:100%; height:260px; object-fit:cover; border-radius:14px; display:block;}
+  .g-col:nth-child(odd) .g-col-track{animation:scrollUp linear infinite;}
+  .g-col:nth-child(even) .g-col-track{animation:scrollDown linear infinite;}
+  .g-col:nth-child(1) .g-col-track{animation-duration:34s;}
+  .g-col:nth-child(2) .g-col-track{animation-duration:26s;}
+  .g-col:nth-child(3) .g-col-track{animation-duration:40s;}
+  .g-col:nth-child(4) .g-col-track{animation-duration:24s;}
+  .g-col:nth-child(5) .g-col-track{animation-duration:30s;}
+  @keyframes scrollUp{ from{transform:translateY(0);} to{transform:translateY(-50%);} }
+  @keyframes scrollDown{ from{transform:translateY(-50%);} to{transform:translateY(0);} }
+  .g-col-track.paused{animation-play-state:paused;}
+
+  .g-overlay{
+    position:absolute; inset:0; z-index:2;
+    background:linear-gradient(180deg, rgba(10,30,22,0.72) 0%, rgba(10,30,22,0.45) 40%, rgba(10,30,22,0.72) 100%);
+  }
+  .g-hero-content{position:relative; z-index:3; text-align:center; color:#fff; padding:0 24px;}
+  .g-hero-content .eyebrow{color:var(--moss); justify-content:center;}
+  .g-hero-content .eyebrow::before{background:var(--moss);}
+  .g-hero-content h1{font-size:clamp(42px,7vw,86px); color:#fff;}
+  .g-hero-content h1 em{font-style:normal; color:var(--moss);}
+  .g-hero-content p{margin:20px auto 0; max-width:480px; color:rgba(247,245,238,0.85); font-size:16.5px; line-height:1.6;}
+  .g-scroll-cue{
+    position:absolute; z-index:3; bottom:34px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:8px; color:rgba(247,245,238,0.75);
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase;
+  }
+  .g-scroll-cue .arrow{width:20px; height:20px; border-right:2px solid rgba(247,245,238,0.75); border-bottom:2px solid rgba(247,245,238,0.75); transform:rotate(45deg); animation:bob 1.8s ease-in-out infinite;}
+  @keyframes bob{ 0%,100%{transform:rotate(45deg) translate(0,0);} 50%{transform:rotate(45deg) translate(4px,4px);} }
+
+  /* ===== SECTION GENERIC ===== */
+  section{padding:100px 0;}
+  .section-head{max-width:640px; margin-bottom:56px;}
+  .section-head h2{font-size:clamp(30px,3.4vw,44px); color:var(--pine-deep);}
+  .section-head h2 em{font-style:normal; color:var(--moss-deep);}
+  .section-head p{margin-top:16px; color:var(--ink-soft); font-size:16px; line-height:1.65;}
+  .center{text-align:center; margin-left:auto; margin-right:auto;}
+
+  /* Album covers grid (navigator) */
+  .albums-covers{background:#fff;}
+  .cover-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:22px;}
+  .cover-card{
+    display:block; background:var(--paper); border:1px solid var(--line); border-radius:22px; overflow:hidden;
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .cover-card:hover{transform:translateY(-6px); box-shadow:var(--shadow);}
+  .cover-img{aspect-ratio:4/3.1; overflow:hidden;}
+  .cover-img img{width:100%; height:100%; object-fit:cover; transition:transform .5s ease;}
+  .cover-card:hover .cover-img img{transform:scale(1.07);}
+  .cover-body{padding:22px 22px 24px;}
+  .cover-body h3{font-family:'Inter',sans-serif; font-size:16.5px; font-weight:700; margin-bottom:4px;}
+  .cover-body > span:not(.cover-link){display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:14px;}
+  .cover-link{display:inline-flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; color:var(--pine);}
+  .cover-link .btn-arrow{
+    width:26px; height:26px; font-size:13px; font-style:normal;
+  }
+
+  /* Albums */
+  .albums{background:var(--paper);}
+  .album{
+    margin-bottom:36px; background:#fff; border:1px solid var(--line); border-radius:28px;
+    padding:40px 40px 44px; box-shadow:0 16px 40px -24px rgba(10,42,32,0.18);
+  }
+  .album:last-child{margin-bottom:0;}
+  .album-head{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; margin-bottom:28px; padding-bottom:20px; border-bottom:1px solid var(--line);}
+  .album-head h2{font-size:clamp(24px,2.6vw,32px); color:var(--pine-deep);}
+  .album-head span{font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-soft); background:var(--sand); padding:6px 14px; border-radius:100px;}
+  .g-grid{columns:4 260px; column-gap:20px;}
+  .g-item{break-inside:avoid; margin-bottom:20px; border-radius:18px; overflow:hidden; position:relative; cursor:pointer; border:1px solid var(--line);}
+  .g-item img{width:100%; display:block; transition:transform .5s ease;}
+  .g-item:hover img{transform:scale(1.06);}
+  .g-item .cap{position:absolute; left:0; right:0; bottom:0; padding:16px; background:linear-gradient(to top, rgba(10,30,22,0.82), rgba(10,30,22,0)); color:#fff; opacity:0; transition:opacity .3s ease;}
+  .g-item:hover .cap{opacity:1;}
+  .g-item .cap span{font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--moss); font-family:'JetBrains Mono',monospace;}
+  .g-item .cap strong{display:block; font-size:14px; margin-top:4px;}
+
+  .cta{background:#fff;}
+  .cta-box{background:var(--sand); border-radius:28px; padding:56px 60px; display:flex; justify-content:space-between; align-items:center; gap:40px; flex-wrap:wrap;}
+  .cta-box h2{font-size:clamp(24px,2.6vw,32px); color:var(--pine-deep); max-width:440px;}
+  .cta-box h2 em{font-style:normal; color:var(--moss-deep);}
+
+  /* Lightbox */
+  .lightbox{position:fixed; inset:0; z-index:500; background:rgba(10,20,16,0.92); display:none; align-items:center; justify-content:center; padding:40px;}
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:min(900px,90vw); max-height:85vh; border-radius:16px; box-shadow:0 30px 80px rgba(0,0,0,0.5);}
+  .lightbox-close{position:absolute; top:26px; right:32px; width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.12); color:#fff; border:none; font-size:20px; cursor:pointer;}
+
+  footer{background:var(--pine-deep); color:rgba(247,245,238,0.75); padding-top:80px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1.2fr; gap:40px; padding-bottom:60px; border-bottom:1px solid rgba(255,255,255,0.1);}
+  .foot-logo{font-family:'Fraunces',serif; font-weight:700; font-size:24px; color:#fff; margin-bottom:16px;}
+  .foot-logo span{color:var(--moss);}
+  .foot-grid p{font-size:14px; line-height:1.7; max-width:280px;}
+  .foot-social{display:flex; gap:10px; margin-top:22px;}
+  .foot-social a{width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:13px;}
+  .foot-grid h4{color:#fff; font-family:'Inter',sans-serif; font-size:14.5px; margin-bottom:20px;}
+  .foot-grid ul{display:flex; flex-direction:column; gap:12px; font-size:14px;}
+  .foot-grid ul a:hover{color:#fff;}
+  .foot-contact li{margin-bottom:14px; font-size:14px; line-height:1.5;}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; padding:26px 0; font-size:13px;}
+  .foot-word{font-family:'Fraunces',serif; font-weight:700; text-align:center; color:rgba(255,255,255,0.04); font-size:clamp(60px,12vw,160px); line-height:1; letter-spacing:-0.02em; user-select:none;}
+
+  @media (max-width:980px){
+    .nav-links, .nav-phone{display:none;}
+    .burger{display:flex;}
+    .g-columns{grid-template-columns:repeat(3,1fr);}
+    .g-col:nth-child(4), .g-col:nth-child(5){display:none;}
+    .g-grid{columns:2 220px;}
+    .cover-grid{grid-template-columns:1fr 1fr;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:600px){
+    .wrap, .nav{padding-left:20px; padding-right:20px;}
+    section{padding:64px 0;}
+    .g-columns{grid-template-columns:repeat(2,1fr);}
+    .g-col:nth-child(3){display:none;}
+    .g-grid{columns:1;}
+    .cover-grid{grid-template-columns:1fr;}
+    .album{padding:26px 22px 30px; border-radius:22px;}
+    .cta-box{padding:36px 26px;}
+    .foot-grid{grid-template-columns:1fr; padding-bottom:40px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a class="logo" href="index.html">Grace <span>& Harbor</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="index.html#services">Ministries</a></li>
+      <li><a href="leadership.html">Leadership</a></li>
+      <li><a href="sermons.html">Sermons</a></li>
+      <li><a href="gallery.html" class="active">Gallery</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-phone">
+        <div class="ic">☎</div>
+        <div><strong>+233 24 000 0000</strong><small>Sun 9AM & 11AM</small></div>
+      </div>
+      <a href="index.html#book" class="btn btn-dark">Plan a visit</a>
+      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<section class="g-hero" id="g-hero">
+  <div class="g-columns" id="g-columns">
+    <div class="g-col"><div class="g-col-track">
+      <img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80" alt="Worship">
+      <img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80" alt="Sanctuary">
+      <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80" alt="Music ministry">
+      <img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80" alt="Worship">
+      <img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80" alt="Sanctuary">
+      <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80" alt="Music ministry">
+    </div></div>
+    <div class="g-col"><div class="g-col-track">
+      <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80" alt="Community group">
+      <img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=500&q=80" alt="Bible study">
+      <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80" alt="Outreach">
+      <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80" alt="Community group">
+      <img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=500&q=80" alt="Bible study">
+      <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80" alt="Outreach">
+    </div></div>
+    <div class="g-col"><div class="g-col-track">
+      <img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80" alt="Sunday service">
+      <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80" alt="Youth ministry">
+      <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=500&q=80" alt="Greeting visitors">
+      <img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80" alt="Sunday service">
+      <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80" alt="Youth ministry">
+      <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=500&q=80" alt="Greeting visitors">
+    </div></div>
+    <div class="g-col"><div class="g-col-track">
+      <img src="https://images.unsplash.com/photo-1478147427282-58a87a120781?w=500&q=80" alt="Service planning">
+      <img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80" alt="Worship">
+      <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80" alt="Music ministry">
+      <img src="https://images.unsplash.com/photo-1478147427282-58a87a120781?w=500&q=80" alt="Service planning">
+      <img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80" alt="Worship">
+      <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80" alt="Music ministry">
+    </div></div>
+    <div class="g-col"><div class="g-col-track">
+      <img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80" alt="Sanctuary">
+      <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80" alt="Community group">
+      <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80" alt="Outreach">
+      <img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80" alt="Sanctuary">
+      <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80" alt="Community group">
+      <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80" alt="Outreach">
+    </div></div>
+  </div>
+  <div class="g-overlay"></div>
+  <div class="g-hero-content">
+    <span class="eyebrow">Life at Grace & Harbor</span>
+    <h1>Moments from our <em>community</em>.</h1>
+    <p>Worship mornings, community groups, outreach days, and everything in between — a look at what it's actually like here.</p>
+  </div>
+  <div class="g-scroll-cue"><span>Scroll</span><span class="arrow"></span></div>
+</section>
+
+<section class="albums-covers" id="top">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Browse by album</span>
+      <h2>Four collections, <em>one community</em>.</h2>
+    </div>
+    <div class="cover-grid">
+      <a class="cover-card" href="#album-worship">
+        <div class="cover-img"><img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80" alt="Sunday Worship album cover"></div>
+        <div class="cover-body">
+          <h3>Sunday Worship</h3>
+          <span>4 photos</span>
+          <span class="cover-link">View full album <em class="btn-arrow">→</em></span>
+        </div>
+      </a>
+      <a class="cover-card" href="#album-community">
+        <div class="cover-img"><img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80" alt="Community Life album cover"></div>
+        <div class="cover-body">
+          <h3>Community Life</h3>
+          <span>3 photos</span>
+          <span class="cover-link">View full album <em class="btn-arrow">→</em></span>
+        </div>
+      </a>
+      <a class="cover-card" href="#album-outreach">
+        <div class="cover-img"><img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80" alt="Outreach album cover"></div>
+        <div class="cover-body">
+          <h3>Outreach</h3>
+          <span>2 photos</span>
+          <span class="cover-link">View full album <em class="btn-arrow">→</em></span>
+        </div>
+      </a>
+      <a class="cover-card" href="#album-youth">
+        <div class="cover-img"><img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80" alt="Youth & Kids album cover"></div>
+        <div class="cover-body">
+          <h3>Youth & Kids</h3>
+          <span>2 photos</span>
+          <span class="cover-link">View full album <em class="btn-arrow">→</em></span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="albums">
+  <div class="wrap">
+
+    <div class="album" id="album-worship">
+      <div class="album-head"><h2>Sunday Worship</h2><a href="#top" class="cover-link" style="font-size:13px;">← Back to albums</a></div>
+      <div class="g-grid">
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=600&q=80" alt="Hands raised in worship"><div class="cap"><span>Worship</span><strong>Sunday morning, 11AM</strong></div></div>
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=600&q=80" alt="Sanctuary interior"><div class="cap"><span>Worship</span><strong>Our sanctuary</strong></div></div>
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80" alt="Worship band"><div class="cap"><span>Worship</span><strong>Music ministry</strong></div></div>
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80" alt="Sunday service"><div class="cap"><span>Worship</span><strong>A packed 9AM service</strong></div></div>
+      </div>
+    </div>
+
+    <div class="album" id="album-community">
+      <div class="album-head"><h2>Community Life</h2><a href="#top" class="cover-link" style="font-size:13px;">← Back to albums</a></div>
+      <div class="g-grid">
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80" alt="Community group meeting"><div class="cap"><span>Community</span><strong>East Legon group night</strong></div></div>
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=600&q=80" alt="Bible study group"><div class="cap"><span>Community</span><strong>Midweek Bible study</strong></div></div>
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=600&q=80" alt="Greeters welcoming visitors"><div class="cap"><span>Community</span><strong>First-Sunday greeters</strong></div></div>
+      </div>
+    </div>
+
+    <div class="album" id="album-outreach">
+      <div class="album-head"><h2>Outreach</h2><a href="#top" class="cover-link" style="font-size:13px;">← Back to albums</a></div>
+      <div class="g-grid">
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&q=80" alt="Outreach event"><div class="cap"><span>Outreach</span><strong>Serving Osu this spring</strong></div></div>
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1478147427282-58a87a120781?w=600&q=80" alt="Planning an outreach event"><div class="cap"><span>Outreach</span><strong>Getting ready to serve</strong></div></div>
+      </div>
+    </div>
+
+    <div class="album" id="album-youth">
+      <div class="album-head"><h2>Youth & Kids</h2><a href="#top" class="cover-link" style="font-size:13px;">← Back to albums</a></div>
+      <div class="g-grid">
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&q=80" alt="Youth ministry gathering"><div class="cap"><span>Youth</span><strong>Friday youth night</strong></div></div>
+        <div class="g-item"><img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80" alt="Youth small group"><div class="cap"><span>Youth</span><strong>Youth small group</strong></div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2>Come be part of the <em>next photo</em>.</h2>
+      <a href="index.html#book" class="btn btn-dark">Plan your visit <span class="btn-arrow" style="background:var(--moss); color:var(--pine-deep);">→</span></a>
+    </div>
+  </div>
+</section>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">✕</button>
+  <img src="" alt="" id="lightboxImg">
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="foot-logo" href="index.html">Grace <span>& Harbor</span></a>
+        <p>A church community in Accra built on honest worship, real friendship, and a Word that meets you where you are.</p>
+        <div class="foot-social"><a href="#">f</a><a href="#">ig</a><a href="#">yt</a></div>
+      </div>
+      <div>
+        <h4>Church</h4>
+        <ul><a href="about.html">About Us</a><a href="index.html#services">Ministries</a><a href="leadership.html">Leadership</a><a href="sermons.html">Sermons</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></ul>
+      </div>
+      <div>
+        <h4>Ministries</h4>
+        <ul><a href="index.html#services">Worship & Music</a><a href="index.html#services">Youth & Kids</a><a href="index.html#services">Outreach</a><a href="index.html#services">Bible Study</a></ul>
+      </div>
+      <div>
+        <h4>Visit Us</h4>
+        <ul class="foot-contact">
+          <li>📍 12 Cantonments Road, Accra, GH</li>
+          <li>✉️ hello@graceandharbor.example</li>
+          <li>☎ +233 24 000 0000</li>
+          <li>🕊 Sundays, 9:00 AM & 11:00 AM</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Grace & Harbor Church. All rights reserved.</span>
+      <span>Privacy · Terms</span>
+    </div>
+    <div class="foot-word">GRACE &amp; HARBOR</div>
+  </div>
+</footer>
+
+<script>
+  // Mobile nav toggle
+  document.querySelector('.burger').addEventListener('click', () => {
+    const links = document.querySelector('.nav-links');
+    const open = links.style.display === 'flex';
+    links.style.display = open ? 'none' : 'flex';
+    links.style.cssText += open ? '' : 'position:absolute; top:74px; left:0; right:0; background:#FAFBFD; flex-direction:column; padding:24px 32px; gap:18px; border-bottom:1px solid rgba(15,61,46,0.14);';
+  });
+
+  // Pause the hero column animation once the user scrolls the hero out of view,
+  // resume it if they scroll back up to the top.
+  const heroSection = document.getElementById('g-hero');
+  const tracks = document.querySelectorAll('.g-col-track');
+  let ticking = false;
+
+  function updateAnimationState(){
+    const rect = heroSection.getBoundingClientRect();
+    // Hero counts as "in view" while its bottom edge is still below the viewport top.
+    const inView = rect.bottom > 0 && window.scrollY < window.innerHeight * 0.6;
+    tracks.forEach(t => t.classList.toggle('paused', !inView));
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if(!ticking){
+      window.requestAnimationFrame(updateAnimationState);
+      ticking = true;
+    }
+  }, { passive:true });
+
+  updateAnimationState();
+
+  // Lightbox
+  const items = document.querySelectorAll('.g-item');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  items.forEach(i => {
+    i.addEventListener('click', () => {
+      const src = i.querySelector('img').src;
+      const alt = i.querySelector('img').alt;
+      lightboxImg.src = src;
+      lightboxImg.alt = alt;
+      lightbox.classList.add('open');
+    });
+  });
+  document.getElementById('lightboxClose').addEventListener('click', () => lightbox.classList.remove('open'));
+  lightbox.addEventListener('click', (e) => { if(e.target === lightbox) lightbox.classList.remove('open'); });
+</script>
+</body>
+</html>

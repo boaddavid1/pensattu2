@@ -108,8 +108,12 @@ export default function Header() {
             <div><strong>+233 24 000 0000</strong><small>Sun 9AM & 11AM</small></div>
           </div>
           <Link to="/contact" className="btn btn-dark">Contact us</Link>
-          <button className={`burger${open ? ' open' : ''}`} aria-label="Menu" aria-expanded={open} onClick={() => { setOpen(!open); setAboutOpen(false); setFeedOpen(false); }}>
-            <span></span><span></span><span></span>
+          <button className={`more-btn${open ? ' open' : ''}`} aria-label="More navigation" aria-expanded={open} onClick={() => { setOpen(!open); setAboutOpen(false); setFeedOpen(false); }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="5" cy="12" r="1.8" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1.8" fill="currentColor"/>
+              <circle cx="19" cy="12" r="1.8" fill="currentColor"/>
+            </svg>
           </button>
         </div>
       </nav>

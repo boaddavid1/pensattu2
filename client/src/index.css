@@ -118,11 +118,14 @@ header {
 .nav-phone .ic { width: 38px; height: 38px; border-radius: 50%; background: var(--sand); display: flex; align-items: center; justify-content: center; }
 .nav-phone strong { display: block; font-size: 14.5px; }
 .nav-phone small { color: var(--ink-soft); font-size: 11.5px; }
-.burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; width: 28px; height: 22px; justify-content: center; position: relative; z-index: 101; }
-.burger span { width: 24px; height: 2px; background: var(--pine); border-radius: 2px; transition: transform .25s ease, opacity .2s ease; transform-origin: center; }
-.burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.burger.open span:nth-child(2) { opacity: 0; }
-.burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.more-btn {
+  display: none; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--sand); border: none; cursor: pointer;
+  color: var(--pine-deep); position: relative; z-index: 101;
+  transition: background .2s ease, color .2s ease;
+}
+.more-btn:hover, .more-btn.open { background: var(--pine-deep); color: #fff; }
 
 /* ===== HERO ===== */
 .hero {
@@ -340,7 +343,8 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .mobile-tabbar { display: none; }
 
 @media (max-width: 980px) {
-  .nav-links, .nav-phone, .burger { display: none; }
+  .nav-links, .nav-phone { display: none; }
+  .more-btn { display: flex; }
   .nav-links {
     position: absolute;
     top: 76px;
