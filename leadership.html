@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership — PENSA TTU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine:#0E4C92; --pine-deep:#0A2E5C; --moss:#4FA6FF; --moss-deep:#2673D6;
+    --paper:#FAFBFD; --sand:#E9F1FB; --ink:#15231C; --ink-soft:#4B5B52;
+    --line: rgba(15,61,46,0.14); --radius: 22px; --shadow: 0 20px 50px -20px rgba(10,42,32,0.35);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--paper); -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+  img{max-width:100%; display:block;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  .wrap{max-width:1220px; margin:0 auto; padding:0 32px;}
+  h1,h2,h3{font-family:'Fraunces', serif; line-height:1.08; letter-spacing:-0.01em; font-weight:600;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--moss-deep); display:inline-flex; align-items:center; gap:10px; margin-bottom:16px; font-weight:500;}
+  .eyebrow::before{content:""; width:22px; height:1.5px; background:var(--moss-deep); display:inline-block;}
+  .btn{display:inline-flex; align-items:center; gap:10px; padding:15px 26px; border-radius:100px; font-weight:600; font-size:15px; cursor:pointer; border:none; transition:transform .25s ease, box-shadow .25s ease, background .25s ease; white-space:nowrap;}
+  .btn-primary{background:var(--moss); color:var(--pine-deep);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 28px -8px rgba(79,166,255,0.55);}
+  .btn-dark{background:var(--pine); color:var(--paper);}
+  .btn-dark:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
+  .btn-ghost{background:transparent; color:var(--pine); border:1.5px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--pine);}
+  .btn-arrow{width:34px; height:34px; border-radius:50%; background:var(--pine-deep); color:var(--moss); display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .btn-primary .btn-arrow{background:var(--pine-deep); color:var(--moss);}
+
+  header{position:sticky; top:0; z-index:100; background:rgba(250,251,253,0.86); backdrop-filter: blur(14px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1220px; margin:0 auto;}
+  .logo{font-family:'Fraunces', serif; font-weight:700; font-size:24px; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px;}
+  .logo span{color:var(--moss-deep);}
+  .nav-links{display:flex; gap:36px; font-size:15px; font-weight:500;}
+  .nav-links a{position:relative; padding:4px 0; color:var(--ink-soft);}
+  .nav-links a:hover, .nav-links a.active{color:var(--pine);}
+  .nav-right{display:flex; align-items:center; gap:22px;}
+  .nav-phone{display:flex; align-items:center; gap:10px; font-size:14px;}
+  .nav-phone .ic{width:38px; height:38px; border-radius:50%; background:var(--sand); display:flex; align-items:center; justify-content:center;}
+  .nav-phone strong{display:block; font-size:14.5px;}
+  .nav-phone small{color:var(--ink-soft); font-size:11.5px;}
+  .burger{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer;}
+  .burger span{width:24px; height:2px; background:var(--pine);}
+
+  .page-hero{position:relative; min-height:52vh; display:flex; align-items:flex-end; overflow:hidden; isolation:isolate;}
+  .page-hero-bg{position:absolute; inset:0; z-index:-2;}
+  .page-hero-bg img{width:100%; height:100%; object-fit:cover; object-position:center 40%;}
+  .page-hero-bg::after{content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(to top, rgba(10,30,22,0.9) 0%, rgba(10,30,22,0.35) 60%, rgba(10,30,22,0.15) 100%);}
+  .page-hero-inner{padding:70px 32px 56px; width:100%; max-width:1220px; margin:0 auto;}
+  .page-hero h1{color:#fff; font-size:clamp(36px,5vw,58px); max-width:680px;}
+  .page-hero h1 em{font-style:normal; color:var(--moss);}
+  .page-hero p{color:rgba(247,245,238,0.85); margin-top:16px; max-width:500px; font-size:16px; line-height:1.6;}
+  .page-hero .eyebrow{color:var(--moss);} .page-hero .eyebrow::before{background:var(--moss);}
+
+  section{padding:100px 0;}
+  .section-head{max-width:640px; margin-bottom:56px;}
+  .section-head h2{font-size:clamp(30px,3.4vw,44px); color:var(--pine-deep);}
+  .section-head h2 em{font-style:normal; color:var(--moss-deep);}
+  .section-head p{margin-top:16px; color:var(--ink-soft); font-size:16px; line-height:1.65;}
+  .center{text-align:center; margin-left:auto; margin-right:auto;}
+
+  /* Senior leadership - featured 2up */
+  .lead-featured{background:#fff;}
+  .featured-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:26px;}
+  .featured-card{display:grid; grid-template-columns:0.85fr 1fr; gap:0; border-radius:22px; overflow:hidden; border:1px solid var(--line);}
+  .featured-card .img{aspect-ratio:3/3.6; overflow:hidden;}
+  .featured-card .img img{width:100%; height:100%; object-fit:cover;}
+  .featured-card .body{padding:28px 24px; display:flex; flex-direction:column; justify-content:center;}
+  .featured-card .role{font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--moss-deep); margin-bottom:8px;}
+  .featured-card h3{font-family:'Fraunces',serif; font-size:22px; margin-bottom:10px;}
+  .featured-card p{color:var(--ink-soft); font-size:13.8px; line-height:1.6;}
+
+  /* Team grid - pastoral/ministry team */
+  .team{background:var(--paper);}
+  .team-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:22px; margin-top:50px;}
+  .team-card{position:relative; border-radius:20px; overflow:hidden; aspect-ratio:3/3.7;}
+  .team-card img{width:100%; height:100%; object-fit:cover;}
+  .team-card::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(10,42,32,0.88) 0%, rgba(10,42,32,0.05) 55%);}
+  .team-info{position:absolute; left:18px; right:18px; bottom:18px; z-index:2; color:#fff;}
+  .team-info h3{font-family:'Inter',sans-serif; font-size:15.5px; font-weight:700;}
+  .team-info span{font-size:12px; color:rgba(255,255,255,0.75);}
+
+  /* Elders / board */
+  .elders{background:#fff;}
+  .elder-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:50px;}
+  .elder-card{display:flex; gap:16px; align-items:center; padding:20px; background:var(--sand); border-radius:18px;}
+  .elder-card img{width:64px; height:64px; border-radius:50%; object-fit:cover; flex-shrink:0;}
+  .elder-card h4{font-family:'Inter',sans-serif; font-size:15px; font-weight:700;}
+  .elder-card span{font-size:12.5px; color:var(--ink-soft);}
+
+  /* Philosophy */
+  .philosophy{background:var(--pine-deep); color:#fff; border-radius:32px; margin:0 32px;}
+  .philosophy-inner{padding:80px 60px; display:grid; grid-template-columns:0.9fr 1fr; gap:50px; align-items:center;}
+  .philosophy .eyebrow{color:var(--moss);} .philosophy .eyebrow::before{background:var(--moss);}
+  .philosophy h2{color:#fff; font-size:clamp(28px,3vw,38px);}
+  .philosophy h2 em{font-style:normal; color:var(--moss);}
+  .philosophy-list{display:flex; flex-direction:column; gap:20px;}
+  .philosophy-item{border-left:2px solid var(--moss); padding-left:18px;}
+  .philosophy-item h4{font-family:'Inter',sans-serif; font-size:15px; font-weight:700; margin-bottom:6px;}
+  .philosophy-item p{font-size:13.6px; color:rgba(247,245,238,0.72); line-height:1.6;}
+
+  .cta{background:var(--paper);}
+  .cta-box{background:#fff; border:1px solid var(--line); border-radius:28px; padding:56px 60px; display:flex; justify-content:space-between; align-items:center; gap:40px; flex-wrap:wrap;}
+  .cta-box h2{font-size:clamp(24px,2.6vw,32px); color:var(--pine-deep); max-width:440px;}
+  .cta-box h2 em{font-style:normal; color:var(--moss-deep);}
+
+  footer{background:var(--pine-deep); color:rgba(247,245,238,0.75); padding-top:80px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1.2fr; gap:40px; padding-bottom:60px; border-bottom:1px solid rgba(255,255,255,0.1);}
+  .foot-logo{font-family:'Fraunces',serif; font-weight:700; font-size:24px; color:#fff; margin-bottom:16px;}
+  .foot-logo span{color:var(--moss);}
+  .foot-grid p{font-size:14px; line-height:1.7; max-width:280px;}
+  .foot-social{display:flex; gap:10px; margin-top:22px;}
+  .foot-social a{width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:13px;}
+  .foot-grid h4{color:#fff; font-family:'Inter',sans-serif; font-size:14.5px; margin-bottom:20px;}
+  .foot-grid ul{display:flex; flex-direction:column; gap:12px; font-size:14px;}
+  .foot-grid ul a:hover{color:#fff;}
+  .foot-contact li{margin-bottom:14px; font-size:14px; line-height:1.5;}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; padding:26px 0; font-size:13px;}
+  .foot-word{font-family:'Fraunces',serif; font-weight:700; text-align:center; color:rgba(255,255,255,0.04); font-size:clamp(60px,12vw,160px); line-height:1; letter-spacing:-0.02em; user-select:none;}
+
+  @media (max-width:980px){
+    .nav-links, .nav-phone{display:none;}
+    .burger{display:flex;}
+    .featured-grid{grid-template-columns:1fr;}
+    .team-grid{grid-template-columns:repeat(2,1fr);}
+    .elder-grid{grid-template-columns:1fr 1fr;}
+    .philosophy-inner{grid-template-columns:1fr; padding:56px 40px;}
+    .philosophy{margin:0 20px;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:600px){
+    .wrap, .nav{padding-left:20px; padding-right:20px;}
+    section{padding:64px 0;}
+    .featured-card{grid-template-columns:1fr;}
+    .team-grid{grid-template-columns:1fr 1fr;}
+    .elder-grid{grid-template-columns:1fr;}
+    .philosophy-inner{padding:40px 26px;}
+    .cta-box{padding:36px 26px;}
+    .foot-grid{grid-template-columns:1fr; padding-bottom:40px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a class="logo" href="index.html">PENSA <span>TTU</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="index.html#services">Ministries</a></li>
+      <li><a href="leadership.html" class="active">Leadership</a></li>
+      <li><a href="sermons.html">Sermons</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-phone">
+        <div class="ic">☎</div>
+        <div><strong>+233 24 000 0000</strong><small>Sun 9AM & 11AM</small></div>
+      </div>
+      <a href="index.html#book" class="btn btn-dark">Plan a visit</a>
+      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<section class="page-hero">
+  <div class="page-hero-bg">
+    <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1600&q=80" alt="Leadership team in conversation">
+  </div>
+  <div class="page-hero-inner">
+    <span class="eyebrow">Our leadership</span>
+    <h1>People who carry this church <em>with care</em>.</h1>
+    <p>Pastors, elders and ministry leads who take the responsibility of shepherding this community seriously — and take themselves lightly.</p>
+  </div>
+</section>
+
+<section class="lead-featured">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Senior leadership</span>
+      <h2>Setting the <em>direction</em>.</h2>
+    </div>
+    <div class="featured-grid">
+      <div class="featured-card">
+        <div class="img"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80" alt="Pastor Mark Johnson"></div>
+        <div class="body">
+          <span class="role">Senior Pastor</span>
+          <h3>Mark Johnson</h3>
+          <p>Mark has led PENSA TTU since its founding in 2014. He preaches most Sundays and spends the rest of his week in one-on-one conversations he considers just as important as the sermon.</p>
+        </div>
+      </div>
+      <div class="featured-card">
+        <div class="img"><img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=80" alt="Pastor Helen Owusu"></div>
+        <div class="body">
+          <span class="role">Executive & Worship Pastor</span>
+          <h3>Helen Owusu</h3>
+          <p>Helen oversees church operations and leads worship on Sunday mornings. She joined the founding team in 2014 and has led the music ministry ever since.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="team" id="team">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Ministry team</span>
+      <h2>The people behind <em>every ministry</em>.</h2>
+    </div>
+    <div class="team-grid">
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80" alt="Pastor Alex Mensah">
+        <div class="team-info"><h3>Alex Mensah</h3><span>Youth Pastor</span></div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80" alt="Ama Boateng">
+        <div class="team-info"><h3>Ama Boateng</h3><span>Kids Ministry Lead</span></div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=80" alt="Kwame Asante">
+        <div class="team-info"><h3>Kwame Asante</h3><span>Outreach Director</span></div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&q=80" alt="Naana Adjei">
+        <div class="team-info"><h3>Naana Adjei</h3><span>Community Groups Lead</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="elders">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Board of elders</span>
+      <h2>Providing <em>oversight and counsel</em>.</h2>
+    </div>
+    <div class="elder-grid">
+      <div class="elder-card">
+        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&q=80" alt="Elder Samuel Owusu">
+        <div><h4>Samuel Owusu</h4><span>Elder, since 2014</span></div>
+      </div>
+      <div class="elder-card">
+        <img src="https://images.unsplash.com/photo-1607990283143-e81e7a2c9349?w=200&q=80" alt="Elder Grace Nkrumah">
+        <div><h4>Grace Nkrumah</h4><span>Elder, since 2017</span></div>
+      </div>
+      <div class="elder-card">
+        <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&q=80" alt="Elder Daniel Appiah">
+        <div><h4>Daniel Appiah</h4><span>Elder, since 2019</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="phil-wrap">
+  <div class="philosophy">
+    <div class="philosophy-inner">
+      <div>
+        <span class="eyebrow">How we lead</span>
+        <h2>Leadership as <em>service</em>, not status.</h2>
+      </div>
+      <div class="philosophy-list">
+        <div class="philosophy-item">
+          <h4>Accessible, not distant</h4>
+          <p>Every leader here takes calls, answers messages, and sits with people through hard weeks.</p>
+        </div>
+        <div class="philosophy-item">
+          <h4>Accountable to each other</h4>
+          <p>No single person leads unchecked — our elders exist to ask hard questions, including of the pastors.</p>
+        </div>
+        <div class="philosophy-item">
+          <h4>Raising the next leaders</h4>
+          <p>Every ministry lead is actively mentoring someone to eventually take their place.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <div class="cta-box">
+      <h2>Want to talk to someone on our <em>team</em>?</h2>
+      <a href="index.html#book" class="btn btn-dark">Get in touch <span class="btn-arrow" style="background:var(--moss); color:var(--pine-deep);">→</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="foot-logo" href="index.html">PENSA <span>TTU</span></a>
+        <p>A church community in Accra built on honest worship, real friendship, and a Word that meets you where you are.</p>
+        <div class="foot-social"><a href="#">f</a><a href="#">ig</a><a href="#">yt</a></div>
+      </div>
+      <div>
+        <h4>Church</h4>
+        <ul><a href="about.html">About Us</a><a href="index.html#services">Ministries</a><a href="leadership.html">Leadership</a><a href="sermons.html">Sermons</a></ul>
+      </div>
+      <div>
+        <h4>Ministries</h4>
+        <ul><a href="index.html#services">Worship & Music</a><a href="index.html#services">Youth & Kids</a><a href="index.html#services">Outreach</a><a href="index.html#services">Bible Study</a></ul>
+      </div>
+      <div>
+        <h4>Visit Us</h4>
+        <ul class="foot-contact">
+          <li>📍 12 Cantonments Road, Accra, GH</li>
+          <li>✉️ hello@pensattu.example</li>
+          <li>☎ +233 24 000 0000</li>
+          <li>🕊 Sundays, 9:00 AM & 11:00 AM</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 PENSA TTU. All rights reserved.</span>
+      <span>Privacy · Terms</span>
+    </div>
+    <div class="foot-word">PENSA TTU</div>
+  </div>
+</footer>
+
+<script>
+  document.querySelector('.burger').addEventListener('click', () => {
+    const links = document.querySelector('.nav-links');
+    const open = links.style.display === 'flex';
+    links.style.display = open ? 'none' : 'flex';
+    links.style.cssText += open ? '' : 'position:absolute; top:74px; left:0; right:0; background:#FAFBFD; flex-direction:column; padding:24px 32px; gap:18px; border-bottom:1px solid rgba(15,61,46,0.14);';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — PENSA TTU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine:#0E4C92; --pine-deep:#0A2E5C; --moss:#4FA6FF; --moss-deep:#2673D6;
+    --paper:#FAFBFD; --sand:#E9F1FB; --ink:#15231C; --ink-soft:#4B5B52;
+    --line: rgba(15,61,46,0.14); --radius: 22px; --shadow: 0 20px 50px -20px rgba(10,42,32,0.35);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter', sans-serif; color:var(--ink); background:var(--paper); -webkit-font-smoothing:antialiased; overflow-x:hidden;}
+  img{max-width:100%; display:block;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  .wrap{max-width:1220px; margin:0 auto; padding:0 32px;}
+  h1,h2,h3{font-family:'Fraunces', serif; line-height:1.08; letter-spacing:-0.01em; font-weight:600;}
+  .eyebrow{font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--moss-deep); display:inline-flex; align-items:center; gap:10px; margin-bottom:16px; font-weight:500;}
+  .eyebrow::before{content:""; width:22px; height:1.5px; background:var(--moss-deep); display:inline-block;}
+  .btn{display:inline-flex; align-items:center; gap:10px; padding:15px 26px; border-radius:100px; font-weight:600; font-size:15px; cursor:pointer; border:none; transition:transform .25s ease, box-shadow .25s ease, background .25s ease; white-space:nowrap;}
+  .btn-primary{background:var(--moss); color:var(--pine-deep);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 28px -8px rgba(79,166,255,0.55);}
+  .btn-dark{background:var(--pine); color:var(--paper);}
+  .btn-dark:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
+  .btn-ghost{background:transparent; color:var(--pine); border:1.5px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--pine);}
+  .btn-arrow{width:34px; height:34px; border-radius:50%; background:var(--pine-deep); color:var(--moss); display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .btn-primary .btn-arrow{background:var(--pine-deep); color:var(--moss);}
+
+  header{position:sticky; top:0; z-index:100; background:rgba(250,251,253,0.86); backdrop-filter: blur(14px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:20px 32px; max-width:1220px; margin:0 auto;}
+  .logo{font-family:'Fraunces', serif; font-weight:700; font-size:24px; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px;}
+  .logo span{color:var(--moss-deep);}
+  .nav-links{display:flex; gap:32px; font-size:15px; font-weight:500;}
+  .nav-links a{position:relative; padding:4px 0; color:var(--ink-soft);}
+  .nav-links a:hover, .nav-links a.active{color:var(--pine);}
+  .nav-right{display:flex; align-items:center; gap:22px;}
+  .nav-phone{display:flex; align-items:center; gap:10px; font-size:14px;}
+  .nav-phone .ic{width:38px; height:38px; border-radius:50%; background:var(--sand); display:flex; align-items:center; justify-content:center;}
+  .nav-phone strong{display:block; font-size:14.5px;}
+  .nav-phone small{color:var(--ink-soft); font-size:11.5px;}
+  .burger{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer;}
+  .burger span{width:24px; height:2px; background:var(--pine);}
+
+  .page-hero{position:relative; min-height:44vh; display:flex; align-items:flex-end; overflow:hidden; isolation:isolate;}
+  .page-hero-bg{position:absolute; inset:0; z-index:-2;}
+  .page-hero-bg img{width:100%; height:100%; object-fit:cover; object-position:center 40%;}
+  .page-hero-bg::after{content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(to top, rgba(10,30,22,0.9) 0%, rgba(10,30,22,0.35) 60%, rgba(10,30,22,0.15) 100%);}
+  .page-hero-inner{padding:70px 32px 56px; width:100%; max-width:1220px; margin:0 auto;}
+  .page-hero h1{color:#fff; font-size:clamp(36px,5vw,58px); max-width:680px;}
+  .page-hero h1 em{font-style:normal; color:var(--moss);}
+  .page-hero p{color:rgba(247,245,238,0.85); margin-top:16px; max-width:500px; font-size:16px; line-height:1.6;}
+  .page-hero .eyebrow{color:var(--moss);} .page-hero .eyebrow::before{background:var(--moss);}
+
+  section{padding:100px 0;}
+  .section-head{max-width:640px; margin-bottom:56px;}
+  .section-head h2{font-size:clamp(30px,3.4vw,44px); color:var(--pine-deep);}
+  .section-head h2 em{font-style:normal; color:var(--moss-deep);}
+  .section-head p{margin-top:16px; color:var(--ink-soft); font-size:16px; line-height:1.65;}
+  .center{text-align:center; margin-left:auto; margin-right:auto;}
+
+  /* Quick contact cards */
+  .quick{background:#fff; padding-bottom:0;}
+  .quick-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:22px;}
+  .quick-card{background:var(--sand); border-radius:20px; padding:28px 24px;}
+  .quick-card .ic{width:46px; height:46px; border-radius:14px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:19px; margin-bottom:18px;}
+  .quick-card h3{font-family:'Inter',sans-serif; font-size:15.5px; font-weight:700; margin-bottom:6px;}
+  .quick-card p{color:var(--ink-soft); font-size:13.8px; line-height:1.6;}
+  .quick-card a{color:var(--pine); font-weight:600; font-size:13.8px;}
+
+  /* Form + map */
+  .contact-main{background:#fff;}
+  .contact-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:26px; align-items:stretch;}
+  .contact-form-card{background:var(--pine-deep); border-radius:28px; padding:56px 50px; color:#fff;}
+  .contact-form-card .eyebrow{color:var(--moss);} .contact-form-card .eyebrow::before{background:var(--moss);}
+  .contact-form-card h2{color:#fff; font-size:clamp(26px,2.8vw,34px); margin-bottom:26px;}
+  .contact-form-card h2 em{font-style:normal; color:var(--moss);}
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .form-grid input, .form-grid select, .contact-form-card textarea{
+    width:100%; padding:15px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.18);
+    background:rgba(255,255,255,0.06); color:#fff; font-family:'Inter',sans-serif; font-size:14.5px;
+  }
+  .form-grid input::placeholder, .contact-form-card textarea::placeholder{color:rgba(255,255,255,0.5);}
+  .form-full{grid-column:1/-1;}
+  .contact-form-card button{margin-top:20px;}
+  .map-panel{border-radius:28px; overflow:hidden; display:flex; flex-direction:column; border:1px solid var(--line);}
+  .map-frame{flex:1; min-height:280px;}
+  .map-frame iframe{width:100%; height:100%; border:0; display:block; min-height:280px;}
+  .map-details{padding:28px 30px; background:var(--sand);}
+  .map-details h3{font-family:'Fraunces',serif; font-size:19px; margin-bottom:12px;}
+  .map-details ul{display:flex; flex-direction:column; gap:10px;}
+  .map-details li{font-size:14px; color:var(--ink-soft); display:flex; gap:10px;}
+
+  /* Service times */
+  .times{background:var(--paper);}
+  .times-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  .time-card{background:#fff; border:1px solid var(--line); border-radius:20px; padding:30px 26px;}
+  .time-card .day{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--moss-deep); margin-bottom:10px;}
+  .time-card h3{font-family:'Fraunces',serif; font-size:24px; margin-bottom:8px;}
+  .time-card p{color:var(--ink-soft); font-size:13.8px; line-height:1.6;}
+
+  /* FAQ */
+  .faq{background:#fff;}
+  .faq-list{max-width:760px;}
+  .faq-item{border-top:1px solid var(--line); padding:22px 0;}
+  .faq-item:last-child{border-bottom:1px solid var(--line);}
+  .faq-item summary{cursor:pointer; font-family:'Inter',sans-serif; font-weight:700; font-size:15.5px; list-style:none; display:flex; justify-content:space-between; align-items:center;}
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:"+"; font-family:'Fraunces',serif; font-size:22px; color:var(--moss-deep); flex-shrink:0; margin-left:20px;}
+  .faq-item[open] summary::after{content:"–";}
+  .faq-item p{color:var(--ink-soft); font-size:14.3px; line-height:1.65; margin-top:14px; max-width:640px;}
+
+  footer{background:var(--pine-deep); color:rgba(247,245,238,0.75); padding-top:80px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1.2fr; gap:40px; padding-bottom:60px; border-bottom:1px solid rgba(255,255,255,0.1);}
+  .foot-logo{font-family:'Fraunces',serif; font-weight:700; font-size:24px; color:#fff; margin-bottom:16px;}
+  .foot-logo span{color:var(--moss);}
+  .foot-grid p{font-size:14px; line-height:1.7; max-width:280px;}
+  .foot-social{display:flex; gap:10px; margin-top:22px;}
+  .foot-social a{width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:13px;}
+  .foot-grid h4{color:#fff; font-family:'Inter',sans-serif; font-size:14.5px; margin-bottom:20px;}
+  .foot-grid ul{display:flex; flex-direction:column; gap:12px; font-size:14px;}
+  .foot-grid ul a:hover{color:#fff;}
+  .foot-contact li{margin-bottom:14px; font-size:14px; line-height:1.5;}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; padding:26px 0; font-size:13px;}
+  .foot-word{font-family:'Fraunces',serif; font-weight:700; text-align:center; color:rgba(255,255,255,0.04); font-size:clamp(60px,12vw,160px); line-height:1; letter-spacing:-0.02em; user-select:none;}
+
+  @media (max-width:980px){
+    .nav-links, .nav-phone{display:none;}
+    .burger{display:flex;}
+    .quick-grid{grid-template-columns:repeat(2,1fr);}
+    .contact-grid{grid-template-columns:1fr;}
+    .times-grid{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:600px){
+    .wrap, .nav{padding-left:20px; padding-right:20px;}
+    section{padding:64px 0;}
+    .quick-grid{grid-template-columns:1fr;}
+    .contact-form-card{padding:40px 26px;}
+    .form-grid{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr; padding-bottom:40px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a class="logo" href="index.html">PENSA <span>TTU</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="index.html#services">Ministries</a></li>
+      <li><a href="leadership.html">Leadership</a></li>
+      <li><a href="sermons.html">Sermons</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-phone">
+        <div class="ic">☎</div>
+        <div><strong>+233 24 000 0000</strong><small>Sun 9AM & 11AM</small></div>
+      </div>
+      <a href="#form" class="btn btn-dark">Get in touch</a>
+      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<section class="page-hero">
+  <div class="page-hero-bg">
+    <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=1600&q=80" alt="Greeters welcoming visitors at PENSA TTU">
+  </div>
+  <div class="page-hero-inner">
+    <span class="eyebrow">Get in touch</span>
+    <h1>We'd genuinely love to <em>hear from you</em>.</h1>
+    <p>Questions about a service, a ministry, or just want to say hello — reach out and someone from our team will get back to you within a day.</p>
+  </div>
+</section>
+
+<section class="quick">
+  <div class="wrap quick-grid">
+    <div class="quick-card">
+      <div class="ic">📍</div>
+      <h3>Visit Us</h3>
+      <p>12 Cantonments Road<br>Accra, Ghana</p>
+      <a href="#map">Get directions →</a>
+    </div>
+    <div class="quick-card">
+      <div class="ic">☎</div>
+      <h3>Call Us</h3>
+      <p>Mon–Fri, 9am–5pm</p>
+      <a href="tel:+233240000000">+233 24 000 0000</a>
+    </div>
+    <div class="quick-card">
+      <div class="ic">✉️</div>
+      <h3>Email Us</h3>
+      <p>We reply within 24 hours</p>
+      <a href="mailto:hello@pensattu.example">hello@pensattu.example</a>
+    </div>
+    <div class="quick-card">
+      <div class="ic">🕊</div>
+      <h3>Sunday Services</h3>
+      <p>9:00 AM & 11:00 AM<br>In person & online</p>
+      <a href="index.html#book">Plan your visit →</a>
+    </div>
+  </div>
+</section>
+
+<section class="contact-main" id="form">
+  <div class="wrap contact-grid">
+    <div class="contact-form-card">
+      <span class="eyebrow">Send a message</span>
+      <h2>How can we <em>help</em>?</h2>
+      <form class="form-grid" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Message sent ✓';">
+        <input type="text" placeholder="First name" required>
+        <input type="text" placeholder="Last name" required>
+        <input type="email" placeholder="Email address" required>
+        <input type="tel" placeholder="Phone number (optional)">
+        <select class="form-full">
+          <option>What's this about?</option>
+          <option>Planning a visit</option>
+          <option>Joining a community group</option>
+          <option>Prayer request</option>
+          <option>Volunteering</option>
+          <option>General question</option>
+        </select>
+        <textarea class="form-full" rows="4" placeholder="Tell us a bit more..."></textarea>
+        <button type="submit" class="btn btn-primary form-full" style="justify-content:center;">Send message <span class="btn-arrow">→</span></button>
+      </form>
+    </div>
+    <div class="map-panel" id="map">
+      <div class="map-frame">
+        <iframe src="https://www.google.com/maps?q=Cantonments,Accra,Ghana&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="PENSA TTU location"></iframe>
+      </div>
+      <div class="map-details">
+        <h3>Find us on Sunday</h3>
+        <ul>
+          <li>📍 12 Cantonments Road, Accra, GH</li>
+          <li>🚗 Free parking available on-site</li>
+          <li>🕊 Doors open 30 minutes before each service</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="times">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow">When to join us</span>
+      <h2>A few ways to <em>connect this week</em>.</h2>
+    </div>
+    <div class="times-grid">
+      <div class="time-card">
+        <div class="day">Sunday</div>
+        <h3>9:00 AM & 11:00 AM</h3>
+        <p>Our two main worship services, in person and streaming live for anyone joining remotely.</p>
+      </div>
+      <div class="time-card">
+        <div class="day">Wednesday</div>
+        <h3>6:30 PM</h3>
+        <p>Midweek Bible study — a smaller, slower dive into scripture, open to everyone.</p>
+      </div>
+      <div class="time-card">
+        <div class="day">Throughout the week</div>
+        <h3>30+ Community Groups</h3>
+        <p>Neighborhood groups meeting across Accra — reach out and we'll connect you to one nearby.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Before you visit</span>
+      <h2>Common <em>questions</em>.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary>What should I wear?</summary>
+        <p>Whatever you're comfortable in. You'll see everything from suits to jeans — there's no dress code here.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is there something for my kids?</summary>
+        <p>Yes — our Kids Ministry runs age-appropriate programming during both Sunday services, with trained volunteers and a secure check-in system.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Where do I park?</summary>
+        <p>Free on-site parking is available, with overflow parking and directions posted on Sunday mornings.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I watch online if I can't make it in person?</summary>
+        <p>Absolutely — both services stream live, and every message is archived on our Sermons page afterward.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How do I join a community group?</summary>
+        <p>Fill out the form above and select "Joining a community group" — our Community Groups Lead will reach out to match you with one nearby.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="foot-logo" href="index.html">PENSA <span>TTU</span></a>
+        <p>A church community in Accra built on honest worship, real friendship, and a Word that meets you where you are.</p>
+        <div class="foot-social"><a href="#">f</a><a href="#">ig</a><a href="#">yt</a></div>
+      </div>
+      <div>
+        <h4>Church</h4>
+        <ul><a href="about.html">About Us</a><a href="index.html#services">Ministries</a><a href="leadership.html">Leadership</a><a href="sermons.html">Sermons</a><a href="contact.html">Contact</a></ul>
+      </div>
+      <div>
+        <h4>Ministries</h4>
+        <ul><a href="index.html#services">Worship & Music</a><a href="index.html#services">Youth & Kids</a><a href="index.html#services">Outreach</a><a href="index.html#services">Bible Study</a></ul>
+      </div>
+      <div>
+        <h4>Visit Us</h4>
+        <ul class="foot-contact">
+          <li>📍 12 Cantonments Road, Accra, GH</li>
+          <li>✉️ hello@pensattu.example</li>
+          <li>☎ +233 24 000 0000</li>
+          <li>🕊 Sundays, 9:00 AM & 11:00 AM</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 PENSA TTU. All rights reserved.</span>
+      <span>Privacy · Terms</span>
+    </div>
+    <div class="foot-word">PENSA TTU</div>
+  </div>
+</footer>
+
+<script>
+  document.querySelector('.burger').addEventListener('click', () => {
+    const links = document.querySelector('.nav-links');
+    const open = links.style.display === 'flex';
+    links.style.display = open ? 'none' : 'flex';
+    links.style.cssText += open ? '' : 'position:absolute; top:74px; left:0; right:0; background:#FAFBFD; flex-direction:column; padding:24px 32px; gap:18px; border-bottom:1px solid rgba(15,61,46,0.14);';
+  });
+</script>
+</body>
+</html>

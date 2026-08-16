@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PENSA TTU — Find Your Place</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine:#0E4C92;
+    --pine-deep:#0A2E5C;
+    --moss:#4FA6FF;
+    --moss-deep:#2673D6;
+    --paper:#FAFBFD;
+    --sand:#E9F1FB;
+    --ink:#15231C;
+    --ink-soft:#4B5B52;
+    --line: rgba(15,61,46,0.14);
+    --radius: 22px;
+    --shadow: 0 20px 50px -20px rgba(10,42,32,0.35);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+    background:var(--paper);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img{max-width:100%; display:block;}
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  .wrap{max-width:1220px; margin:0 auto; padding:0 32px;}
+  h1,h2,h3{font-family:'Fraunces', serif; line-height:1.08; letter-spacing:-0.01em; font-weight:600;}
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--moss-deep);
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+    font-weight:500;
+  }
+  .eyebrow::before{content:""; width:22px; height:1.5px; background:var(--moss-deep); display:inline-block;}
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:15px 26px; border-radius:100px;
+    font-weight:600; font-size:15px; cursor:pointer; border:none;
+    transition:transform .25s ease, box-shadow .25s ease, background .25s ease;
+    white-space:nowrap;
+  }
+  .btn-primary{background:var(--moss); color:var(--pine-deep);}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 28px -8px rgba(79,166,255,0.55);}
+  .btn-dark{background:var(--pine); color:var(--paper);}
+  .btn-dark:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
+  .btn-ghost{background:transparent; color:var(--pine); border:1.5px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--pine);}
+  .btn-arrow{
+    width:34px; height:34px; border-radius:50%; background:var(--pine-deep); color:var(--moss);
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .btn-primary .btn-arrow{background:var(--pine-deep); color:var(--moss);}
+
+  /* ===== HEADER ===== */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:rgba(250,251,253,0.86);
+    backdrop-filter: blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 32px;
+    max-width:1220px; margin:0 auto;
+  }
+  .logo{
+    font-family:'Fraunces', serif; font-weight:700; font-size:24px; letter-spacing:-0.02em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo span{color:var(--moss-deep);}
+  .nav-links{display:flex; gap:36px; font-size:15px; font-weight:500;}
+  .nav-links a{position:relative; padding:4px 0; color:var(--ink-soft);}
+  .nav-links a:hover{color:var(--pine);}
+  .nav-right{display:flex; align-items:center; gap:22px;}
+  .nav-phone{display:flex; align-items:center; gap:10px; font-size:14px;}
+  .nav-phone .ic{width:38px; height:38px; border-radius:50%; background:var(--sand); display:flex; align-items:center; justify-content:center;}
+  .nav-phone strong{display:block; font-size:14.5px;}
+  .nav-phone small{color:var(--ink-soft); font-size:11.5px;}
+  .burger{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer;}
+  .burger span{width:24px; height:2px; background:var(--pine);}
+
+  /* ===== HERO ===== */
+  .hero{
+    position:relative;
+    min-height:88vh;
+    display:flex; align-items:center;
+    padding:64px 0 0;
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .hero-bg{position:absolute; inset:0; z-index:-2;}
+  .hero-bg img{width:100%; height:100%; object-fit:cover; object-position:center 35%;}
+  .hero-bg::after{
+    content:""; position:absolute; inset:0; z-index:-1;
+    background:linear-gradient(100deg, rgba(10,30,22,0.88) 0%, rgba(10,30,22,0.62) 42%, rgba(10,30,22,0.22) 68%, rgba(10,30,22,0.05) 100%),
+               linear-gradient(to top, rgba(10,30,22,0.75) 0%, rgba(10,30,22,0) 30%);
+  }
+  .hero-inner{
+    width:100%; max-width:1220px; margin:0; padding:70px 32px 90px;
+  }
+  .hero-content{max-width:640px;}
+  .hero h1{font-size:clamp(40px,5.4vw,68px); color:#fff;}
+  .hero h1 em{font-style:normal; color:var(--moss); position:relative;}
+  .hero p{margin:22px 0 30px; color:rgba(247,245,238,0.82); font-size:17px; max-width:440px; line-height:1.65;}
+  .hero-badge{
+    display:inline-flex; margin-top:44px; background:rgba(247,245,238,0.96);
+    backdrop-filter:blur(6px); border-radius:16px; padding:14px 18px; gap:12px; align-items:center;
+    box-shadow:0 10px 30px -10px rgba(0,0,0,0.35);
+  }
+  .hero-badge .dot{width:10px; height:10px; border-radius:50%; background:var(--moss-deep); box-shadow:0 0 0 5px rgba(38,115,214,0.25);}
+  .hero-badge strong{font-size:14px; display:block; color:var(--pine-deep);}
+  .hero-badge span{font-size:12px; color:var(--ink-soft);}
+  .trail-strip{
+    margin-top:56px; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:18px 0; overflow:hidden; background:var(--sand);
+  }
+  .trail-track{display:flex; gap:48px; white-space:nowrap; animation:scroll 22s linear infinite; width:max-content;}
+  .trail-track span{
+    font-family:'JetBrains Mono', monospace; font-size:14px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--ink-soft); display:flex; align-items:center; gap:14px;
+  }
+  .trail-track span::after{content:"•"; color:var(--moss-deep);}
+  @keyframes scroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  /* ===== SECTION GENERIC ===== */
+  section{padding:100px 0;}
+  .section-head{max-width:640px; margin-bottom:56px;}
+  .section-head h2{font-size:clamp(30px,3.4vw,44px); color:var(--pine-deep);}
+  .section-head h2 em{font-style:normal; color:var(--moss-deep);}
+  .section-head p{margin-top:16px; color:var(--ink-soft); font-size:16px; line-height:1.65;}
+  .center{text-align:center; margin-left:auto; margin-right:auto;}
+
+  /* ===== WHY CHOOSE ===== */
+  .why{background:#fff;}
+  .why-grid{display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center;}
+  .why-list{display:flex; flex-direction:column; gap:26px;}
+  .why-item{display:flex; gap:18px; align-items:flex-start;}
+  .why-num{
+    width:52px; height:52px; border-radius:16px; background:var(--sand); color:var(--pine-deep);
+    display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; font-size:18px; flex-shrink:0;
+  }
+  .why-item h3{font-size:18px; font-family:'Inter',sans-serif; font-weight:700; margin-bottom:6px;}
+  .why-item p{color:var(--ink-soft); font-size:14.5px; line-height:1.6;}
+  .why-media{position:relative;}
+  .why-media-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:16px;}
+  .why-media-grid img{border-radius:20px; object-fit:cover; height:100%; width:100%;}
+  .why-media-grid .tall{aspect-ratio:3/4.4;}
+  .why-media-grid .short{aspect-ratio:3/2; align-self:end;}
+
+  /* ===== SERVICES ===== */
+  .services{background:var(--paper);}
+  .services-top{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap;}
+  .service-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:22px; margin-top:50px;}
+  .service-card{
+    background:#fff; border-radius:20px; overflow:hidden; border:1px solid var(--line);
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .service-card:hover{transform:translateY(-6px); box-shadow:var(--shadow);}
+  .service-card .img{aspect-ratio:4/3.2; overflow:hidden;}
+  .service-card .img img{width:100%; height:100%; object-fit:cover; transition:transform .5s ease;}
+  .service-card:hover .img img{transform:scale(1.08);}
+  .service-card .body{padding:22px 22px 26px;}
+  .service-card h3{font-family:'Inter',sans-serif; font-size:17px; font-weight:700; margin-bottom:8px;}
+  .service-card p{color:var(--ink-soft); font-size:13.8px; line-height:1.6;}
+
+  /* ===== STATS / STORY ===== */
+  .story{background:var(--pine-deep); color:var(--paper); border-radius:32px; margin:0 32px; padding:0; overflow:hidden;}
+  .story-inner{display:grid; grid-template-columns:1fr 0.95fr; align-items:stretch;}
+  .story-text{padding:70px 60px;}
+  .story-text .eyebrow{color:var(--moss);}
+  .story-text .eyebrow::before{background:var(--moss);}
+  .story-text h2{color:#fff; font-size:clamp(30px,3.2vw,42px);}
+  .story-text h2 em{font-style:normal; color:var(--moss);}
+  .story-text p{color:rgba(247,245,238,0.72); margin:20px 0 34px; max-width:440px; line-height:1.65;}
+  .story-stats{display:flex; gap:44px; margin-bottom:34px;}
+  .story-stats div strong{font-family:'Fraunces',serif; font-size:36px; display:block; color:var(--moss);}
+  .story-stats div span{font-size:13px; color:rgba(247,245,238,0.65);}
+  .story-media{position:relative; min-height:380px;}
+  .story-media img{width:100%; height:100%; object-fit:cover;}
+
+  /* ===== STEPS ===== */
+  .steps{background:#fff;}
+  .step-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:24px; position:relative;}
+  .step-grid::before{
+    content:""; position:absolute; top:96px; left:8%; right:8%; height:1px;
+    background-image:linear-gradient(to right, var(--line) 50%, transparent 0%);
+    background-size:14px 1px; background-repeat:repeat-x; z-index:0;
+  }
+  .step{position:relative; z-index:1;}
+  .step-media{aspect-ratio:4/3; border-radius:18px; overflow:hidden; margin-bottom:20px; border:6px solid #fff; box-shadow:0 0 0 1px var(--line);}
+  .step-media img{width:100%; height:100%; object-fit:cover;}
+  .step-tag{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--moss-deep); letter-spacing:0.1em;
+    display:block; margin-bottom:8px; text-transform:uppercase;
+  }
+  .step h3{font-family:'Inter',sans-serif; font-size:17px; font-weight:700; margin-bottom:6px;}
+  .step p{font-size:13.6px; color:var(--ink-soft); line-height:1.6;}
+
+  /* ===== FEATURE SPLIT ===== */
+  .feature{background:var(--paper);}
+  .feature-grid{display:grid; grid-template-columns:0.95fr 1fr; gap:60px; align-items:center;}
+  .feature-media{border-radius:24px; overflow:hidden; aspect-ratio:5/5.4; box-shadow:var(--shadow);}
+  .feature-media img{width:100%; height:100%; object-fit:cover;}
+  .feature-list{display:flex; flex-direction:column; gap:22px; margin:30px 0 34px;}
+  .feature-row{display:flex; gap:16px; align-items:flex-start; padding:20px; background:#fff; border-radius:16px; border:1px solid var(--line);}
+  .feature-row .ic{
+    width:44px; height:44px; border-radius:12px; background:var(--moss); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:var(--pine-deep); font-weight:700;
+  }
+  .feature-row h4{font-family:'Inter',sans-serif; font-size:15.5px; font-weight:700; margin-bottom:4px;}
+  .feature-row p{font-size:13.6px; color:var(--ink-soft); line-height:1.55;}
+
+  /* ===== TEAM ===== */
+  .team{background:#fff;}
+  .team-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:50px;}
+  .team-card{position:relative; border-radius:22px; overflow:hidden; aspect-ratio:3/3.7;}
+  .team-card img{width:100%; height:100%; object-fit:cover;}
+  .team-card::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(to top, rgba(10,42,32,0.85) 0%, rgba(10,42,32,0.05) 55%);
+  }
+  .team-info{position:absolute; left:20px; right:20px; bottom:20px; z-index:2; color:#fff; display:flex; justify-content:space-between; align-items:flex-end;}
+  .team-info h3{font-family:'Inter',sans-serif; font-size:16.5px; font-weight:700;}
+  .team-info span{font-size:12.5px; color:rgba(255,255,255,0.75);}
+  .team-social{width:36px; height:36px; border-radius:50%; background:var(--moss); color:var(--pine-deep); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;}
+
+  /* ===== TESTIMONIAL ===== */
+  .testi{background:var(--sand);}
+  .testi-grid{display:grid; grid-template-columns:0.85fr 1fr; gap:60px; align-items:center;}
+  .testi-media{position:relative; border-radius:24px; overflow:hidden; aspect-ratio:4/4.6;}
+  .testi-media img{width:100%; height:100%; object-fit:cover;}
+  .testi-rating{
+    position:absolute; left:20px; bottom:20px; background:#fff; border-radius:16px; padding:16px 20px;
+    box-shadow:var(--shadow);
+  }
+  .testi-rating strong{font-family:'Fraunces',serif; font-size:22px; display:block; color:var(--pine-deep);}
+  .testi-rating .stars{color:var(--moss-deep); font-size:14px; margin:4px 0;}
+  .testi-rating span{font-size:12px; color:var(--ink-soft);}
+  .quote{font-family:'Fraunces',serif; font-style:italic; font-size:clamp(20px,2.3vw,28px); line-height:1.5; color:var(--pine-deep); font-weight:500;}
+  .quote-author{display:flex; align-items:center; gap:14px; margin-top:30px;}
+  .quote-author img{width:52px; height:52px; border-radius:50%; object-fit:cover;}
+  .quote-author strong{display:block; font-size:15px;}
+  .quote-author span{font-size:13px; color:var(--ink-soft);}
+
+  /* ===== BOOKING ===== */
+  .booking{background:#fff;}
+  .booking-card{
+    display:grid; grid-template-columns:1fr 0.85fr; border-radius:28px; overflow:hidden;
+    background:var(--pine-deep); box-shadow:var(--shadow);
+  }
+  .booking-form{padding:60px 56px; color:#fff;}
+  .booking-form .eyebrow{color:var(--moss);} .booking-form .eyebrow::before{background:var(--moss);}
+  .booking-form h2{color:#fff; font-size:clamp(28px,3vw,36px); margin-bottom:28px;}
+  .booking-form h2 em{font-style:normal; color:var(--moss);}
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .form-grid input, .form-grid select, .booking-form textarea{
+    width:100%; padding:15px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.18);
+    background:rgba(255,255,255,0.06); color:#fff; font-family:'Inter',sans-serif; font-size:14.5px;
+  }
+  .form-grid input::placeholder, .booking-form textarea::placeholder{color:rgba(255,255,255,0.5);}
+  .form-full{grid-column:1/-1;}
+  .booking-form button{margin-top:20px;}
+  .booking-media{position:relative;}
+  .booking-media img{width:100%; height:100%; object-fit:cover;}
+  .guarantee{
+    position:absolute; left:24px; bottom:24px; right:24px; background:var(--moss); color:var(--pine-deep);
+    border-radius:16px; padding:18px 22px; display:flex; align-items:center; gap:14px; font-weight:700; font-size:15px;
+  }
+  .guarantee .ic{width:40px; height:40px; border-radius:50%; background:var(--pine-deep); color:var(--moss); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+
+  /* ===== BLOG ===== */
+  .blog{background:var(--paper);}
+  .blog-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:50px;}
+  .blog-card{background:#fff; border-radius:20px; overflow:hidden; border:1px solid var(--line); transition:transform .3s ease;}
+  .blog-card:hover{transform:translateY(-6px);}
+  .blog-card .img{aspect-ratio:16/11; overflow:hidden; position:relative;}
+  .blog-card .img img{width:100%; height:100%; object-fit:cover;}
+  .blog-tag{position:absolute; top:14px; left:14px; background:var(--moss); color:var(--pine-deep); font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:100px;}
+  .blog-card .body{padding:22px;}
+  .blog-meta{font-size:12px; color:var(--ink-soft); font-family:'JetBrains Mono',monospace; margin-bottom:10px;}
+  .blog-card h3{font-family:'Inter',sans-serif; font-size:16.5px; font-weight:700; line-height:1.4; margin-bottom:14px;}
+  .blog-link{font-size:13.5px; font-weight:700; color:var(--pine); display:inline-flex; align-items:center; gap:8px;}
+
+  /* ===== NEWSLETTER ===== */
+  .news{background:#fff;}
+  .news-box{
+    background:var(--sand); border-radius:28px; padding:56px 60px; display:flex; justify-content:space-between; align-items:center; gap:40px; flex-wrap:wrap;
+  }
+  .news-box h2{font-size:clamp(24px,2.6vw,32px); color:var(--pine-deep); max-width:420px;}
+  .news-box h2 em{font-style:normal; color:var(--moss-deep);}
+  .news-form{display:flex; gap:10px; flex:1; min-width:300px; max-width:440px;}
+  .news-form input{flex:1; padding:16px 20px; border-radius:100px; border:1px solid var(--line); font-family:'Inter',sans-serif; font-size:14.5px; background:#fff;}
+
+  /* ===== FOOTER ===== */
+  footer{background:var(--pine-deep); color:rgba(247,245,238,0.75); padding-top:80px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1.2fr; gap:40px; padding-bottom:60px; border-bottom:1px solid rgba(255,255,255,0.1);}
+  .foot-logo{font-family:'Fraunces',serif; font-weight:700; font-size:24px; color:#fff; margin-bottom:16px;}
+  .foot-logo span{color:var(--moss);}
+  .foot-grid p{font-size:14px; line-height:1.7; max-width:280px;}
+  .foot-social{display:flex; gap:10px; margin-top:22px;}
+  .foot-social a{width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:13px;}
+  .foot-grid h4{color:#fff; font-family:'Inter',sans-serif; font-size:14.5px; margin-bottom:20px;}
+  .foot-grid ul{display:flex; flex-direction:column; gap:12px; font-size:14px;}
+  .foot-grid ul a:hover{color:#fff;}
+  .foot-contact li{margin-bottom:14px; font-size:14px; line-height:1.5;}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; padding:26px 0; font-size:13px;}
+  .foot-word{
+    font-family:'Fraunces',serif; font-weight:700; text-align:center; color:rgba(255,255,255,0.04);
+    font-size:clamp(60px,12vw,160px); line-height:1; letter-spacing:-0.02em; user-select:none;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width:980px){
+    .nav-links, .nav-phone{display:none;}
+    .burger{display:flex;}
+    .why-grid, .story-inner, .feature-grid, .testi-grid, .booking-card{grid-template-columns:1fr;}
+    .story{margin:0 20px;}
+    .story-media{min-height:260px;}
+    .service-grid, .team-grid, .blog-grid{grid-template-columns:repeat(2,1fr);}
+    .step-grid{grid-template-columns:repeat(2,1fr); row-gap:40px;}
+    .step-grid::before{display:none;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:600px){
+    .wrap, .nav{padding-left:20px; padding-right:20px;}
+    section{padding:64px 0;}
+    .service-grid, .team-grid, .blog-grid{grid-template-columns:1fr;}
+    .step-grid{grid-template-columns:1fr;}
+    .form-grid{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr; padding-bottom:40px;}
+    .booking-form{padding:40px 26px;}
+    .news-box{padding:36px 26px;}
+    .story-text{padding:46px 30px;}
+    .hero-inner{padding:70px 20px 90px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <div class="logo">PENSA <span>TTU</span></div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#why">About</a></li>
+      <li><a href="#services">Ministries</a></li>
+      <li><a href="#team">Leadership</a></li>
+      <li><a href="#blog">Messages</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-phone">
+        <div class="ic">☎</div>
+        <div><strong>+233 24 000 0000</strong><small>Sun 9AM & 11AM</small></div>
+      </div>
+      <a href="#book" class="btn btn-dark">Plan a visit</a>
+      <button class="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+</header>
+
+<section class="hero" id="home">
+  <div class="hero-bg">
+    <img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=1600&q=80" alt="Congregation worshipping together">
+  </div>
+  <div class="hero-inner">
+    <div class="hero-content">
+      <span class="eyebrow" style="color:var(--moss);">A church home in Accra</span>
+      <h1>Faith that gives your heart room to <em>breathe</em>.</h1>
+      <p>PENSA TTU is a community built around honest worship, real friendship, and a Word that meets you where you are — whether this is your first Sunday or your five hundredth.</p>
+      <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <a href="#book" class="btn btn-primary">Plan your visit <span class="btn-arrow">→</span></a>
+        <a href="#services" class="btn btn-ghost" style="border-color:rgba(255,255,255,0.4); color:#fff;">Explore ministries</a>
+      </div>
+      <div class="hero-badge">
+        <span class="dot"></span>
+        <div><strong>500+ gather with us</strong><span>every Sunday, in person and online</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="trail-strip">
+  <div class="trail-track">
+    <span>Sunday Worship</span><span>Community Groups</span><span>Youth Ministry</span><span>Prayer Nights</span><span>Outreach</span><span>Bible Study</span>
+    <span>Sunday Worship</span><span>Community Groups</span><span>Youth Ministry</span><span>Prayer Nights</span><span>Outreach</span><span>Bible Study</span>
+  </div>
+</div>
+
+<section class="why" id="why">
+  <div class="wrap why-grid">
+    <div>
+      <span class="eyebrow">Why PENSA TTU</span>
+      <h2>Three reasons this <em>becomes home</em>.</h2>
+      <p style="color:var(--ink-soft); margin:16px 0 36px; line-height:1.65;">We're not trying to be the biggest church in Accra — just a place where people are known, the teaching is honest, and there's always a seat for one more.</p>
+      <div class="why-list">
+        <div class="why-item">
+          <div class="why-num">01</div>
+          <div><h3>Sunday Worship</h3><p>Two services, 9AM and 11AM, with live music and teaching that's straight from scripture.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">02</div>
+          <div><h3>Community Groups</h3><p>Small groups meeting weekly across Accra — real conversation, real accountability.</p></div>
+        </div>
+        <div class="why-item">
+          <div class="why-num">03</div>
+          <div><h3>Youth & Kids Ministry</h3><p>Age-appropriate teaching and a safe, joyful space for the next generation.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="why-media">
+      <div class="why-media-grid">
+        <img class="tall" src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=700&q=80" alt="Worship band leading a Sunday service">
+        <img class="short" src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=700&q=80" alt="Community group in conversation">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services" id="services">
+  <div class="wrap">
+    <div class="services-top">
+      <div class="section-head" style="margin-bottom:0;">
+        <span class="eyebrow">Get involved</span>
+        <h2>Ministries built around <em>how you're wired</em>.</h2>
+      </div>
+      <a href="#book" class="btn btn-ghost">See all ministries</a>
+    </div>
+    <div class="service-grid">
+      <div class="service-card">
+        <div class="img"><img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80" alt="Worship and music ministry"></div>
+        <div class="body"><h3>Worship & Music</h3><p>Musicians, singers and sound volunteers shaping every Sunday's atmosphere.</p></div>
+      </div>
+      <div class="service-card">
+        <div class="img"><img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80" alt="Outreach and missions"></div>
+        <div class="body"><h3>Outreach & Missions</h3><p>Serving neighborhoods across Accra with food, care, and practical help.</p></div>
+      </div>
+      <div class="service-card">
+        <div class="img"><img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80" alt="Counseling and pastoral care"></div>
+        <div class="body"><h3>Counseling & Care</h3><p>One-on-one time with our pastoral team, in confidence, whenever it's needed.</p></div>
+      </div>
+      <div class="service-card">
+        <div class="img"><img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=500&q=80" alt="Bible study group"></div>
+        <div class="body"><h3>Bible Study Groups</h3><p>Weekday gatherings that go deeper into scripture, together.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="story">
+  <div class="story">
+    <div class="story-inner">
+      <div class="story-text">
+        <span class="eyebrow">Our story</span>
+        <h2>Built by a small group who kept <em>showing up</em>.</h2>
+        <p>PENSA TTU started in 2014 with twelve people in a rented hall. Today we're a congregation spread across Accra, still holding to the same conviction that brought us together — that everyone deserves a place to belong.</p>
+        <div class="story-stats">
+          <div><strong>500+</strong><span>Members & regular attendees</span></div>
+          <div><strong>12+</strong><span>Years serving Accra</span></div>
+          <div><strong>30+</strong><span>Community groups</span></div>
+        </div>
+        <a href="#book" class="btn btn-primary">Join us this Sunday <span class="btn-arrow">→</span></a>
+      </div>
+      <div class="story-media">
+        <img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=800&q=80" alt="Church sanctuary interior">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="steps" id="how">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow">Getting started</span>
+      <h2>Find your place in <em>four steps</em>.</h2>
+    </div>
+    <div class="step-grid">
+      <div class="step">
+        <div class="step-media"><img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=400&q=80" alt="Planning a visit online"></div>
+        <span class="step-tag">Step 1</span>
+        <h3>Plan your visit</h3>
+        <p>Tell us you're coming so we can save you a seat and a warm welcome.</p>
+      </div>
+      <div class="step">
+        <div class="step-media"><img src="https://images.unsplash.com/photo-1478147427282-58a87a120781?w=400&q=80" alt="Choosing a service time"></div>
+        <span class="step-tag">Step 2</span>
+        <h3>Choose a service</h3>
+        <p>Join us at 9AM or 11AM, in person or streaming from wherever you are.</p>
+      </div>
+      <div class="step">
+        <div class="step-media"><img src="https://images.unsplash.com/photo-1438032005730-c779502df39b?w=400&q=80" alt="Warm welcome at church"></div>
+        <span class="step-tag">Step 3</span>
+        <h3>Come as you are</h3>
+        <p>Our greeters will meet you at the door — no dress code, no pressure.</p>
+      </div>
+      <div class="step">
+        <div class="step-media"><img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=400&q=80" alt="Finding a community group"></div>
+        <span class="step-tag">Step 4</span>
+        <h3>Find your group</h3>
+        <p>Connect with a community group and start putting down roots.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="feature" id="work">
+  <div class="wrap feature-grid">
+    <div class="feature-media">
+      <img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=700&q=80" alt="Congregation in worship">
+    </div>
+    <div>
+      <span class="eyebrow">What we hold to</span>
+      <h2>Two commitments we <em>never</em> compromise on.</h2>
+      <div class="feature-list">
+        <div class="feature-row">
+          <div class="ic">✓</div>
+          <div><h4>Scripture first, always</h4><p>Every message is grounded in the Bible — not trends, not opinions.</p></div>
+        </div>
+        <div class="feature-row">
+          <div class="ic">🤝</div>
+          <div><h4>A welcome that isn't a formality</h4><p>You'll be greeted by name within a few visits — that's not an accident.</p></div>
+        </div>
+      </div>
+      <a href="#book" class="btn btn-dark">Plan your visit <span class="btn-arrow" style="background:var(--moss); color:var(--pine-deep);">→</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="team" id="team">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow">Our leadership</span>
+      <h2>Pastors who <em>know your name</em>.</h2>
+    </div>
+    <div class="team-grid">
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80" alt="Pastor Mark Johnson, Senior Pastor">
+        <div class="team-info"><div><h3>Pastor Mark Johnson</h3><span>Senior Pastor</span></div><div class="team-social">in</div></div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=80" alt="Pastor Helen Owusu, Worship Pastor">
+        <div class="team-info"><div><h3>Pastor Helen Owusu</h3><span>Worship Pastor</span></div><div class="team-social">in</div></div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80" alt="Pastor Alex Mensah, Youth Pastor">
+        <div class="team-info"><div><h3>Pastor Alex Mensah</h3><span>Youth Pastor</span></div><div class="team-social">in</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="testi">
+  <div class="wrap testi-grid">
+    <div class="testi-media">
+      <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&q=80" alt="Member of the congregation">
+      <div class="testi-rating">
+        <strong>9AM & 11AM</strong>
+        <div class="stars">Every Sunday</div>
+        <span>In person & online</span>
+      </div>
+    </div>
+    <div>
+      <span class="eyebrow">What our members say</span>
+      <p class="quote">"I walked in not knowing a single person. Three months later, I had a small group, a mentor, and a church family I actually looked forward to seeing."</p>
+      <div class="quote-author">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80" alt="Ama Boateng">
+        <div><strong>Ama Boateng</strong><span>Member since 2023, East Legon</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="booking" id="book">
+  <div class="wrap">
+    <div class="booking-card">
+      <div class="booking-form">
+        <span class="eyebrow">Plan your visit</span>
+        <h2>We'd love to <em>welcome</em> you.</h2>
+        <form class="form-grid" onsubmit="event.preventDefault(); this.querySelector('button').textContent='See you Sunday ✓';">
+          <input type="text" placeholder="First name" required>
+          <input type="text" placeholder="Last name" required>
+          <input type="email" placeholder="Email address" required>
+          <input type="tel" placeholder="Phone number" required>
+          <select class="form-full">
+            <option>Which service will you join?</option>
+            <option>9:00 AM Service</option>
+            <option>11:00 AM Service</option>
+            <option>Online / Livestream</option>
+          </select>
+          <textarea class="form-full" rows="3" placeholder="Anything we should know before you visit?"></textarea>
+          <button type="submit" class="btn btn-primary form-full" style="justify-content:center;">Reserve my seat <span class="btn-arrow">→</span></button>
+        </form>
+      </div>
+      <div class="booking-media">
+        <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=700&q=80" alt="Greeter welcoming visitors">
+        <div class="guarantee">
+          <div class="ic">✓</div>
+          <div>You'll Be Warmly<br>Welcomed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="blog" id="blog">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow">From the pulpit</span>
+      <h2>Messages & reflections from <em>our community</em>.</h2>
+    </div>
+    <div class="blog-grid">
+      <article class="blog-card">
+        <div class="img"><span class="blog-tag">Sermon</span><img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80" alt="Sunday sermon"></div>
+        <div class="body"><div class="blog-meta">Message · 32 min</div><h3>What it means to belong before you believe</h3><a class="blog-link">Watch now →</a></div>
+      </article>
+      <article class="blog-card">
+        <div class="img"><span class="blog-tag">Community</span><img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80" alt="Small group gathering"></div>
+        <div class="body"><div class="blog-meta">Reflection · 4 min read</div><h3>Why we built community groups around neighborhoods</h3><a class="blog-link">Read more →</a></div>
+      </article>
+      <article class="blog-card">
+        <div class="img"><span class="blog-tag">Outreach</span><img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80" alt="Outreach event"></div>
+        <div class="body"><div class="blog-meta">Update · 3 min read</div><h3>Inside our latest outreach across Accra</h3><a class="blog-link">Read more →</a></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="news">
+  <div class="wrap">
+    <div class="news-box">
+      <h2>Get <em>weekly encouragement</em> — a short note every Friday.</h2>
+      <form class="news-form" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Subscribed ✓';">
+        <input type="email" placeholder="Your email address" required>
+        <button type="submit" class="btn btn-dark">Subscribe</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-logo">PENSA <span>TTU</span></div>
+        <p>A church community in Accra built on honest worship, real friendship, and a Word that meets you where you are.</p>
+        <div class="foot-social"><a href="#">f</a><a href="#">ig</a><a href="#">yt</a></div>
+      </div>
+      <div>
+        <h4>Church</h4>
+        <ul><a href="#why">About Us</a><a href="#services">Ministries</a><a href="#team">Leadership</a><a href="#blog">Messages</a></ul>
+      </div>
+      <div>
+        <h4>Ministries</h4>
+        <ul><a href="#">Worship & Music</a><a href="#">Youth & Kids</a><a href="#">Outreach</a><a href="#">Bible Study</a></ul>
+      </div>
+      <div>
+        <h4>Visit Us</h4>
+        <ul class="foot-contact">
+          <li>📍 12 Cantonments Road, Accra, GH</li>
+          <li>✉️ hello@pensattu.example</li>
+          <li>☎ +233 24 000 0000</li>
+          <li>🕊 Sundays, 9:00 AM & 11:00 AM</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 PENSA TTU. All rights reserved.</span>
+      <span>Privacy · Terms</span>
+    </div>
+    <div class="foot-word">PENSA TTU</div>
+  </div>
+</footer>
+
+<script>
+  document.querySelector('.burger').addEventListener('click', () => {
+    const links = document.querySelector('.nav-links');
+    const open = links.style.display === 'flex';
+    links.style.display = open ? 'none' : 'flex';
+    links.style.cssText += open ? '' : 'position:absolute; top:74px; left:0; right:0; background:#FAFBFD; flex-direction:column; padding:24px 32px; gap:18px; border-bottom:1px solid rgba(15,61,46,0.14);';
+  });
+</script>
+</body>
+</html>
