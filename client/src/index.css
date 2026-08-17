@@ -846,7 +846,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 
 @media (max-width: 600px) {
   .lead-featured .featured-card { grid-template-columns: 1fr; }
-  .elder-grid { grid-template-columns: 1fr; }
+  .elder-grid { grid-template-columns: 1fr 1fr; }
   .philosophy-inner { padding: 40px 26px; }
   .sermon-featured .featured-body { padding: 40px 26px; }
   .sermon-grid { grid-template-columns: 1fr; }
