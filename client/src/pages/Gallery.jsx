@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import './Gallery.css';
+import { albums } from '../data/albums';
 
 const heroColumns = [
   ['https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80', 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80'],
@@ -63,6 +64,27 @@ export default function Gallery() {
           <p>Worship mornings, community groups, outreach days, and everything in between — a look at what it's actually like here.</p>
         </div>
         <div className="g-scroll-cue"><span>Scroll</span><span className="arrow" /></div>
+      </section>
+
+      <section className="albums-covers" id="top">
+        <div className="wrap">
+          <div className="section-head">
+            <span className="eyebrow">Browse by album</span>
+            <h2>Four collections, <em>one community</em>.</h2>
+          </div>
+          <div className="cover-grid">
+            {albums.map((album) => (
+              <Link className="cover-card" to={`/gallery/${album.id}`} key={album.id}>
+                <div className="cover-img"><img src={album.cover} alt={`${album.title} album cover`} /></div>
+                <div className="cover-body">
+                  <h3>{album.title}</h3>
+                  <span>{album.count}</span>
+                  <span className="cover-link">View full album <em className="btn-arrow">→</em></span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="cta">
