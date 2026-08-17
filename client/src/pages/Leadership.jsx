@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 const featured = [
   {
@@ -16,19 +17,27 @@ const featured = [
 ];
 
 const ministryTeam = [
-  { name: 'Alex Mensah', role: 'Youth Pastor', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80' },
-  { name: 'Ama Boateng', role: 'Kids Ministry Lead', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80' },
-  { name: 'Kwame Asante', role: 'Outreach Director', img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=80' },
-  { name: 'Naana Adjei', role: 'Community Groups Lead', img: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&q=80' },
+  { name: 'Alex Mensah', role: 'Youth Pastor', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80', bio: 'Alex has been pouring into teenagers and young adults for over a decade. He leads Friday youth nights and mentors the next generation of campus leaders with energy and honesty.' },
+  { name: 'Ama Boateng', role: 'Kids Ministry Lead', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80', bio: 'Ama creates safe, fun spaces where children can learn about faith at their own level. She trains volunteers and makes sure every family feels known.' },
+  { name: 'Kwame Asante', role: 'Outreach Director', img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=80', bio: 'Kwame connects the church with local outreach opportunities. From neighborhood cleanups to campus Bible distribution, he moves faith into action.' },
+  { name: 'Naana Adjei', role: 'Community Groups Lead', img: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&q=80', bio: 'Naana oversees small groups across Accra, helping people find belonging, accountability, and friendship beyond Sunday services.' },
 ];
 
 const elders = [
-  { name: 'Samuel Owusu', since: '2014', img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80' },
-  { name: 'Grace Nkrumah', since: '2017', img: 'https://images.unsplash.com/photo-1607990283143-e81e7a2c9349?w=400&q=80' },
-  { name: 'Daniel Appiah', since: '2019', img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80' },
+  { name: 'Samuel Owusu', since: '2014', img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80', bio: 'Samuel brings wisdom and calm leadership to every elder meeting. He has served PENSA TTU since its earliest days and is known for asking the right question at the right time.' },
+  { name: 'Grace Nkrumah', since: '2017', img: 'https://images.unsplash.com/photo-1607990283143-e81e7a2c9349?w=400&q=80', bio: 'Grace cares deeply about discipleship and community health. She helps new believers grow in faith and ensures leaders are supported, not burned out.' },
+  { name: 'Daniel Appiah', since: '2019', img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80', bio: 'Daniel is a bridge-builder. Whether resolving tension or dreaming about what comes next, he keeps the church grounded in Scripture and focused on people.' },
 ];
 
 export default function Leadership() {
+  const [modal, setModal] = useState(null);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') setModal(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <main className="leadership-page">
       <section className="page-hero">
@@ -71,7 +80,7 @@ export default function Leadership() {
           </div>
           <div className="team-grid">
             {ministryTeam.map((m) => (
-              <div className="team-card" key={m.name}>
+              <div className="team-card" key={m.name} onClick={() => setModal(m)}>
                 <img src={m.img} alt={m.name} />
                 <div className="team-info"><h3>{m.name}</h3><span>{m.role}</span></div>
               </div>
@@ -88,7 +97,7 @@ export default function Leadership() {
           </div>
           <div className="elder-grid">
             {elders.map((e) => (
-              <div className="elder-card" key={e.name}>
+              <div className="elder-card" key={e.name} onClick={() => setModal(e)}>
                 <img src={e.img} alt={e.name} />
                 <div><h4>{e.name}</h4><span>Elder, since {e.since}</span></div>
               </div>
@@ -132,6 +141,22 @@ export default function Leadership() {
           </div>
         </div>
       </section>
+
+      {modal && (
+        <div className="lead-modal" onClick={() => setModal(null)}>
+          <div className="lead-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button className="lead-modal-close" onClick={() => setModal(null)}>✕</button>
+            <div className="lead-modal-img">
+              <img src={modal.img} alt={modal.name} />
+            </div>
+            <div className="lead-modal-body">
+              <span className="lead-modal-role">{modal.role || 'Elder, since ' + modal.since}</span>
+              <h3>{modal.name}</h3>
+              <p>{modal.bio}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
