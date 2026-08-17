@@ -24,12 +24,15 @@ export default function AlbumDetail() {
   }
 
   return (
-    <main className="albums" style={{ paddingTop: '120px' }}>
-      <div className="wrap">
-        <div className="album-head">
-          <h2>{album.title}</h2>
-          <Link to="/gallery" className="cover-link" style={{ fontSize: '13px' }}>← Back to gallery</Link>
+    <main className="albums">
+      <section className="album-hero">
+        <img src={album.cover} alt={`${album.title} cover`} />
+        <div className="wrap">
+          <Link to="/gallery" className="album-back">← Back to gallery</Link>
+          <h1>{album.title}</h1>
         </div>
+      </section>
+      <div className="wrap">
         <div className="g-grid">
           {album.items.map((item, i) => (
             <div className="g-item" key={i} onClick={() => setLightbox({ src: item.src, alt: item.alt })}>
