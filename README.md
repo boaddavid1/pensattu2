@@ -27,7 +27,7 @@ pensa_v2/
    mysql -u root -p < database/seed.sql
    ```
 
-2. Update `server/.env` with your MySQL credentials:
+2. Update `server/.env` with your MySQL credentials and a JWT secret:
 
    ```env
    PORT=3001
@@ -36,6 +36,7 @@ pensa_v2/
    DB_USER=root
    DB_PASSWORD=your_mysql_password
    DB_NAME=grace_harbor
+   JWT_SECRET=change_this_to_a_random_string
    ```
 
 ## Install & Run
@@ -76,6 +77,20 @@ The Vite dev server proxies `/api/*` requests to the Express backend.
 | POST | `/api/visits` | Plan a visit form |
 | POST | `/api/subscribers` | Newsletter signup |
 | POST | `/api/contact` | Contact form |
+| GET | `/api/announcements` | Announcements feed |
+| GET | `/api/notices` | Notice board feed |
+| GET | `/api/gallery` | Gallery albums & photos |
+
+## Super Admin Portal
+
+Visit `/admin` and sign in with the default superadmin account created by `database/seed.sql`:
+
+- **Email:** `admin@pensattu.org`
+- **Password:** `PensaAdmin2026!`
+
+After logging in, you can manage ministries, sermons, leadership team, events, announcements, notices, gallery albums/photos, visitor plans, subscribers, contact messages, and admin users. All admin actions are logged to the `activity_logs` table.
+
+**Important:** Change the default password and rotate the `JWT_SECRET` in production.
 
 ## Notes
 

@@ -1,18 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { albums } from '../data/albums';
+import { api } from '../api';
 import '../pages/Gallery.css';
 
 export default function AlbumDetail() {
   const { albumId } = useParams();
-  const album = albums.find((a) => a.id === albumId);
+  const [album, setAlbum] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState(null);
+
+  useEffect(() => {
+    api.get('/gallery')
+      .then((albums) => {
+        const found = albums.find((a) => String(a.id) === albumId);
+        setAlbum(found || null);
+      })
+      .catch(() => setAlbum(null))
+      .finally(() => setLoading(false));
+  }, [albumId]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') setLightbox(null); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  if (loading) {
+    return (
+      <main className="wrap" style={{ paddingTop: '140px', textAlign: 'center' }}>
+        <p>Loading album...</p>
+      </main>
+    );
+  }
 
   if (!album) {
     return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MobileTabBar from './components/MobileTabBar';
@@ -13,6 +13,13 @@ import Announcements from './pages/Announcements';
 import NoticeBoard from './pages/NoticeBoard';
 import Gallery from './pages/Gallery';
 import AlbumDetail from './pages/AlbumDetail';
+import AdminLogin from './admin/AdminLogin';
+import AdminLayout from './admin/AdminLayout';
+import AdminDashboard from './admin/AdminDashboard';
+import AdminCrudPage from './admin/AdminCrudPage';
+import AdminGallery from './admin/AdminGallery';
+import AdminReadonly from './admin/AdminReadonly';
+import AdminUsers from './admin/AdminUsers';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -57,10 +64,35 @@ function AppShell() {
   );
 }
 
+function AdminShell() {
+  return (
+    <Routes>
+      <Route path="login" element={<AdminLogin />} />
+      <Route element={<AdminLayout><Outlet /></AdminLayout>}>
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Ministries" />} />
+        <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
+        <Route path="team" element={<AdminCrudPage entity="team" title="Leadership Team" />} />
+        <Route path="events" element={<AdminCrudPage entity="events" title="Events" />} />
+        <Route path="announcements" element={<AdminCrudPage entity="announcements" title="Announcements" />} />
+        <Route path="notices" element={<AdminCrudPage entity="notices" title="Notices" />} />
+        <Route path="visits" element={<AdminReadonly entity="visits" title="Visit Plans" />} />
+        <Route path="subscribers" element={<AdminReadonly entity="subscribers" title="Subscribers" />} />
+        <Route path="contacts" element={<AdminReadonly entity="contacts" title="Contact Messages" />} />
+        <Route path="gallery" element={<AdminGallery />} />
+        <Route path="users" element={<AdminUsers />} />
+      </Route>
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <AppShell />
+      <Routes>
+        <Route path="/admin/*" element={<AdminShell />} />
+        <Route path="/*" element={<AppShell />} />
+      </Routes>
     </BrowserRouter>
   );
 }

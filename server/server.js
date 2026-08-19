@@ -4,9 +4,11 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
+import adminRoutes from './adminRoutes.js';
 import {
   ministries, sermons, team, events,
   addVisit, addSubscriber, addContact,
+  announcements, notices, galleryAlbums,
 } from './data.js';
 
 dotenv.config();
@@ -126,6 +128,47 @@ app.post('/api/contact', async (req, res) => {
     res.status(201).json({ message: 'Message sent (demo mode)' });
   }
 });
+
+// Public managed content endpoints
+app.get('/api/announcements', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT DATE_FORMAT(published_at, "%b %e, %Y") AS date, title, body FROM announcements ORDER BY published_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.json(announcements);
+  }
+});
+
+app.get('/api/notices', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT DATE_FORMAT(published_at, "%b %e, %Y") AS date, title, body FROM notices ORDER BY published_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.json(notices);
+  }
+});
+
+app.get('/api/gallery', async (req, res) => {
+  try {
+    const [albums] = await pool.query('SELECT slug AS id, title, cover FROM gallery_albums ORDER BY id');
+    const [photos] = await pool.query('SELECT album_id, src, alt, category, caption FROM gallery_photos ORDER BY id');
+    const albumsWithItems = albums.map((album) => ({
+      ...album,
+      count: `${photos.filter((p) => p.album_id === album.id).length} photos`,
+      items: photos.filter((p) => p.album_id === album.id),
+    }));
+    res.json(albumsWithItems);
+  } catch (err) {
+    res.json(galleryAlbums);
+  }
+});
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 // Serve static client build in production; falls through for SPA routes
 app.use(express.static(path.join(__dirname, '../client/dist')));

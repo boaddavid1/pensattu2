@@ -21,3 +21,37 @@ INSERT INTO events (title, event_date, event_time, location, description) VALUES
 ('Youth Night', '2026-08-21', '18:00', 'Main Auditorium', 'An evening of worship and conversation for young people.'),
 ('Community Outreach - Madina', '2026-08-23', '08:00', 'Madina Community Park', 'Food distribution and medical screening.'),
 ('Midweek Bible Study', '2026-08-26', '19:00', 'Fellowship Hall', 'Going deeper into Ephesians chapter by chapter.');
+
+INSERT INTO users (name, email, password_hash, role) VALUES
+('Super Admin', 'admin@pensattu.org', '$2b$10$Y6UonUM1FsO2mbHFutaPNeM3bAGakGTIvvyXe0jjtNcUMjcipsaC6', 'superadmin');
+
+INSERT INTO announcements (title, body, published_at) VALUES
+('New Sunday service schedule', 'From September, our second service starts at 11:30 AM to give more room for community time between gatherings.', '2026-08-14'),
+('Community outreach this Saturday', 'We are meeting at the church parking lot at 8:00 AM to distribute supplies in nearby neighborhoods. Everyone is welcome.', '2026-08-10'),
+('Youth conference registration open', 'PENSA Youth 2026 is happening in October. Early registration is open until the end of the month.', '2026-08-05'),
+('Welcome lunch for first-time guests', 'If this is your first month with us, join the pastors for lunch after second service this Sunday.', '2026-07-28');
+
+INSERT INTO notices (title, body, published_at) VALUES
+('Office hours update', 'The church office is open Tuesday through Friday, 9:00 AM to 4:00 PM. Appointments outside these hours are available on request.', '2026-08-12'),
+('Serving team recruitment', 'We are looking for more volunteers in ushering, hospitality, and media for the next quarter. Speak to a team lead this Sunday.', '2026-08-08'),
+('Parking on event days', 'For larger events, please use the secondary lot behind the building and arrive a few minutes early.', '2026-08-01'),
+('Building maintenance weekend', 'The church building will be closed for deep cleaning on the last Saturday of the month. Online prayer will continue as usual.', '2026-07-25');
+
+INSERT INTO gallery_albums (slug, title, cover) VALUES
+('worship', 'Sunday Worship', 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80'),
+('community', 'Community Life', 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80'),
+('outreach', 'Outreach', 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80'),
+('youth', 'Youth & Kids', 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80');
+
+INSERT INTO gallery_photos (album_id, src, alt, category, caption) VALUES
+(1, 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=600&q=80', 'Hands raised in worship', 'Worship', 'Sunday morning, 11AM'),
+(1, 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=600&q=80', 'Sanctuary interior', 'Worship', 'Our sanctuary'),
+(1, 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80', 'Worship band', 'Worship', 'Music ministry'),
+(1, 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80', 'Sunday service', 'Worship', 'A packed 9AM service'),
+(2, 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80', 'Community group meeting', 'Community', 'East Legon group night'),
+(2, 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=600&q=80', 'Bible study group', 'Community', 'Midweek Bible study'),
+(2, 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=600&q=80', 'Greeters welcoming visitors', 'Community', 'First-Sunday greeters'),
+(3, 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&q=80', 'Outreach event', 'Outreach', 'Serving Osu this spring'),
+(3, 'https://images.unsplash.com/photo-1478147427282-58a87a120781?w=600&q=80', 'Planning an outreach event', 'Outreach', 'Getting ready to serve'),
+(4, 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&q=80', 'Youth ministry gathering', 'Youth', 'Friday youth night'),
+(4, 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80', 'Youth small group', 'Youth', 'Youth small group');

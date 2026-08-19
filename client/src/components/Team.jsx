@@ -22,7 +22,7 @@ export default function Team() {
       <div className="wrap">
         <div className="section-head center">
           <span className="eyebrow">Our leadership</span>
-          <h2>Pastors who <em>know your name</em>.</h2>
+          <h2>Leading with <span style={{ color: 'var(--moss)' }}>Vision, Integrity, and Purpose</span></h2>
         </div>
         <div className="team-grid">
           {team.map((p) => (

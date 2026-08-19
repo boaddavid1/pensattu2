@@ -28,6 +28,66 @@ export const visits = [];
 export const subscribers = [];
 export const contacts = [];
 
+export const announcements = [
+  { date: 'Aug 14, 2026', title: 'New Sunday service schedule', body: 'From September, our second service starts at 11:30 AM to give more room for community time between gatherings.' },
+  { date: 'Aug 10, 2026', title: 'Community outreach this Saturday', body: 'We are meeting at the church parking lot at 8:00 AM to distribute supplies in nearby neighborhoods. Everyone is welcome.' },
+  { date: 'Aug 5, 2026', title: 'Youth conference registration open', body: 'PENSA Youth 2026 is happening in October. Early registration is open until the end of the month.' },
+  { date: 'Jul 28, 2026', title: 'Welcome lunch for first-time guests', body: 'If this is your first month with us, join the pastors for lunch after second service this Sunday.' },
+];
+
+export const notices = [
+  { date: 'Aug 12, 2026', title: 'Office hours update', body: 'The church office is open Tuesday through Friday, 9:00 AM to 4:00 PM. Appointments outside these hours are available on request.' },
+  { date: 'Aug 8, 2026', title: 'Serving team recruitment', body: 'We are looking for more volunteers in ushering, hospitality, and media for the next quarter. Speak to a team lead this Sunday.' },
+  { date: 'Aug 1, 2026', title: 'Parking on event days', body: 'For larger events, please use the secondary lot behind the building and arrive a few minutes early.' },
+  { date: 'Jul 25, 2026', title: 'Building maintenance weekend', body: 'The church building will be closed for deep cleaning on the last Saturday of the month. Online prayer will continue as usual.' },
+];
+
+export const galleryAlbums = [
+  {
+    id: 'worship',
+    title: 'Sunday Worship',
+    cover: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80',
+    count: '4 photos',
+    items: [
+      { src: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=600&q=80', alt: 'Hands raised in worship', category: 'Worship', caption: 'Sunday morning, 11AM' },
+      { src: 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=600&q=80', alt: 'Sanctuary interior', category: 'Worship', caption: 'Our sanctuary' },
+      { src: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80', alt: 'Worship band', category: 'Worship', caption: 'Music ministry' },
+      { src: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80', alt: 'Sunday service', category: 'Worship', caption: 'A packed 9AM service' },
+    ],
+  },
+  {
+    id: 'community',
+    title: 'Community Life',
+    cover: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80',
+    count: '3 photos',
+    items: [
+      { src: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80', alt: 'Community group meeting', category: 'Community', caption: 'East Legon group night' },
+      { src: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=600&q=80', alt: 'Bible study group', category: 'Community', caption: 'Midweek Bible study' },
+      { src: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=600&q=80', alt: 'Greeters welcoming visitors', category: 'Community', caption: 'First-Sunday greeters' },
+    ],
+  },
+  {
+    id: 'outreach',
+    title: 'Outreach',
+    cover: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80',
+    count: '2 photos',
+    items: [
+      { src: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&q=80', alt: 'Outreach event', category: 'Outreach', caption: 'Serving Osu this spring' },
+      { src: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?w=600&q=80', alt: 'Planning an outreach event', category: 'Outreach', caption: 'Getting ready to serve' },
+    ],
+  },
+  {
+    id: 'youth',
+    title: 'Youth & Kids',
+    cover: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80',
+    count: '2 photos',
+    items: [
+      { src: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&q=80', alt: 'Youth ministry gathering', category: 'Youth', caption: 'Friday youth night' },
+      { src: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80', alt: 'Youth small group', category: 'Youth', caption: 'Youth small group' },
+    ],
+  },
+];
+
 export function addVisit(data) { visits.push({ ...data, created_at: new Date().toISOString() }); }
 export function addSubscriber(email) { subscribers.push({ email, subscribed_at: new Date().toISOString() }); }
 export function addContact(data) { contacts.push({ ...data, created_at: new Date().toISOString() }); }

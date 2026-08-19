@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Gallery.css';
-import { albums } from '../data/albums';
+import { api } from '../api';
 
 const heroColumns = [
   ['https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80', 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80'],
@@ -14,6 +14,13 @@ const heroColumns = [
 export default function Gallery() {
   const heroRef = useRef(null);
   const tracksRef = useRef([]);
+  const [albums, setAlbums] = useState([]);
+
+  useEffect(() => {
+    api.get('/gallery')
+      .then(setAlbums)
+      .catch(() => setAlbums([]));
+  }, []);
 
   useEffect(() => {
     const hero = heroRef.current;

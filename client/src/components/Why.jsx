@@ -25,8 +25,8 @@ export default function Why() {
         </div>
         <div className="why-media">
           <div className="why-media-grid">
-            <img className="tall" src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=700&q=80" alt="Worship band leading a Sunday service" />
-            <img className="short" src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=700&q=80" alt="Community group in conversation" />
+            <img className="tall" src="/images/pensa%20(1).JPG" alt="Worship band leading a Sunday service" />
+            <img className="short" src="/images/pastor.JPG" alt="Pastor" />
           </div>
         </div>
       </div>
