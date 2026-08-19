@@ -1,7 +1,65 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import pool from './db.js';
+import * as data from './data.js';
 import { comparePassword, generateToken, requireAuth, requireSuperAdmin } from './auth.js';
+
+const DEMO_USER = {
+  id: 1,
+  name: 'Demo Admin',
+  email: 'admin@pensa.com',
+  role: 'superadmin',
+  password: 'admin123',
+};
+
+let nextDemoId = 1000;
+const toIso = (dateStr) => {
+  const d = new Date(dateStr);
+  return isNaN(d) ? new Date().toISOString() : d.toISOString();
+};
+
+const memory = {
+  ministries: data.ministries.map((r) => ({ ...r })),
+  sermons: data.sermons.map((r) => ({ ...r })),
+  team: data.team.map((r) => ({ ...r })),
+  events: data.events.map((r) => ({ ...r })),
+  announcements: data.announcements.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
+  notices: data.notices.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
+  gallery_albums: data.galleryAlbums.map((r) => ({ id: r.id, slug: r.id, title: r.title, cover: r.cover })),
+  visits: data.visits,
+  subscribers: data.subscribers,
+  contacts: data.contacts,
+  gallery_photos: [],
+  users: [{ ...DEMO_USER, password_hash: null }],
+};
+
+function isDbUnavailable(err) {
+  const msg = err && err.message ? err.message.toLowerCase() : '';
+  return msg.includes('unknown database') || msg.includes('econnrefused') || msg.includes('access denied') || msg.includes("can't connect") || msg.includes('connection lost') || msg.includes('connect timeout');
+}
+
+function memoryList(table) { return memory[table] || []; }
+function memoryGet(table, id) { return (memory[table] || []).find((r) => String(r.id) === String(id)); }
+function memoryCreate(table, record) {
+  const r = { id: ++nextDemoId, ...record };
+  if (!memory[table]) memory[table] = [];
+  memory[table].push(r);
+  return r;
+}
+function memoryUpdate(table, id, record) {
+  const list = memory[table] || [];
+  const idx = list.findIndex((r) => String(r.id) === String(id));
+  if (idx === -1) return null;
+  list[idx] = { ...list[idx], ...record };
+  return list[idx];
+}
+function memoryDelete(table, id) {
+  const list = memory[table] || [];
+  const idx = list.findIndex((r) => String(r.id) === String(id));
+  if (idx === -1) return null;
+  list.splice(idx, 1);
+  return true;
+}
 
 const router = Router();
 
@@ -84,6 +142,19 @@ router.post('/login', async (req, res) => {
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
+    if (isDbUnavailable(err) && email === DEMO_USER.email && password === DEMO_USER.password) {
+      const token = generateToken({
+        id: DEMO_USER.id,
+        email: DEMO_USER.email,
+        role: DEMO_USER.role,
+        name: DEMO_USER.name,
+      });
+      return res.json({
+        token,
+        user: { id: DEMO_USER.id, name: DEMO_USER.name, email: DEMO_USER.email, role: DEMO_USER.role },
+        demo: true,
+      });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -110,6 +181,12 @@ router.get('/stats', requireAuth, async (req, res) => {
     );
     res.json({ stats, recentActivity: recent });
   } catch (err) {
+    if (isDbUnavailable(err)) {
+      const stats = {};
+      for (const table of Object.keys(TABLES)) stats[table] = memoryList(table).length;
+      for (const table of READONLY_TABLES) stats[table] = memoryList(table).length;
+      return res.json({ stats, recentActivity: [], demo: true });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -122,6 +199,7 @@ for (const [table, config] of Object.entries(TABLES)) {
       const [rows] = await pool.query(`SELECT * FROM ${table} ORDER BY ${config.orderBy}`);
       res.json(rows);
     } catch (err) {
+      if (isDbUnavailable(err)) return res.json(memoryList(table));
       res.status(500).json({ error: err.message });
     }
   });
@@ -133,6 +211,11 @@ for (const [table, config] of Object.entries(TABLES)) {
       if (!rows[0]) return res.status(404).json({ error: 'Not found' });
       res.json(rows[0]);
     } catch (err) {
+      if (isDbUnavailable(err)) {
+        const row = memoryGet(table, req.params.id);
+        if (!row) return res.status(404).json({ error: 'Not found' });
+        return res.json(row);
+      }
       res.status(500).json({ error: err.message });
     }
   });
@@ -153,6 +236,10 @@ for (const [table, config] of Object.entries(TABLES)) {
       logAction(req.user.id, 'CREATE', table, result.insertId);
       res.status(201).json({ id: result.insertId, ...data });
     } catch (err) {
+      if (isDbUnavailable(err)) {
+        const row = memoryCreate(table, data);
+        return res.status(201).json({ demo: true, ...row });
+      }
       res.status(500).json({ error: err.message });
     }
   });
@@ -174,6 +261,11 @@ for (const [table, config] of Object.entries(TABLES)) {
       logAction(req.user.id, 'UPDATE', table, Number(req.params.id), data);
       res.json({ id: Number(req.params.id), ...data });
     } catch (err) {
+      if (isDbUnavailable(err)) {
+        const row = memoryUpdate(table, req.params.id, data);
+        if (!row) return res.status(404).json({ error: 'Not found' });
+        return res.json({ demo: true, ...row });
+      }
       res.status(500).json({ error: err.message });
     }
   });
@@ -186,6 +278,11 @@ for (const [table, config] of Object.entries(TABLES)) {
       logAction(req.user.id, 'DELETE', table, Number(req.params.id));
       res.json({ message: 'Deleted' });
     } catch (err) {
+      if (isDbUnavailable(err)) {
+        const ok = memoryDelete(table, req.params.id);
+        if (!ok) return res.status(404).json({ error: 'Not found' });
+        return res.json({ message: 'Deleted', demo: true });
+      }
       res.status(500).json({ error: err.message });
     }
   });
@@ -199,6 +296,7 @@ for (const table of READONLY_TABLES) {
       const [rows] = await pool.query(`SELECT * FROM ${table} ORDER BY ${order}`);
       res.json(rows);
     } catch (err) {
+      if (isDbUnavailable(err)) return res.json(memoryList(table));
       res.status(500).json({ error: err.message });
     }
   });
@@ -210,6 +308,11 @@ for (const table of READONLY_TABLES) {
       logAction(req.user.id, 'DELETE', table, Number(req.params.id));
       res.json({ message: 'Deleted' });
     } catch (err) {
+      if (isDbUnavailable(err)) {
+        const ok = memoryDelete(table, req.params.id);
+        if (!ok) return res.status(404).json({ error: 'Not found' });
+        return res.json({ message: 'Deleted', demo: true });
+      }
       res.status(500).json({ error: err.message });
     }
   });
@@ -226,6 +329,10 @@ router.get('/gallery_photos', requireAuth, async (req, res) => {
     const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
+    if (isDbUnavailable(err)) {
+      const rows = memoryList('gallery_photos').filter((p) => (albumId ? String(p.album_id) === String(albumId) : true));
+      return res.json(rows);
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -243,6 +350,10 @@ router.post('/gallery_photos', requireAuth, async (req, res) => {
     logAction(req.user.id, 'CREATE', 'gallery_photos', result.insertId);
     res.status(201).json({ id: result.insertId, album_id, src, alt, category, caption });
   } catch (err) {
+    if (isDbUnavailable(err)) {
+      const row = memoryCreate('gallery_photos', { album_id, src, alt, category, caption });
+      return res.status(201).json({ demo: true, ...row });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -254,6 +365,11 @@ router.delete('/gallery_photos/:id', requireAuth, async (req, res) => {
     logAction(req.user.id, 'DELETE', 'gallery_photos', Number(req.params.id));
     res.json({ message: 'Deleted' });
   } catch (err) {
+    if (isDbUnavailable(err)) {
+      const ok = memoryDelete('gallery_photos', req.params.id);
+      if (!ok) return res.status(404).json({ error: 'Not found' });
+      return res.json({ message: 'Deleted', demo: true });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -264,6 +380,9 @@ router.get('/users', requireAuth, requireSuperAdmin, async (req, res) => {
     const [rows] = await pool.query('SELECT id, name, email, role, created_at FROM users ORDER BY id');
     res.json(rows);
   } catch (err) {
+    if (isDbUnavailable(err)) {
+      return res.json(memoryList('users').map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role })));
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -282,6 +401,10 @@ router.post('/users', requireAuth, requireSuperAdmin, async (req, res) => {
     logAction(req.user.id, 'CREATE', 'users', result.insertId);
     res.status(201).json({ id: result.insertId, name, email, role });
   } catch (err) {
+    if (isDbUnavailable(err)) {
+      const row = memoryCreate('users', { name, email, role });
+      return res.status(201).json({ demo: true, ...row });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -293,6 +416,11 @@ router.delete('/users/:id', requireAuth, requireSuperAdmin, async (req, res) => 
     logAction(req.user.id, 'DELETE', 'users', Number(req.params.id));
     res.json({ message: 'Deleted' });
   } catch (err) {
+    if (isDbUnavailable(err)) {
+      const ok = memoryDelete('users', req.params.id);
+      if (!ok) return res.status(404).json({ error: 'Not found' });
+      return res.json({ message: 'Deleted', demo: true });
+    }
     res.status(500).json({ error: err.message });
   }
 });
