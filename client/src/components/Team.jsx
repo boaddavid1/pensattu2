@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const fallback = [
   { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80' },
@@ -25,7 +26,7 @@ export default function Team() {
           <h2>Leading with <span style={{ color: 'var(--moss)' }}>Vision, Integrity, and Purpose</span></h2>
         </div>
         <div className="team-grid">
-          {team.map((p) => (
+          {team.slice(0, 4).map((p) => (
             <div className="team-card" key={p.id}>
               <img src={p.image_url} alt={p.name} />
               <div className="team-info">
@@ -35,6 +36,13 @@ export default function Team() {
             </div>
           ))}
         </div>
+        {team.length > 4 && (
+          <div className="view-all-container">
+            <Link to="/leadership" className="btn btn-primary">
+              View All Leadership <span className="btn-arrow">→</span>
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

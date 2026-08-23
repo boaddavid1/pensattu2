@@ -1,38 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
-const featured = [
-  {
-    name: 'Mark Johnson',
-    role: 'Senior Pastor',
-    img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80',
-    text: 'Mark has led PENSA TTU since its founding in 2014. He preaches most Sundays and spends the rest of his week in one-on-one conversations he considers just as important as the sermon.',
-  },
-  {
-    name: 'Helen Owusu',
-    role: 'Executive & Worship Pastor',
-    img: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=80',
-    text: 'Helen oversees church operations and leads worship on Sunday mornings. She joined the founding team in 2014 and has led the music ministry ever since.',
-  },
-];
-
-const ministryTeam = [
-  { name: 'Alex Mensah', role: 'Youth Pastor', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80', bio: 'Alex has been pouring into teenagers and young adults for over a decade. He leads Friday youth nights and mentors the next generation of campus leaders with energy and honesty.' },
-  { name: 'Ama Boateng', role: 'Kids Ministry Lead', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&q=80', bio: 'Ama creates safe, fun spaces where children can learn about faith at their own level. She trains volunteers and makes sure every family feels known.' },
-  { name: 'Kwame Asante', role: 'Outreach Director', img: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=80', bio: 'Kwame connects the church with local outreach opportunities. From neighborhood cleanups to campus Bible distribution, he moves faith into action.' },
-  { name: 'Naana Adjei', role: 'Community Groups Lead', img: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&q=80', bio: 'Naana oversees small groups across Accra, helping people find belonging, accountability, and friendship beyond Sunday services.' },
-];
-
-const elders = [
-  { name: 'Samuel Owusu', since: '2014', img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80', bio: 'Samuel brings wisdom and calm leadership to every elder meeting. He has served PENSA TTU since its earliest days and is known for asking the right question at the right time.' },
-  { name: 'Grace Nkrumah', since: '2017', img: 'https://images.unsplash.com/photo-1607990283143-e81e7a2c9349?w=400&q=80', bio: 'Grace cares deeply about discipleship and community health. She helps new believers grow in faith and ensures leaders are supported, not burned out.' },
-  { name: 'Daniel Appiah', since: '2019', img: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80', bio: 'Daniel is a bridge-builder. Whether resolving tension or dreaming about what comes next, he keeps the church grounded in Scripture and focused on people.' },
-];
-
 export default function Leadership() {
   const [modal, setModal] = useState(null);
+  const [leadership, setLeadership] = useState([]);
 
   useEffect(() => {
+    // Fetch leadership data from API
+    fetch('/api/team')
+      .then(res => res.json())
+      .then(data => setLeadership(data))
+      .catch(err => console.error('Failed to fetch leadership:', err));
+
     const onKey = (e) => { if (e.key === 'Escape') setModal(null); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -57,14 +36,16 @@ export default function Leadership() {
             <span className="eyebrow">Senior leadership</span>
             <h2>Setting the <em>direction</em>.</h2>
           </div>
-          <div className="featured-grid">
-            {featured.map((p) => (
-              <div className="featured-card" key={p.name}>
-                <div className="img"><img src={p.img} alt={p.name} /></div>
+          <div className="featured-grid show-all">
+            {leadership.map((p) => (
+              <div className="featured-card" key={p.id}>
+                <div className="img">
+                  <img src={p.image_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
+                </div>
                 <div className="body">
                   <span className="role">{p.role}</span>
                   <h3>{p.name}</h3>
-                  <p>{p.text}</p>
+                  <p>{p.description || p.programme || 'Passionate leader serving the PENSA TTU community.'}</p>
                 </div>
               </div>
             ))}
@@ -72,39 +53,7 @@ export default function Leadership() {
         </div>
       </section>
 
-      <section className="team lead-team" id="leadership-team">
-        <div className="wrap">
-          <div className="section-head">
-            <span className="eyebrow">Ministry team</span>
-            <h2>The people behind <em>every ministry</em>.</h2>
-          </div>
-          <div className="team-grid">
-            {ministryTeam.map((m) => (
-              <div className="team-card" key={m.name} onClick={() => setModal(m)}>
-                <img src={m.img} alt={m.name} />
-                <div className="team-info"><h3>{m.name}</h3><span>{m.role}</span></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="elders">
-        <div className="wrap">
-          <div className="section-head">
-            <span className="eyebrow">Board of elders</span>
-            <h2>Providing <em>oversight and counsel</em>.</h2>
-          </div>
-          <div className="elder-grid">
-            {elders.map((e) => (
-              <div className="elder-card" key={e.name} onClick={() => setModal(e)}>
-                <img src={e.img} alt={e.name} />
-                <div><h4>{e.name}</h4><span>Elder, since {e.since}</span></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section id="philosophy-wrap">
         <div className="philosophy">
@@ -147,12 +96,14 @@ export default function Leadership() {
           <div className="lead-modal-card" onClick={(e) => e.stopPropagation()}>
             <button className="lead-modal-close" onClick={() => setModal(null)}>✕</button>
             <div className="lead-modal-img">
-              <img src={modal.img} alt={modal.name} />
+              <img src={modal.image_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={modal.name} />
             </div>
             <div className="lead-modal-body">
-              <span className="lead-modal-role">{modal.role || 'Elder, since ' + modal.since}</span>
+              <span className="lead-modal-role">{modal.role}</span>
               <h3>{modal.name}</h3>
-              <p>{modal.bio}</p>
+              <p>{modal.description || modal.programme || 'Passionate leader serving the PENSA TTU community.'}</p>
+              {modal.hall && <p><strong>Hall:</strong> {modal.hall}</p>}
+              {modal.programme && <p><strong>Programme:</strong> {modal.programme}</p>}
             </div>
           </div>
         </div>

@@ -12,6 +12,16 @@ const DEMO_USER = {
   password: 'admin123',
 };
 
+// User's database has admin_users table with username field
+async function getUserByUsername(username) {
+  try {
+    const [rows] = await pool.query('SELECT * FROM admin_users WHERE username = ?', [username]);
+    return rows[0];
+  } catch (err) {
+    return null;
+  }
+}
+
 let nextDemoId = 1000;
 const toIso = (dateStr) => {
   const d = new Date(dateStr);
@@ -19,17 +29,17 @@ const toIso = (dateStr) => {
 };
 
 const memory = {
-  ministries: data.ministries.map((r) => ({ ...r })),
+  ministries: data.coreValues?.map((r) => ({ ...r })) || data.ministries.map((r) => ({ ...r })),
   sermons: data.sermons.map((r) => ({ ...r })),
-  team: data.team.map((r) => ({ ...r })),
+  team: data.leadership?.map((r) => ({ ...r })) || data.team.map((r) => ({ ...r })),
   events: data.events.map((r) => ({ ...r })),
-  announcements: data.announcements.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
-  notices: data.notices.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
-  gallery_albums: data.galleryAlbums.map((r) => ({ id: r.id, slug: r.id, title: r.title, cover: r.cover })),
+  announcements: data.news?.map((r, i) => ({ id: i + 1, title: r.title, body: r.content, published_at: toIso(r.created_at) })) || data.announcements.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
+  notices: data.news?.map((r, i) => ({ id: i + 1, title: r.title, body: r.content, published_at: toIso(r.created_at) })) || data.notices.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
+  gallery_albums: data.albums?.map((r) => ({ id: r.id, slug: r.id, title: r.name, cover: r.cover_image })) || data.galleryAlbums.map((r) => ({ id: r.id, slug: r.id, title: r.title, cover: r.cover })),
   visits: data.visits,
   subscribers: data.subscribers,
-  contacts: data.contacts,
-  gallery_photos: [],
+  contacts: data.contactMessages || data.contacts,
+  gallery_photos: data.gallery?.map((r) => ({ ...r })) || [],
   users: [{ ...DEMO_USER, password_hash: null }],
 };
 
@@ -65,43 +75,50 @@ const router = Router();
 
 const TABLES = {
   ministries: {
-    columns: ['title', 'description', 'image_url'],
+    actualTable: 'core_values',
+    columns: ['title', 'description', 'icon'],
     required: ['title'],
-    orderBy: 'id',
+    orderBy: 'display_order',
   },
   sermons: {
-    columns: ['title', 'speaker', 'category', 'duration', 'image_url', 'published_at'],
+    actualTable: 'sermons',
+    columns: ['title', 'speaker', 'category', 'description', 'audio_url', 'image_url', 'date_preached'],
     required: ['title'],
-    orderBy: 'published_at DESC',
+    orderBy: 'date_preached DESC',
   },
   team: {
-    columns: ['name', 'role', 'image_url', 'sort_order'],
+    actualTable: 'leadership',
+    columns: ['name', 'role', 'category', 'description', 'image_url', 'display_order'],
     required: ['name'],
-    orderBy: 'sort_order, id',
+    orderBy: 'display_order',
   },
   events: {
-    columns: ['title', 'event_date', 'event_time', 'location', 'description'],
+    actualTable: 'events',
+    columns: ['title', 'event_date', 'event_time', 'location', 'description', 'category', 'image_url'],
     required: ['title', 'event_date'],
     orderBy: 'event_date',
   },
   announcements: {
-    columns: ['title', 'body', 'published_at'],
-    required: ['title', 'body'],
-    orderBy: 'published_at DESC, id DESC',
+    actualTable: 'news',
+    columns: ['title', 'content', 'excerpt', 'image_url', 'category'],
+    required: ['title', 'content'],
+    orderBy: 'created_at DESC, id DESC',
   },
   notices: {
-    columns: ['title', 'body', 'published_at'],
-    required: ['title', 'body'],
-    orderBy: 'published_at DESC, id DESC',
+    actualTable: 'news', // Using news table for notices as well
+    columns: ['title', 'content', 'excerpt', 'image_url', 'category'],
+    required: ['title', 'content'],
+    orderBy: 'created_at DESC, id DESC',
   },
   gallery_albums: {
-    columns: ['slug', 'title', 'cover'],
-    required: ['slug', 'title'],
+    actualTable: 'albums',
+    columns: ['name', 'description', 'cover_image'],
+    required: ['name'],
     orderBy: 'id',
   },
 };
 
-const READONLY_TABLES = ['visits', 'subscribers', 'contacts'];
+const READONLY_TABLES = ['visits', 'subscribers', 'contact_messages'];
 
 function logAction(userId, action, entity, entityId, details) {
   const detailsJson = details ? JSON.stringify(details) : null;
@@ -130,16 +147,22 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Email and password required' });
   }
   try {
-    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    // Try admin_users table first (user's database)
+    const [rows] = await pool.query('SELECT * FROM admin_users WHERE username = ? OR email = ?', [email, email]);
     const user = rows[0];
-    if (!user || !(await comparePassword(password, user.password_hash))) {
+    if (!user || !(await comparePassword(password, user.password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    const token = generateToken(user);
-    logAction(user.id, 'LOGIN', 'users', user.id);
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.full_name || user.username,
+      role: user.role === 'admin' ? 'superadmin' : user.role // Map admin to superadmin for compatibility
+    });
+    logAction(user.id, 'LOGIN', 'admin_users', user.id);
     res.json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { id: user.id, name: user.full_name || user.username, email: user.email, role: user.role },
     });
   } catch (err) {
     if (isDbUnavailable(err) && email === DEMO_USER.email && password === DEMO_USER.password) {
@@ -168,16 +191,17 @@ router.get('/me', requireAuth, (req, res) => {
 router.get('/stats', requireAuth, async (req, res) => {
   try {
     const stats = {};
-    for (const table of Object.keys(TABLES)) {
-      const [rows] = await pool.query(`SELECT COUNT(*) AS count FROM ${table}`);
-      stats[table] = rows[0].count;
+    for (const [key, config] of Object.entries(TABLES)) {
+      const actualTable = config.actualTable || key;
+      const [rows] = await pool.query(`SELECT COUNT(*) AS count FROM ${actualTable}`);
+      stats[key] = rows[0].count;
     }
     for (const table of READONLY_TABLES) {
       const [rows] = await pool.query(`SELECT COUNT(*) AS count FROM ${table}`);
       stats[table] = rows[0].count;
     }
     const [recent] = await pool.query(
-      'SELECT al.*, u.name FROM activity_logs al LEFT JOIN users u ON al.user_id = u.id ORDER BY al.id DESC LIMIT 10'
+      'SELECT al.*, u.name FROM activity_logs al LEFT JOIN admin_users u ON al.user_id = u.id ORDER BY al.id DESC LIMIT 10'
     );
     res.json({ stats, recentActivity: recent });
   } catch (err) {
@@ -193,10 +217,12 @@ router.get('/stats', requireAuth, async (req, res) => {
 
 // Generic CRUD for content tables
 for (const [table, config] of Object.entries(TABLES)) {
+  const actualTable = config.actualTable || table;
+
   // List
   router.get(`/${table}`, requireAuth, async (req, res) => {
     try {
-      const [rows] = await pool.query(`SELECT * FROM ${table} ORDER BY ${config.orderBy}`);
+      const [rows] = await pool.query(`SELECT * FROM ${actualTable} ORDER BY ${config.orderBy}`);
       res.json(rows);
     } catch (err) {
       if (isDbUnavailable(err)) return res.json(memoryList(table));
@@ -207,7 +233,7 @@ for (const [table, config] of Object.entries(TABLES)) {
   // Get one
   router.get(`/${table}/:id`, requireAuth, async (req, res) => {
     try {
-      const [rows] = await pool.query(`SELECT * FROM ${table} WHERE id = ?`, [req.params.id]);
+      const [rows] = await pool.query(`SELECT * FROM ${actualTable} WHERE id = ?`, [req.params.id]);
       if (!rows[0]) return res.status(404).json({ error: 'Not found' });
       res.json(rows[0]);
     } catch (err) {
@@ -230,10 +256,10 @@ for (const [table, config] of Object.entries(TABLES)) {
       const cols = Object.keys(data);
       const vals = Object.values(data);
       const [result] = await pool.query(
-        `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders(vals.length)})`,
+        `INSERT INTO ${actualTable} (${cols.join(', ')}) VALUES (${placeholders(vals.length)})`,
         vals
       );
-      logAction(req.user.id, 'CREATE', table, result.insertId);
+      logAction(req.user.id, 'CREATE', actualTable, result.insertId);
       res.status(201).json({ id: result.insertId, ...data });
     } catch (err) {
       if (isDbUnavailable(err)) {
@@ -254,11 +280,11 @@ for (const [table, config] of Object.entries(TABLES)) {
       const cols = Object.keys(data);
       const vals = Object.values(data);
       const [result] = await pool.query(
-        `UPDATE ${table} SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE id = ?`,
+        `UPDATE ${actualTable} SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE id = ?`,
         [...vals, req.params.id]
       );
       if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
-      logAction(req.user.id, 'UPDATE', table, Number(req.params.id), data);
+      logAction(req.user.id, 'UPDATE', actualTable, Number(req.params.id), data);
       res.json({ id: Number(req.params.id), ...data });
     } catch (err) {
       if (isDbUnavailable(err)) {
@@ -273,9 +299,9 @@ for (const [table, config] of Object.entries(TABLES)) {
   // Delete
   router.delete(`/${table}/:id`, requireAuth, async (req, res) => {
     try {
-      const [result] = await pool.query(`DELETE FROM ${table} WHERE id = ?`, [req.params.id]);
+      const [result] = await pool.query(`DELETE FROM ${actualTable} WHERE id = ?`, [req.params.id]);
       if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
-      logAction(req.user.id, 'DELETE', table, Number(req.params.id));
+      logAction(req.user.id, 'DELETE', actualTable, Number(req.params.id));
       res.json({ message: 'Deleted' });
     } catch (err) {
       if (isDbUnavailable(err)) {
@@ -323,8 +349,8 @@ router.get('/gallery_photos', requireAuth, async (req, res) => {
   try {
     const albumId = req.query.album_id;
     const query = albumId
-      ? 'SELECT * FROM gallery_photos WHERE album_id = ? ORDER BY id'
-      : 'SELECT * FROM gallery_photos ORDER BY id';
+      ? 'SELECT * FROM gallery WHERE album_id = ? ORDER BY id'
+      : 'SELECT * FROM gallery ORDER BY id';
     const params = albumId ? [albumId] : [];
     const [rows] = await pool.query(query, params);
     res.json(rows);
@@ -344,11 +370,11 @@ router.post('/gallery_photos', requireAuth, async (req, res) => {
   }
   try {
     const [result] = await pool.query(
-      'INSERT INTO gallery_photos (album_id, src, alt, category, caption) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES (?, ?, ?, ?, ?)',
       [album_id, src, alt || null, category || null, caption || null]
     );
-    logAction(req.user.id, 'CREATE', 'gallery_photos', result.insertId);
-    res.status(201).json({ id: result.insertId, album_id, src, alt, category, caption });
+    logAction(req.user.id, 'CREATE', 'gallery', result.insertId);
+    res.status(201).json({ id: result.insertId, album_id, image_url: src, title: alt, category, description: caption });
   } catch (err) {
     if (isDbUnavailable(err)) {
       const row = memoryCreate('gallery_photos', { album_id, src, alt, category, caption });
@@ -360,9 +386,9 @@ router.post('/gallery_photos', requireAuth, async (req, res) => {
 
 router.delete('/gallery_photos/:id', requireAuth, async (req, res) => {
   try {
-    const [result] = await pool.query('DELETE FROM gallery_photos WHERE id = ?', [req.params.id]);
+    const [result] = await pool.query('DELETE FROM gallery WHERE id = ?', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
-    logAction(req.user.id, 'DELETE', 'gallery_photos', Number(req.params.id));
+    logAction(req.user.id, 'DELETE', 'gallery', Number(req.params.id));
     res.json({ message: 'Deleted' });
   } catch (err) {
     if (isDbUnavailable(err)) {
@@ -377,7 +403,7 @@ router.delete('/gallery_photos/:id', requireAuth, async (req, res) => {
 // Users management (superadmin only)
 router.get('/users', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT id, name, email, role, created_at FROM users ORDER BY id');
+    const [rows] = await pool.query('SELECT id, username, full_name AS name, email, role, created_at FROM admin_users ORDER BY id');
     res.json(rows);
   } catch (err) {
     if (isDbUnavailable(err)) {
@@ -388,21 +414,21 @@ router.get('/users', requireAuth, requireSuperAdmin, async (req, res) => {
 });
 
 router.post('/users', requireAuth, requireSuperAdmin, async (req, res) => {
-  const { name, email, password, role = 'admin' } = req.body;
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: 'name, email, and password required' });
+  const { username, full_name, email, password, role = 'admin' } = req.body;
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'username, email, and password required' });
   }
   try {
     const hash = await bcrypt.hash(password, 10);
     const [result] = await pool.query(
-      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-      [name, email, hash, role]
+      'INSERT INTO admin_users (username, full_name, email, password, role) VALUES (?, ?, ?, ?, ?)',
+      [username, full_name || username, email, hash, role]
     );
-    logAction(req.user.id, 'CREATE', 'users', result.insertId);
-    res.status(201).json({ id: result.insertId, name, email, role });
+    logAction(req.user.id, 'CREATE', 'admin_users', result.insertId);
+    res.status(201).json({ id: result.insertId, username, full_name, email, role });
   } catch (err) {
     if (isDbUnavailable(err)) {
-      const row = memoryCreate('users', { name, email, role });
+      const row = memoryCreate('users', { name: username, email, role });
       return res.status(201).json({ demo: true, ...row });
     }
     res.status(500).json({ error: err.message });
@@ -411,9 +437,9 @@ router.post('/users', requireAuth, requireSuperAdmin, async (req, res) => {
 
 router.delete('/users/:id', requireAuth, requireSuperAdmin, async (req, res) => {
   try {
-    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+    const [result] = await pool.query('DELETE FROM admin_users WHERE id = ?', [req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
-    logAction(req.user.id, 'DELETE', 'users', Number(req.params.id));
+    logAction(req.user.id, 'DELETE', 'admin_users', Number(req.params.id));
     res.json({ message: 'Deleted' });
   } catch (err) {
     if (isDbUnavailable(err)) {

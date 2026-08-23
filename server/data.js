@@ -1,3 +1,9 @@
+export const coreValues = [
+  { id: 1, icon: 'fas fa-bullhorn', title: 'Evangelism', description: 'Evangelism is the Spirit-empowered presentation of Jesus Christ so that people will trust Him as Saviour and Lord.', display_order: 1, is_active: 1 },
+  { id: 2, icon: 'fas fa-users', title: 'Discipleship', description: 'Teaching and training believers to be like Christ in character and to make responsible, godly choices.', display_order: 2, is_active: 1 },
+  { id: 3, icon: 'fas fa-crown', title: 'Ministry Excellence', description: 'We seek to honour God by maintaining a high standard of excellence in all our ministries.', display_order: 3, is_active: 1 },
+];
+
 export const ministries = [
   { id: 1, title: 'Worship & Music', description: "Musicians, singers and sound volunteers shaping every Sunday's atmosphere.", image_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80' },
   { id: 2, title: 'Outreach & Missions', description: 'Serving neighborhoods across Accra with food, care, and practical help.', image_url: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80' },
@@ -9,6 +15,11 @@ export const sermons = [
   { id: 1, title: 'What it means to belong before you believe', speaker: 'Pastor Mark Johnson', category: 'Sermon', duration: '32 min', image_url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80', published_at: '2026-08-09' },
   { id: 2, title: 'Why we built community groups around neighborhoods', speaker: 'Pastor Helen Owusu', category: 'Community', duration: '4 min read', image_url: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80', published_at: '2026-08-06' },
   { id: 3, title: 'Inside our latest outreach across Accra', speaker: 'Pastor Alex Mensah', category: 'Outreach', duration: '3 min read', image_url: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80', published_at: '2026-08-02' },
+];
+
+export const leadership = [
+  { id: 1, name: 'Pastor John and Mrs. Essah', role: 'Traveling Secretary', category: 'pastor', academic_year: 'N/A', description: 'Traveling Secretary For The Takoradi Sector', image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80', display_order: 0, is_active: 1 },
+  { id: 2, name: 'Elder Ebenezer Omano', role: 'Evangelism Secretary', category: 'ec', academic_year: '2025/2026', description: '', image_url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=80', display_order: 4, is_active: 1 },
 ];
 
 export const team = [
@@ -27,6 +38,19 @@ export const events = [
 export const visits = [];
 export const subscribers = [];
 export const contacts = [];
+export const contactMessages = [];
+
+export const news = [
+  { id: 1, display_order: 0, title: 'Welcome to PENSA TTU', content: 'We are excited to have you join our fellowship.', excerpt: 'Join us for weekly services and events.', image_url: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', category: 'General', created_at: '2026-08-23' },
+];
+
+export const albums = [
+  { id: 1, name: 'Sunday Worship', description: 'Weekly worship services', cover_image: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', created_at: '2026-08-23' },
+];
+
+export const gallery = [
+  { id: 1, title: 'Worship Service', category: 'worship', description: 'Sunday worship', image_url: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', created_at: '2026-08-23', album_id: 1 },
+];
 
 export const announcements = [
   { date: 'Aug 14, 2026', title: 'New Sunday service schedule', body: 'From September, our second service starts at 11:30 AM to give more room for community time between gatherings.' },

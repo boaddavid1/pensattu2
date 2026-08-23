@@ -31,10 +31,10 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Ministries
+// Core Values (mapped from ministries)
 app.get('/api/ministries', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM ministries ORDER BY id');
+    const [rows] = await pool.query('SELECT * FROM core_values WHERE is_active = 1 ORDER BY display_order');
     res.json(rows);
   } catch (err) {
     res.json(ministries);
@@ -45,7 +45,7 @@ app.get('/api/ministries', async (req, res) => {
 app.get('/api/sermons', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM sermons ORDER BY published_at DESC LIMIT 6'
+      'SELECT * FROM sermons WHERE is_active = 1 ORDER BY date_preached DESC LIMIT 6'
     );
     res.json(rows);
   } catch (err) {
@@ -56,7 +56,7 @@ app.get('/api/sermons', async (req, res) => {
 // Leadership
 app.get('/api/team', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM team ORDER BY sort_order');
+    const [rows] = await pool.query('SELECT * FROM leadership WHERE is_active = 1 ORDER BY display_order');
     res.json(rows);
   } catch (err) {
     res.json(team);
@@ -113,14 +113,14 @@ app.post('/api/subscribers', async (req, res) => {
 
 // Contact form
 app.post('/api/contact', async (req, res) => {
-  const { name, email, message } = req.body;
+  const { name, email, message, phone } = req.body;
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
     await pool.query(
-      'INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)',
-      [name, email, message]
+      'INSERT INTO contact_messages (name, email, message, phone) VALUES (?, ?, ?, ?)',
+      [name, email, message, phone || null]
     );
     res.status(201).json({ message: 'Message sent' });
   } catch (err) {
@@ -133,7 +133,7 @@ app.post('/api/contact', async (req, res) => {
 app.get('/api/announcements', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT DATE_FORMAT(published_at, "%b %e, %Y") AS date, title, body FROM announcements ORDER BY published_at DESC'
+      'SELECT DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, content AS body FROM news ORDER BY created_at DESC'
     );
     res.json(rows);
   } catch (err) {
@@ -144,7 +144,7 @@ app.get('/api/announcements', async (req, res) => {
 app.get('/api/notices', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT DATE_FORMAT(published_at, "%b %e, %Y") AS date, title, body FROM notices ORDER BY published_at DESC'
+      'SELECT DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, content AS body FROM news WHERE category = "Notice" ORDER BY created_at DESC'
     );
     res.json(rows);
   } catch (err) {
@@ -154,8 +154,8 @@ app.get('/api/notices', async (req, res) => {
 
 app.get('/api/gallery', async (req, res) => {
   try {
-    const [albums] = await pool.query('SELECT slug AS id, title, cover FROM gallery_albums ORDER BY id');
-    const [photos] = await pool.query('SELECT album_id, src, alt, category, caption FROM gallery_photos ORDER BY id');
+    const [albums] = await pool.query('SELECT id, name AS title, description, cover_image AS cover FROM albums ORDER BY id');
+    const [photos] = await pool.query('SELECT album_id, image_url AS src, title AS alt, category, description AS caption FROM gallery ORDER BY id');
     const albumsWithItems = albums.map((album) => ({
       ...album,
       count: `${photos.filter((p) => p.album_id === album.id).length} photos`,
@@ -164,6 +164,98 @@ app.get('/api/gallery', async (req, res) => {
     res.json(albumsWithItems);
   } catch (err) {
     res.json(galleryAlbums);
+  }
+});
+
+// Home Settings
+app.get('/api/home-settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM home_settings');
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.setting_key] = row.setting_value;
+    });
+    res.json(settings);
+  } catch (err) {
+    res.json({});
+  }
+});
+
+// Hero Slider
+app.get('/api/hero-slider', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM hero_slider WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// About Settings
+app.get('/api/about-settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM about_settings');
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.setting_key] = row.setting_value;
+    });
+    res.json(settings);
+  } catch (err) {
+    res.json({});
+  }
+});
+
+// About Gallery
+app.get('/api/about-gallery', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM about_gallery WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Contact Settings
+app.get('/api/contact-settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM contact_settings');
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.setting_key] = row.setting_value;
+    });
+    res.json(settings);
+  } catch (err) {
+    res.json({});
+  }
+});
+
+// Services
+app.get('/api/services', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM services WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Videos
+app.get('/api/videos', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM videos ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Timeline Events
+app.get('/api/timeline', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM timeline_events WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
   }
 });
 
