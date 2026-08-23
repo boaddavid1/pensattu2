@@ -79,6 +79,7 @@ header {
   display: flex; align-items: center; gap: 8px;
 }
 .logo span { color: var(--moss-deep); }
+.logo img { height: 44px; width: auto; display: block; }
 .nav-links { display: flex; gap: 36px; font-size: 15px; font-weight: 500; }
 .nav-links li { position: relative; }
 .nav-links a { position: relative; padding: 4px 0; color: var(--ink-soft); transition: color .2s ease; }
@@ -308,8 +309,8 @@ section { padding: 100px 0; }
 }
 .news-box h2 { font-size: clamp(24px, 2.6vw, 32px); color: var(--pine-deep); max-width: 420px; }
 .news-box h2 em { font-style: normal; color: var(--moss-deep); }
-.news-form { display: flex; gap: 10px; flex: 1; min-width: 300px; max-width: 440px; }
-.news-form input { flex: 1; padding: 16px 20px; border-radius: 100px; border: 1px solid var(--line); font-family: 'Inter', sans-serif; font-size: 14.5px; background: #fff; }
+.news-form { display: flex; gap: 10px; flex: 1 1 300px; min-width: 0; max-width: 440px; }
+.news-form input { flex: 1; min-width: 0; padding: 16px 20px; border-radius: 100px; border: 1px solid var(--line); font-family: 'Inter', sans-serif; font-size: 14.5px; background: #fff; }
 
 /* ===== FOOTER ===== */
 footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding-top: 80px; position: relative; overflow: hidden; }
@@ -468,6 +469,9 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
   .form-grid { grid-template-columns: 1fr; }
   .foot-grid { grid-template-columns: 1px; padding-bottom: 40px; }
   .news-box { padding: 36px 26px; }
+  .news-box h2 { max-width: 100%; }
+  .news-form { flex-direction: column; max-width: 100%; width: 100%; }
+  .news-form .btn { width: 100%; justify-content: center; }
   .story-text { padding: 32px 24px; }
   .hero-inner { padding: 24px 20px 36px; }
 }

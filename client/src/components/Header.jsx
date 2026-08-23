@@ -43,7 +43,9 @@ export default function Header() {
   return (
     <header>
       <nav className="nav">
-        <Link to="/" className="logo">PENSA <span>TTU</span></Link>
+        <Link to="/" className="logo">
+          <img src="/images/pensa.jpg" alt="PENSA TTU" />
+        </Link>
         <ul className="nav-links">
           <li><Link to="/" className={pathname === '/' ? 'active' : ''} onClick={closeAll}>Home</Link></li>
           <li className={`has-dropdown${aboutOpen ? ' open' : ''}`} ref={aboutRef}>

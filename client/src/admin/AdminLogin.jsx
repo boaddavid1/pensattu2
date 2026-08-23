@@ -4,7 +4,7 @@ import { adminApi, isLoggedIn, setToken } from './adminApi';
 import './admin.css';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
     try {
-      const res = await adminApi.login({ email, password });
+      const res = await adminApi.login({ email: identifier, password });
       setToken(res.token);
       navigate('/admin/dashboard', { replace: true });
     } catch (err) {
@@ -33,8 +33,8 @@ export default function AdminLogin() {
         <h1>PENSA TTU <span>Super Admin</span></h1>
         <form onSubmit={handleSubmit}>
           <label>
-            Email
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            Email or Username
+            <input type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required />
           </label>
           <label>
             Password

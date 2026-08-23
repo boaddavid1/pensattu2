@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MobileTabBar from './components/MobileTabBar';
@@ -20,6 +20,7 @@ import AdminCrudPage from './admin/AdminCrudPage';
 import AdminGallery from './admin/AdminGallery';
 import AdminReadonly from './admin/AdminReadonly';
 import AdminUsers from './admin/AdminUsers';
+import { isLoggedIn } from './admin/adminApi';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -67,6 +68,7 @@ function AppShell() {
 function AdminShell() {
   return (
     <Routes>
+      <Route index element={<Navigate to={isLoggedIn() ? '/admin/dashboard' : '/admin/login'} replace />} />
       <Route path="login" element={<AdminLogin />} />
       <Route element={<AdminLayout><Outlet /></AdminLayout>}>
         <Route path="dashboard" element={<AdminDashboard />} />
