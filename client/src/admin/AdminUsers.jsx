@@ -5,7 +5,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'admin' });
+  const [form, setForm] = useState({ username: '', name: '', email: '', password: '', role: 'admin' });
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export default function AdminUsers() {
   async function createUser(e) {
     e.preventDefault();
     try {
-      await adminApi.createUser(form);
-      setForm({ name: '', email: '', password: '', role: 'admin' });
+      await adminApi.createUser({ username: form.username, full_name: form.name, email: form.email, password: form.password, role: form.role });
+      setForm({ username: '', name: '', email: '', password: '', role: 'admin' });
       setShowForm(false);
       await loadUsers();
     } catch (err) {
@@ -60,6 +60,10 @@ export default function AdminUsers() {
           <h3>New Admin User</h3>
           <div className="admin-form-grid">
             <label>
+              Username
+              <input type="text" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
+            </label>
+            <label>
               Name
               <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
             </label>
@@ -75,7 +79,7 @@ export default function AdminUsers() {
               Role
               <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
                 <option value="admin">Admin</option>
-                <option value="superadmin">Super Admin</option>
+                <option value="editor">Editor</option>
               </select>
             </label>
           </div>
@@ -91,6 +95,7 @@ export default function AdminUsers() {
           <table className="admin-table">
             <thead>
               <tr>
+                <th>Username</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
@@ -101,6 +106,7 @@ export default function AdminUsers() {
             <tbody>
               {users.map((user) => (
                 <tr key={user.id}>
+                  <td>{user.username}</td>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>{user.role}</td>
@@ -111,7 +117,7 @@ export default function AdminUsers() {
                 </tr>
               ))}
               {users.length === 0 && (
-                <tr><td colSpan={5} className="admin-empty">No admin users found.</td></tr>
+                <tr><td colSpan={6} className="admin-empty">No admin users found.</td></tr>
               )}
             </tbody>
           </table>
