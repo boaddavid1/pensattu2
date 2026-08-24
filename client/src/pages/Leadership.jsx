@@ -46,10 +46,10 @@ export default function Leadership() {
           </div>
           {leadershipByYear.map(([year, leaders]) => (
             <div className="lead-year-group" key={year}>
-              <h3 className="lead-year-heading">{year}</h3>
-              <div className="featured-grid show-all">
+              {year !== 'N/A' && <h3 className="lead-year-heading">{year}</h3>}
+              <div className={`featured-grid show-all${year === 'N/A' ? ' featured-grid-top' : ''}`}>
                 {leaders.map((p) => (
-                  <div className="featured-card" key={p.id}>
+                  <div className="featured-card" key={p.id} onClick={() => setModal(p)}>
                     <div className="img">
                       <img src={p.image_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
                     </div>
