@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../api.js';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -8,12 +9,7 @@ export default function Newsletter() {
     e.preventDefault();
     setStatus('sending');
     try {
-      const res = await fetch('/api/subscribers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      if (!res.ok) throw new Error('Failed');
+      await api.post('/subscribers', { email });
       setStatus('success');
       setEmail('');
     } catch {

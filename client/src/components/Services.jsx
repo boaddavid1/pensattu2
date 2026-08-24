@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { api } from '../api.js';
 
 const fallback = [
   { id: 1, title: 'Worship & Music', description: 'Musicians, singers and sound volunteers shaping every Sunday\'s atmosphere.', image_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80' },
@@ -11,8 +12,7 @@ export default function Services() {
   const [ministries, setMinistries] = useState(fallback);
 
   useEffect(() => {
-    fetch('/api/ministries')
-      .then((r) => r.ok ? r.json() : Promise.reject())
+    api.get('/ministries')
       .then((data) => { if (Array.isArray(data) && data.length) setMinistries(data); })
       .catch(() => {});
   }, []);

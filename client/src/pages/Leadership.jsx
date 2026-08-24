@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { api } from '../api.js';
 
 export default function Leadership() {
   const [modal, setModal] = useState(null);
@@ -7,8 +8,7 @@ export default function Leadership() {
 
   useEffect(() => {
     // Fetch leadership data from API
-    fetch('/api/team')
-      .then(res => res.json())
+    api.get('/team')
       .then(data => setLeadership(data))
       .catch(err => console.error('Failed to fetch leadership:', err));
 

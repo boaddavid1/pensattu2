@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api.js';
 
 const fallback = [
   { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80' },
@@ -12,8 +13,7 @@ export default function Team() {
   const [team, setTeam] = useState(fallback);
 
   useEffect(() => {
-    fetch('/api/team')
-      .then((r) => r.ok ? r.json() : Promise.reject())
+    api.get('/team')
       .then((data) => { if (Array.isArray(data) && data.length) setTeam(data); })
       .catch(() => {});
   }, []);

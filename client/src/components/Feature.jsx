@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
+import { api } from '../api.js';
 
 export default function Feature() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    fetch('/api/events')
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+    api.get('/events')
       .then((data) => {
         if (Array.isArray(data) && data.length) setEvents(data.slice(0, 3));
       })

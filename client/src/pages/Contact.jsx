@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api.js';
 
 const faqs = [
   { q: 'What should I wear?', a: 'Whatever you\'re comfortable in. You\'ll see everything from suits to jeans — there\'s no dress code here.' },
@@ -40,12 +41,7 @@ export default function Contact() {
       message: `Topic: ${form.topic}\nPhone: ${form.phone || 'N/A'}\n\n${form.message}`,
     };
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error('Failed');
+      await api.post('/contact', body);
       setStatus('success');
       setForm({ first_name: '', last_name: '', email: '', phone: '', topic: topics[0], message: '' });
     } catch {
