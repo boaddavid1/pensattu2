@@ -1,0 +1,14 @@
+Migrate local images to Cloudinary and add admin image uploads
+
+- Migrated 44 local images from server/uploads to Cloudinary using the
+  pensattu unsigned upload preset
+- Added getImageUrl helper so frontend resolves both Cloudinary URLs and
+  local relative paths correctly
+- Added client/src/cloudinaryUpload.js for direct browser uploads
+- Updated admin CRUD and gallery forms to upload images to Cloudinary
+  instead of pasting URLs
+- Updated .env.example files with Cloudinary config
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

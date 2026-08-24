@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react';
 import { adminApi } from './adminApi';
+import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
 const fieldConfig = {
   ministries: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'description', label: 'Description', type: 'textarea' },
-    { name: 'image_url', label: 'Image URL', type: 'text' },
+    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/ministries' },
   ],
   sermons: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'speaker', label: 'Speaker', type: 'text' },
     { name: 'category', label: 'Category', type: 'text' },
     { name: 'duration', label: 'Duration', type: 'text' },
-    { name: 'image_url', label: 'Image URL', type: 'text' },
+    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/sermons' },
     { name: 'published_at', label: 'Published Date', type: 'date' },
   ],
   team: [
     { name: 'name', label: 'Name', type: 'text', required: true },
     { name: 'role', label: 'Role', type: 'text' },
-    { name: 'image_url', label: 'Image URL', type: 'text' },
+    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/team' },
     { name: 'sort_order', label: 'Sort Order', type: 'number' },
   ],
   events: [
@@ -27,21 +28,24 @@ const fieldConfig = {
     { name: 'event_time', label: 'Time', type: 'text' },
     { name: 'location', label: 'Location', type: 'text' },
     { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/events' },
   ],
   announcements: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'body', label: 'Body', type: 'textarea', required: true },
+    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/news' },
     { name: 'published_at', label: 'Published Date', type: 'date' },
   ],
   notices: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'body', label: 'Body', type: 'textarea', required: true },
+    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/news' },
     { name: 'published_at', label: 'Published Date', type: 'date' },
   ],
   gallery_albums: [
     { name: 'slug', label: 'Slug', type: 'text', required: true },
     { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'cover', label: 'Cover Image URL', type: 'text' },
+    { name: 'cover', label: 'Cover Image', type: 'image', folder: 'pensattu/gallery' },
   ],
 };
 
@@ -125,6 +129,33 @@ export default function AdminCrudPage({ entity, title }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function ImageField({ field }) {
+    const [uploading, setUploading] = useState(false);
+    async function handleFileChange(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      setUploading(true);
+      try {
+        const url = await uploadImageToCloudinary(file, field.folder || 'pensattu/misc');
+        handleChange(field.name, url);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setUploading(false);
+      }
+    }
+    return (
+      <label key={field.name}>
+        {field.label}
+        <input type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} />
+        {uploading && <span>Uploading...</span>}
+        {form[field.name] && (
+          <img src={form[field.name]} alt="Preview" style={{ maxWidth: '120px', maxHeight: '120px', display: 'block', marginTop: '8px' }} />
+        )}
+      </label>
+    );
+  }
+
   return (
     <div>
       <div className="admin-page-header">
@@ -136,25 +167,28 @@ export default function AdminCrudPage({ entity, title }) {
         <form className="admin-form admin-card" onSubmit={save}>
           <h3>{editing === 'new' ? `New ${title}` : `Edit ${title}`}</h3>
           <div className="admin-form-grid">
-            {fields.map((field) => (
-              <label key={field.name}>
-                {field.label}
-                {field.type === 'textarea' ? (
-                  <textarea
-                    value={form[field.name] || ''}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    required={field.required}
-                  />
-                ) : (
-                  <input
-                    type={field.type}
-                    value={form[field.name] || ''}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    required={field.required}
-                  />
-                )}
-              </label>
-            ))}
+            {fields.map((field) => {
+              if (field.type === 'image') return <ImageField key={field.name} field={field} />;
+              return (
+                <label key={field.name}>
+                  {field.label}
+                  {field.type === 'textarea' ? (
+                    <textarea
+                      value={form[field.name] || ''}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                      required={field.required}
+                    />
+                  ) : (
+                    <input
+                      type={field.type}
+                      value={form[field.name] || ''}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                      required={field.required}
+                    />
+                  )}
+                </label>
+              );
+            })}
           </div>
           <div className="admin-form-actions">
             <button type="submit" className="btn btn-primary">Save</button>

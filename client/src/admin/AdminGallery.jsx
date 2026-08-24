@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { adminApi } from './adminApi';
+import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
 export default function AdminGallery() {
   const [albums, setAlbums] = useState([]);
@@ -8,6 +9,7 @@ export default function AdminGallery() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [photoForm, setPhotoForm] = useState({ src: '', alt: '', category: '', caption: '' });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadAlbums();
@@ -30,6 +32,20 @@ export default function AdminGallery() {
     if (!selectedAlbum) return;
     adminApi.listPhotos(selectedAlbum).then(setPhotos).catch(() => setPhotos([]));
   }, [selectedAlbum]);
+
+  async function handlePhotoFileChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImageToCloudinary(file, 'pensattu/gallery');
+      setPhotoForm((prev) => ({ ...prev, src: url }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function addPhoto(e) {
     e.preventDefault();
@@ -78,8 +94,12 @@ export default function AdminGallery() {
               <h3>Add photo to album</h3>
               <div className="admin-form-grid">
                 <label>
-                  Image URL
-                  <input type="text" value={photoForm.src} onChange={(e) => setPhotoForm({ ...photoForm, src: e.target.value })} required />
+                  Image
+                  <input type="file" accept="image/*" onChange={handlePhotoFileChange} disabled={uploading} required />
+                  {uploading && <span>Uploading...</span>}
+                  {photoForm.src && (
+                    <img src={photoForm.src} alt="Preview" style={{ maxWidth: '120px', maxHeight: '120px', display: 'block', marginTop: '8px' }} />
+                  )}
                 </label>
                 <label>
                   Alt text
@@ -102,7 +122,7 @@ export default function AdminGallery() {
           <div className="admin-gallery-grid">
             {photos.map((photo) => (
               <div key={photo.id} className="admin-gallery-card">
-                <img src={photo.src} alt={photo.alt || ''} />
+                <img src={photo.src || photo.image_url} alt={photo.alt || ''} />
                 <div className="admin-gallery-meta">
                   <strong>{photo.caption || 'Untitled'}</strong>
                   <button className="admin-delete" onClick={() => removePhoto(photo.id)}>Delete</button>
