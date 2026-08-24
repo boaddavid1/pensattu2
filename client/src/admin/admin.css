@@ -475,6 +475,52 @@
   white-space: nowrap;
 }
 
+/* Team cards grouped by year */
+.admin-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.admin-team-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(15, 61, 46, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-team-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.admin-team-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-team-body strong {
+  font-size: 14px;
+  color: var(--pine-deep);
+}
+
+.admin-team-body span {
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.admin-team-actions {
+  padding: 0 14px 14px;
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .admin-sidebar {

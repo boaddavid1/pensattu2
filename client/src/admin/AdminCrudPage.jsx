@@ -129,6 +129,51 @@ export default function AdminCrudPage({ entity, title }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function renderCellValue(f, item) {
+    const value = item[f.name];
+    if (f.type === 'image' || f.name === 'image_url' || f.name === 'cover') {
+      return value ? <img src={value} alt="" style={{ maxWidth: '80px', maxHeight: '80px', borderRadius: '4px' }} /> : '-';
+    }
+    if (f.type === 'textarea') {
+      return (value || '').slice(0, 60) + ((value || '').length > 60 ? '...' : '');
+    }
+    return value || '-';
+  }
+
+  function TeamCards() {
+    const groups = items.reduce((acc, p) => {
+      const year = p.academic_year || 'Other';
+      (acc[year] = acc[year] || []).push(p);
+      return acc;
+    }, {});
+    const sortedYears = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+    return (
+      <div className="admin-card">
+        {sortedYears.map((year) => (
+          <div key={year} style={{ marginBottom: '32px' }}>
+            <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', color: 'var(--pine-deep)' }}>{year}</h3>
+            <div className="admin-team-grid">
+              {groups[year].map((p) => (
+                <div key={p.id} className="admin-team-card">
+                  <img src={p.image_url || ''} alt={p.name} className="admin-team-img" />
+                  <div className="admin-team-body">
+                    <strong>{p.name}</strong>
+                    <span>{p.role}</span>
+                  </div>
+                  <div className="admin-team-actions">
+                    <button className="admin-edit" onClick={() => startEdit(p)}>Edit</button>
+                    <button className="admin-delete" onClick={() => remove(p.id)}>Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   function ImageField({ field }) {
     const [uploading, setUploading] = useState(false);
     async function handleFileChange(e) {
@@ -198,6 +243,8 @@ export default function AdminCrudPage({ entity, title }) {
       )}
       {loading ? (
         <div className="admin-loading">Loading...</div>
+      ) : entity === 'team' ? (
+        <TeamCards />
       ) : (
         <div className="admin-table-wrap admin-card">
           <table className="admin-table">
@@ -211,11 +258,7 @@ export default function AdminCrudPage({ entity, title }) {
               {items.map((item) => (
                 <tr key={item.id}>
                   {fields.map((f) => (
-                    <td key={f.name}>
-                      {f.type === 'textarea'
-                        ? (item[f.name] || '').slice(0, 60) + ((item[f.name] || '').length > 60 ? '...' : '')
-                        : item[f.name] || '-'}
-                    </td>
+                    <td key={f.name}>{renderCellValue(f, item)}</td>
                   ))}
                   <td className="admin-actions">
                     <button className="admin-edit" onClick={() => startEdit(item)}>Edit</button>
