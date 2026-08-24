@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api, getImageUrl } from '../api.js';
 
 const fallbackPast = [
@@ -10,21 +10,6 @@ const fallbackPast = [
   { day: '13', month: 'JUL', year: '2026', title: 'Youth Camp Finale', img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80' },
   { day: '06', month: 'JUL', year: '2026', title: 'Prayer & Fasting', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80' },
   { day: '29', month: 'JUN', year: '2026', title: 'Sunday Fellowship', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80' },
-];
-
-const timeline = [
-  { month: 'January 2026', dates: [
-    { weekday: 'WED', day: '14' },
-    { weekday: 'WED', day: '28' },
-  ] },
-  { month: 'February 2026', dates: [
-    { weekday: 'SUN', day: '22' },
-  ] },
-  { month: 'March 2026', dates: [
-    { weekday: 'SUN', day: '1' },
-    { weekday: 'FRI', day: '20' },
-    { weekday: 'SUN', day: '22' },
-  ] },
 ];
 
 function parseEvent(ev) {
@@ -54,6 +39,26 @@ export default function Events() {
   const [upcoming, setUpcoming] = useState([]);
   const [past, setPast] = useState(fallbackPast);
   const [loading, setLoading] = useState(true);
+
+  const timeline = useMemo(() => {
+    const groups = {};
+    upcoming.forEach((ev) => {
+      if (!ev.event_date) return;
+      const date = new Date(ev.event_date);
+      if (isNaN(date)) return;
+      const label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+      const day = String(date.getDate()).padStart(2, '0');
+      const key = `${label}|${date.getFullYear()}-${date.getMonth()}`;
+      groups[key] = groups[key] || { month: label, dates: [] };
+      groups[key].dates.push({ weekday, day });
+    });
+    return Object.values(groups).sort((a, b) => {
+      const [ay, am] = a.month.split(' ').reverse();
+      const [by, bm] = b.month.split(' ').reverse();
+      return new Date(`${am} 1, ${ay}`) - new Date(`${bm} 1, ${by}`);
+    });
+  }, [upcoming]);
 
   useEffect(() => {
     api.get('/events')
@@ -107,25 +112,29 @@ export default function Events() {
             <p>Showing only dates with scheduled events.</p>
           </div>
 
-          <div className="timeline-track">
-            {timeline.map((group) => (
-              <div className="timeline-group" key={group.month}>
-                <div className="timeline-month">
-                  <span className="timeline-line" />
-                  <span className="timeline-month-label">{group.month}</span>
-                  <span className="timeline-line" />
+          {timeline.length === 0 ? (
+            <p>No scheduled events yet.</p>
+          ) : (
+            <div className="timeline-track">
+              {timeline.map((group) => (
+                <div className="timeline-group" key={group.month}>
+                  <div className="timeline-month">
+                    <span className="timeline-line" />
+                    <span className="timeline-month-label">{group.month}</span>
+                    <span className="timeline-line" />
+                  </div>
+                  <div className="timeline-dates">
+                    {group.dates.map((d, i) => (
+                      <div className="timeline-date-card" key={group.month + i}>
+                        <span className="timeline-weekday">{d.weekday}</span>
+                        <span className="timeline-day">{d.day}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="timeline-dates">
-                  {group.dates.map((d, i) => (
-                    <div className="timeline-date-card" key={group.month + i}>
-                      <span className="timeline-weekday">{d.weekday}</span>
-                      <span className="timeline-day">{d.day}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
