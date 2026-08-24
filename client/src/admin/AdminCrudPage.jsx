@@ -17,10 +17,16 @@ const fieldConfig = {
     { name: 'published_at', label: 'Published Date', type: 'date' },
   ],
   team: [
-    { name: 'name', label: 'Name', type: 'text', required: true },
-    { name: 'role', label: 'Role', type: 'text' },
-    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/team' },
-    { name: 'sort_order', label: 'Sort Order', type: 'number' },
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'role', label: 'Role/Position', type: 'text' },
+    { name: 'category', label: 'Category', type: 'select', required: true, options: ['pastor', 'patroness', 'ec', 'lcc'] },
+    { name: 'academic_year', label: 'Academic Year of Administration', type: 'select', required: true, options: ['2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'] },
+    { name: 'programme', label: 'Programme of Study', type: 'text' },
+    { name: 'hall', label: 'Affiliated Hall', type: 'text' },
+    { name: 'previous_portfolio', label: 'Portfolio(s) Held Previously at PENSA TTU', type: 'textarea' },
+    { name: 'description', label: 'Bio / Description', type: 'textarea' },
+    { name: 'image_url', label: 'Upload Image', type: 'image', folder: 'pensattu/team' },
+    { name: 'display_order', label: 'Display Order', type: 'number' },
   ],
   events: [
     { name: 'title', label: 'Title', type: 'text', required: true },
@@ -159,9 +165,9 @@ export default function AdminCrudPage({ entity, title }) {
   function TeamCards() {
     const [expanded, setExpanded] = useState({});
 
-    const isSenior = (p) => ['pastor', 'patroness'].includes(p.category);
-    const seniorLeaders = items.filter(isSenior);
-    const albumMembers = items.filter((p) => !isSenior(p));
+    const seniorLeaders = items.filter((p) => ['pastor', 'patroness'].includes(p.category));
+    const ecMembers = items.filter((p) => p.category === 'ec');
+    const albumMembers = items.filter((p) => !['pastor', 'patroness', 'ec'].includes(p.category));
 
     const groups = albumMembers.reduce((acc, p) => {
       const year = p.academic_year || 'Other';
@@ -174,49 +180,57 @@ export default function AdminCrudPage({ entity, title }) {
       setExpanded((prev) => ({ ...prev, [year]: !prev[year] }));
     }
 
+    function renderSection(title, members) {
+      if (!members.length) return null;
+      return (
+        <div className="admin-team-section">
+          <h3 className="admin-team-section-title">{title}</h3>
+          <div className="admin-team-grid">
+            {members.map((p) => <MemberCard key={p.id} p={p} />)}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div>
-        {seniorLeaders.length > 0 && (
-          <div className="admin-team-senior">
-            <h3 className="admin-team-section-title">Senior Leaders</h3>
-            <div className="admin-team-grid">
-              {seniorLeaders.map((p) => <MemberCard key={p.id} p={p} />)}
-            </div>
+        {renderSection('Senior Leaders', seniorLeaders)}
+        {renderSection('Executive Committee (EC)', ecMembers)}
+
+        {sortedYears.length > 0 && (
+          <div className="admin-team-albums">
+            {sortedYears.map((year) => {
+              const members = groups[year];
+              const cover = members.find((p) => p.image_url)?.image_url || '';
+              const isOpen = !!expanded[year];
+              return (
+                <div key={year} className="admin-team-album">
+                  <button
+                    type="button"
+                    className="admin-team-album-header"
+                    onClick={() => toggleYear(year)}
+                  >
+                    <div className="admin-team-album-cover">
+                      {cover ? <img src={cover} alt={year} /> : <span className="admin-team-album-placeholder">{year}</span>}
+                      <div className="admin-team-album-overlay">
+                        <h3>{year}</h3>
+                        <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
+                      </div>
+                    </div>
+                    <span className="admin-team-album-toggle">{isOpen ? '▲ Collapse' : '▼ Expand'}</span>
+                  </button>
+                  {isOpen && (
+                    <div className="admin-team-album-body">
+                      <div className="admin-team-grid compact">
+                        {members.map((p) => <MemberCard key={p.id} p={p} />)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
-
-        <div className="admin-team-albums">
-          {sortedYears.map((year) => {
-            const members = groups[year];
-            const cover = members.find((p) => p.image_url)?.image_url || '';
-            const isOpen = !!expanded[year];
-            return (
-              <div key={year} className="admin-team-album">
-                <button
-                  type="button"
-                  className="admin-team-album-header"
-                  onClick={() => toggleYear(year)}
-                >
-                  <div className="admin-team-album-cover">
-                    {cover ? <img src={cover} alt={year} /> : <span className="admin-team-album-placeholder">{year}</span>}
-                    <div className="admin-team-album-overlay">
-                      <h3>{year}</h3>
-                      <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
-                    </div>
-                  </div>
-                  <span className="admin-team-album-toggle">{isOpen ? '▲ Collapse' : '▼ Expand'}</span>
-                </button>
-                {isOpen && (
-                  <div className="admin-team-album-body">
-                    <div className="admin-team-grid compact">
-                      {members.map((p) => <MemberCard key={p.id} p={p} />)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
       </div>
     );
   }
@@ -270,6 +284,17 @@ export default function AdminCrudPage({ entity, title }) {
                       onChange={(e) => handleChange(field.name, e.target.value)}
                       required={field.required}
                     />
+                  ) : field.type === 'select' ? (
+                    <select
+                      value={form[field.name] || ''}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                      required={field.required}
+                    >
+                      <option value="">Select {field.label}</option>
+                      {field.options.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
                   ) : (
                     <input
                       type={field.type}

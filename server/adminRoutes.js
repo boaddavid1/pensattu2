@@ -88,8 +88,8 @@ const TABLES = {
   },
   team: {
     actualTable: 'leadership',
-    columns: ['name', 'role', 'category', 'description', 'image_url', 'display_order'],
-    required: ['name'],
+    columns: ['name', 'role', 'category', 'academic_year', 'programme', 'hall', 'previous_portfolio', 'description', 'image_url', 'display_order'],
+    required: ['name', 'category', 'academic_year'],
     orderBy: 'display_order',
   },
   events: {
