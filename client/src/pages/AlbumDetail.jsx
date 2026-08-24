@@ -51,15 +51,17 @@ export default function AlbumDetail() {
           <h1>{album.title}</h1>
         </div>
       </section>
-      <div className="wrap">
-        <div className="g-grid">
+      <div className="wrap album-content">
+        <div className="g-grid g-grid-detail">
           {album.items.map((item, i) => (
-            <div className="g-item" key={i} onClick={() => setLightbox({ src: item.src, alt: item.alt })}>
+            <div className="g-item g-item-detail" key={i} onClick={() => setLightbox({ src: item.src, alt: item.alt })}>
               <img src={getImageUrl(item.src)} alt={item.alt} />
-              <div className="g-item-cap">
-                <span>{item.category}</span>
-                <strong>{item.caption}</strong>
-              </div>
+              {(item.category || item.caption) && (
+                <div className="g-item-cap">
+                  {item.category && <span>{item.category}</span>}
+                  {item.caption && <strong>{item.caption}</strong>}
+                </div>
+              )}
             </div>
           ))}
         </div>
