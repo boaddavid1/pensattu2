@@ -13,11 +13,16 @@ export default function Feature() {
   }, []);
 
   const fmtDay = (dateStr) => new Date(dateStr).getDate();
-  const fmtDate = (dateStr) =>
-    new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short',
-      year: 'numeric',
-    });
+  const fmtDate = (start, end) => {
+    const s = new Date(start);
+    const e = end ? new Date(end) : s;
+    const sameMonth = s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear();
+    const monthYear = s.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    if (sameMonth) return `${s.getDate()} – ${e.getDate()} ${monthYear}`;
+    const startStr = s.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const endStr = e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${startStr} – ${endStr}`;
+  };
 
   return (
     <section className="feature" id="work">
@@ -35,7 +40,7 @@ export default function Feature() {
                 <div>
                   <h4>{e.title}</h4>
                   <p>
-                    {fmtDate(e.event_date)} · {e.event_time} · {e.location}
+                    {fmtDate(e.event_date, e.event_end_date)} · {e.event_time} · {e.location}
                   </p>
                   <p>{e.description}</p>
                 </div>

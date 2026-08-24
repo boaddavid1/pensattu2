@@ -13,10 +13,13 @@ const fallbackPast = [
 ];
 
 function parseEvent(ev) {
-  const date = ev.event_date ? new Date(ev.event_date) : null;
-  const startDay = date ? String(date.getDate()).padStart(2, '0') : '';
-  const startMonth = date ? date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
-  const year = date ? String(date.getFullYear()) : '';
+  const startDate = ev.event_date ? new Date(ev.event_date) : null;
+  const endDate = ev.event_end_date ? new Date(ev.event_end_date) : startDate;
+  const startDay = startDate ? String(startDate.getDate()).padStart(2, '0') : '';
+  const startMonth = startDate ? startDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
+  const endDay = endDate ? String(endDate.getDate()).padStart(2, '0') : startDay;
+  const endMonth = endDate ? endDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : startMonth;
+  const year = startDate ? String(startDate.getFullYear()) : '';
   const timeParts = (ev.event_time || '').split(/\s*[-–]\s*/);
   const startTime = timeParts[0] || ev.event_time || '';
   const endTime = timeParts[1] || '';
@@ -24,8 +27,8 @@ function parseEvent(ev) {
     ...ev,
     startDay,
     startMonth,
-    endDay: startDay,
-    endMonth: startMonth,
+    endDay,
+    endMonth,
     year,
     startTime,
     endTime,
@@ -44,14 +47,21 @@ export default function Events() {
     const groups = {};
     upcoming.forEach((ev) => {
       if (!ev.event_date) return;
-      const date = new Date(ev.event_date);
-      if (isNaN(date)) return;
-      const label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-      const day = String(date.getDate()).padStart(2, '0');
-      const key = `${label}|${date.getFullYear()}-${date.getMonth()}`;
-      groups[key] = groups[key] || { month: label, dates: [] };
-      groups[key].dates.push({ weekday, day });
+      const start = new Date(ev.event_date);
+      const end = ev.event_end_date ? new Date(ev.event_end_date) : start;
+      if (isNaN(start) || isNaN(end)) return;
+
+      const dayCount = Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+      for (let i = 0; i <= dayCount; i++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+        const day = String(date.getDate()).padStart(2, '0');
+        const key = `${label}|${date.getFullYear()}-${date.getMonth()}`;
+        groups[key] = groups[key] || { month: label, dates: [] };
+        groups[key].dates.push({ weekday, day });
+      }
     });
     return Object.values(groups).sort((a, b) => {
       const [ay, am] = a.month.split(' ').reverse();

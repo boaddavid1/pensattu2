@@ -94,7 +94,7 @@ const TABLES = {
   },
   events: {
     actualTable: 'events',
-    columns: ['title', 'event_date', 'event_time', 'location', 'description', 'category', 'image_url'],
+    columns: ['title', 'event_date', 'event_end_date', 'event_time', 'location', 'description', 'category', 'image_url', 'featured', 'status'],
     required: ['title', 'event_date'],
     orderBy: 'event_date',
   },

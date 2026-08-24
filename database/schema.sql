@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS ministries (
   id INT PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(100) NOT NULL,
   description TEXT,
-  image_url VARCHAR(500),
+  image VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -32,9 +32,14 @@ CREATE TABLE IF NOT EXISTS events (
   id INT PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(200) NOT NULL,
   event_date DATE NOT NULL,
-  event_time VARCHAR(20),
+  event_end_date DATE,
+  event_time VARCHAR(50),
   location VARCHAR(200),
-  description TEXT
+  description TEXT,
+  category VARCHAR(100),
+  image_url VARCHAR(500),
+  featured BOOLEAN DEFAULT FALSE,
+  status VARCHAR(50) DEFAULT 'upcoming'
 );
 
 CREATE TABLE IF NOT EXISTS visits (

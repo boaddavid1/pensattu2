@@ -30,11 +30,15 @@ const fieldConfig = {
   ],
   events: [
     { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'event_date', label: 'Date', type: 'date', required: true },
+    { name: 'event_date', label: 'Start Date', type: 'date', required: true },
+    { name: 'event_end_date', label: 'End Date', type: 'date' },
     { name: 'event_time', label: 'Time', type: 'text' },
     { name: 'location', label: 'Location', type: 'text' },
     { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'category', label: 'Category', type: 'text' },
     { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/events' },
+    { name: 'featured', label: 'Featured', type: 'select', options: ['0', '1'] },
+    { name: 'status', label: 'Status', type: 'select', options: ['upcoming', 'past'], required: true },
   ],
   announcements: [
     { name: 'title', label: 'Title', type: 'text', required: true },
