@@ -717,30 +717,40 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .featured-grid-top { grid-template-columns: repeat(2, 1fr) !important; }
 
 .lead-year-select-wrap {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   margin-bottom: 24px;
 }
 
+.lead-year-select-wrap::before {
+  content: "";
+  width: 22px;
+  height: 1.5px;
+  background: var(--moss-deep);
+  display: inline-block;
+}
+
 .lead-year-select-wrap label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  display: none;
 }
 
 .lead-year-select {
-  font-family: 'Fraunces', serif;
-  font-size: 18px;
-  color: var(--pine-deep);
-  padding: 10px 16px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--moss-deep);
+  background: transparent;
+  border: none;
+  padding: 0 20px 0 0;
   cursor: pointer;
-  min-width: 160px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232C5F4A' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  font-weight: 500;
 }
 
 .lead-team { background: var(--paper); }
