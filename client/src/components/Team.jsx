@@ -31,7 +31,6 @@ export default function Team() {
               <img src={getImageUrl(p.image_url)} alt={p.name} />
               <div className="team-info">
                 <div><h3>{p.name}</h3><span>{p.role}</span></div>
-                <div className="team-social">in</div>
               </div>
             </div>
           ))}
