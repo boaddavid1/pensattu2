@@ -56,7 +56,6 @@ export default function Leadership() {
                     <div className="body">
                       <span className="role">{p.role}</span>
                       <h3>{p.name}</h3>
-                      <p>{p.description || p.programme || 'Passionate leader serving the PENSA TTU community.'}</p>
                     </div>
                   </div>
                 ))}
