@@ -151,9 +151,13 @@ export default function Leadership() {
             <div className="lead-modal-body">
               <span className="lead-modal-role">{modal.role}</span>
               <h3>{modal.name}</h3>
-              <p>{modal.description || modal.programme || 'Passionate leader serving the PENSA TTU community.'}</p>
-              {modal.hall && <p><strong>Hall:</strong> {modal.hall}</p>}
-              {modal.programme && <p><strong>Programme:</strong> {modal.programme}</p>}
+              <p>{modal.description || 'Passionate leader serving the PENSA TTU community.'}</p>
+              {modal.hall && modal.hall !== 'N/A' && !['pastor', 'patroness'].includes(modal.category) && (
+                <p><strong>Hall:</strong> {modal.hall}</p>
+              )}
+              {modal.programme && modal.programme !== 'N/A' && !['pastor', 'patroness'].includes(modal.category) && (
+                <p><strong>Programme:</strong> {modal.programme}</p>
+              )}
             </div>
           </div>
         </div>
