@@ -149,27 +149,39 @@ export default function AdminCrudPage({ entity, title }) {
     const sortedYears = Object.keys(groups).sort((a, b) => b.localeCompare(a));
 
     return (
-      <div className="admin-card">
-        {sortedYears.map((year) => (
-          <div key={year} style={{ marginBottom: '32px' }}>
-            <h3 style={{ marginBottom: '16px', fontSize: '1.1rem', color: 'var(--pine-deep)' }}>{year}</h3>
-            <div className="admin-team-grid">
-              {groups[year].map((p) => (
-                <div key={p.id} className="admin-team-card">
-                  <img src={p.image_url || ''} alt={p.name} className="admin-team-img" />
-                  <div className="admin-team-body">
-                    <strong>{p.name}</strong>
-                    <span>{p.role}</span>
-                  </div>
-                  <div className="admin-team-actions">
-                    <button className="admin-edit" onClick={() => startEdit(p)}>Edit</button>
-                    <button className="admin-delete" onClick={() => remove(p.id)}>Delete</button>
-                  </div>
+      <div className="admin-team-albums">
+        {sortedYears.map((year) => {
+          const members = groups[year];
+          const cover = members.find((p) => p.image_url)?.image_url || '';
+          return (
+            <div key={year} className="admin-team-album">
+              <div className="admin-team-album-cover">
+                {cover ? <img src={cover} alt={year} /> : <span className="admin-team-album-placeholder">{year}</span>}
+                <div className="admin-team-album-overlay">
+                  <h3>{year}</h3>
+                  <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
                 </div>
-              ))}
+              </div>
+              <div className="admin-team-album-body">
+                <div className="admin-team-grid compact">
+                  {members.map((p) => (
+                    <div key={p.id} className="admin-team-card">
+                      <img src={p.image_url || ''} alt={p.name} className="admin-team-img" />
+                      <div className="admin-team-body">
+                        <strong>{p.name}</strong>
+                        <span>{p.role}</span>
+                      </div>
+                      <div className="admin-team-actions">
+                        <button className="admin-edit" onClick={() => startEdit(p)}>Edit</button>
+                        <button className="admin-delete" onClick={() => remove(p.id)}>Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
