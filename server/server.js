@@ -262,6 +262,9 @@ app.get('/api/timeline', async (req, res) => {
 // Admin routes
 app.use('/api/admin', adminRoutes);
 
+// Serve uploaded images from the uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Serve static client build in production; falls through for SPA routes
 app.use(express.static(path.join(__dirname, '../client/dist')));
 

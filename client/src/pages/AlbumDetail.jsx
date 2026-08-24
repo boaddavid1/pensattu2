@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, getImageUrl } from '../api';
 import '../pages/Gallery.css';
 
 export default function AlbumDetail() {
@@ -45,7 +45,7 @@ export default function AlbumDetail() {
   return (
     <main className="albums">
       <section className="album-hero">
-        <img src={album.cover} alt={`${album.title} cover`} />
+        <img src={getImageUrl(album.cover)} alt={`${album.title} cover`} />
         <div className="wrap">
           <Link to="/gallery" className="album-back">← Back to gallery</Link>
           <h1>{album.title}</h1>
@@ -55,7 +55,7 @@ export default function AlbumDetail() {
         <div className="g-grid">
           {album.items.map((item, i) => (
             <div className="g-item" key={i} onClick={() => setLightbox({ src: item.src, alt: item.alt })}>
-              <img src={item.src} alt={item.alt} />
+              <img src={getImageUrl(item.src)} alt={item.alt} />
               <div className="g-item-cap">
                 <span>{item.category}</span>
                 <strong>{item.caption}</strong>
@@ -68,7 +68,7 @@ export default function AlbumDetail() {
       {lightbox && (
         <div className="gallery-lightbox" onClick={() => setLightbox(null)}>
           <button className="lightbox-close" onClick={() => setLightbox(null)}>✕</button>
-          <img src={lightbox.src} alt={lightbox.alt} onClick={(e) => e.stopPropagation()} />
+          <img src={getImageUrl(lightbox.src)} alt={lightbox.alt} onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </main>

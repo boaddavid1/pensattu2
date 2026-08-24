@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api.js';
+import { api, getImageUrl } from '../api.js';
 
 const fallback = [
   { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80' },
@@ -28,7 +28,7 @@ export default function Team() {
         <div className="team-grid">
           {team.slice(0, 4).map((p) => (
             <div className="team-card" key={p.id}>
-              <img src={p.image_url} alt={p.name} />
+              <img src={getImageUrl(p.image_url)} alt={p.name} />
               <div className="team-info">
                 <div><h3>{p.name}</h3><span>{p.role}</span></div>
                 <div className="team-social">in</div>

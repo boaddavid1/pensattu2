@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { api } from '../api.js';
+import { api, getImageUrl } from '../api.js';
 
 export default function Leadership() {
   const [modal, setModal] = useState(null);
@@ -51,7 +51,7 @@ export default function Leadership() {
                 {leaders.map((p) => (
                   <div className="featured-card" key={p.id} onClick={() => setModal(p)}>
                     <div className="img">
-                      <img src={p.image_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
+                      <img src={getImageUrl(p.image_url) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
                     </div>
                     <div className="body">
                       <span className="role">{p.role}</span>
@@ -108,7 +108,7 @@ export default function Leadership() {
           <div className="lead-modal-card" onClick={(e) => e.stopPropagation()}>
             <button className="lead-modal-close" onClick={() => setModal(null)}>✕</button>
             <div className="lead-modal-img">
-              <img src={modal.image_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={modal.name} />
+              <img src={getImageUrl(modal.image_url) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={modal.name} />
             </div>
             <div className="lead-modal-body">
               <span className="lead-modal-role">{modal.role}</span>

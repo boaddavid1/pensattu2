@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api.js';
+import { api, getImageUrl } from '../api.js';
 
 const fallback = [
   { id: 1, title: 'Worship & Music', description: 'Musicians, singers and sound volunteers shaping every Sunday\'s atmosphere.', image_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80' },
@@ -30,7 +30,7 @@ export default function Services() {
         <div className="service-grid">
           {ministries.map((m) => (
             <div className="service-card" key={m.id}>
-              <div className="img"><img src={m.image_url} alt={m.title} /></div>
+              <div className="img"><img src={getImageUrl(m.image_url)} alt={m.title} /></div>
               <div className="body"><h3>{m.title}</h3><p>{m.description}</p></div>
             </div>
           ))}
