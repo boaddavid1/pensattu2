@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { requestNotificationPermission, showLocalNotification } from '../utils/notifications.js';
+import { requestNotificationPermission, showLocalNotification, registerPushSubscription } from '../utils/notifications.js';
 
 export default function Footer() {
   const [notifyStatus, setNotifyStatus] = useState('default');
@@ -19,6 +19,7 @@ export default function Footer() {
     }
     setNotifyStatus(permission);
     if (permission === 'granted') {
+      await registerPushSubscription();
       showLocalNotification('PENSA TTU', {
         body: 'You will now receive updates from PENSA TTU.',
         data: '/',

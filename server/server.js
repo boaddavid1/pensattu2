@@ -3,8 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import webPush from 'web-push';
 import pool from './db.js';
 import adminRoutes from './adminRoutes.js';
+import { requireAuth } from './auth.js';
 import {
   ministries, sermons, team, events,
   addVisit, addSubscriber, addContact,
@@ -17,6 +19,14 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:hello@pensattu.example';
+
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
 
 app.use(cors());
 app.use(express.json());
@@ -259,6 +269,68 @@ app.get('/api/timeline', async (req, res) => {
     res.json(rows);
   } catch (err) {
     res.json([]);
+  }
+});
+
+// Push notifications
+app.get('/api/vapid-public-key', (req, res) => {
+  res.json({ publicKey: VAPID_PUBLIC_KEY || null });
+});
+
+app.post('/api/push-subscribe', async (req, res) => {
+  try {
+    const { endpoint, keys } = req.body;
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ error: 'Invalid subscription' });
+    }
+    await pool.query(
+      'INSERT INTO push_subscriptions (endpoint, p256dh, auth) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE p256dh = VALUES(p256dh), auth = VALUES(auth)',
+      [endpoint, keys.p256dh, keys.auth]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/push-unsubscribe', async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) return res.status(400).json({ error: 'Endpoint required' });
+    await pool.query('DELETE FROM push_subscriptions WHERE endpoint = ?', [endpoint]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/send-notification', requireAuth, async (req, res) => {
+  try {
+    const { title, body, url = '/' } = req.body;
+    if (!title || !body) return res.status(400).json({ error: 'Title and body required' });
+
+    const [rows] = await pool.query('SELECT * FROM push_subscriptions');
+    const payload = JSON.stringify({ title, body, url });
+
+    const results = await Promise.allSettled(
+      rows.map((sub) =>
+        webPush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          payload
+        ).catch((err) => {
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            pool.query('DELETE FROM push_subscriptions WHERE endpoint = ?', [sub.endpoint]);
+          }
+          throw err;
+        })
+      )
+    );
+
+    const sent = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    res.json({ ok: true, sent, failed, total: rows.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
