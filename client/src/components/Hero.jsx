@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 
 const SLIDES = [
   {
-    img: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=1600&q=80',
-    alt: 'Congregation worshipping together',
+    img: '/images/slide1.webp',
+    alt: 'PENSA TTU members celebrating at Supernatural Encounter',
     pre: 'Faith that gives your heart room to ',
     em: 'breathe',
     post: '.',

@@ -17,6 +17,14 @@ export default function Leadership() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Group leaders by academic year, most recent year first
+  const groups = leadership.reduce((acc, p) => {
+    const year = p.academic_year || 'Leadership';
+    (acc[year] = acc[year] || []).push(p);
+    return acc;
+  }, {});
+  const leadershipByYear = Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+
   return (
     <main className="leadership-page">
       <section className="page-hero">
@@ -36,20 +44,25 @@ export default function Leadership() {
             <span className="eyebrow">Senior leadership</span>
             <h2>Setting the <em>direction</em>.</h2>
           </div>
-          <div className="featured-grid show-all">
-            {leadership.map((p) => (
-              <div className="featured-card" key={p.id}>
-                <div className="img">
-                  <img src={p.image_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
-                </div>
-                <div className="body">
-                  <span className="role">{p.role}</span>
-                  <h3>{p.name}</h3>
-                  <p>{p.description || p.programme || 'Passionate leader serving the PENSA TTU community.'}</p>
-                </div>
+          {leadershipByYear.map(([year, leaders]) => (
+            <div className="lead-year-group" key={year}>
+              <h3 className="lead-year-heading">{year}</h3>
+              <div className="featured-grid show-all">
+                {leaders.map((p) => (
+                  <div className="featured-card" key={p.id}>
+                    <div className="img">
+                      <img src={p.image_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
+                    </div>
+                    <div className="body">
+                      <span className="role">{p.role}</span>
+                      <h3>{p.name}</h3>
+                      <p>{p.description || p.programme || 'Passionate leader serving the PENSA TTU community.'}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </section>
 
