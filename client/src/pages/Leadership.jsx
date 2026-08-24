@@ -41,7 +41,7 @@ export default function Leadership() {
       <section className="lead-featured">
         <div className="wrap">
           <div className="section-head">
-            <span className="eyebrow">Senior leadership</span>
+            <span className="eyebrow">leadership</span>
             <h2>Setting the <em>direction</em>.</h2>
           </div>
           {leadershipByYear.map(([year, leaders]) => (
