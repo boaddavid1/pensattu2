@@ -637,6 +637,21 @@
 
   .admin-overlay.show { display: block; }
 
+  .admin-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-page-header h2 {
+    font-size: 22px;
+  }
+
+  .admin-page-header .btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
   .admin-form-grid {
     grid-template-columns: 1fr;
   }
