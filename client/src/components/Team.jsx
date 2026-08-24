@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getImageUrl } from '../api.js';
 
@@ -9,14 +9,35 @@ const fallback = [
   { id: 4, name: 'Elder Kwame Asante', role: 'Executive Pastor', image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80' },
 ];
 
+function getHomeTeam(data) {
+  if (!Array.isArray(data) || !data.length) return fallback;
+
+  const senior = data.filter((p) => ['pastor', 'patroness'].includes(p.category));
+  const rest = data.filter((p) => !['pastor', 'patroness'].includes(p.category));
+
+  const years = [...new Set(rest.map((p) => p.academic_year).filter(Boolean))].sort().reverse();
+  const currentYear = years[0];
+  const currentYearMembers = currentYear ? rest.filter((p) => p.academic_year === currentYear) : [];
+
+  return [...senior, ...currentYearMembers].slice(0, 4);
+}
+
 export default function Team() {
   const [team, setTeam] = useState(fallback);
+  const [rawTeam, setRawTeam] = useState([]);
 
   useEffect(() => {
     api.get('/team')
-      .then((data) => { if (Array.isArray(data) && data.length) setTeam(data); })
+      .then((data) => {
+        if (Array.isArray(data) && data.length) {
+          setRawTeam(data);
+          setTeam(getHomeTeam(data));
+        }
+      })
       .catch(() => {});
   }, []);
+
+  const showViewAll = useMemo(() => rawTeam.length > 4, [rawTeam]);
 
   return (
     <section className="team" id="team">
@@ -35,7 +56,7 @@ export default function Team() {
             </div>
           ))}
         </div>
-        {team.length > 4 && (
+        {showViewAll && (
           <div className="view-all-container">
             <Link to="/leadership" className="btn btn-primary">
               View All Leadership <span className="btn-arrow">→</span>
