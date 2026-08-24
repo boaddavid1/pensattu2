@@ -475,11 +475,22 @@
   white-space: nowrap;
 }
 
+/* Senior leaders section */
+.admin-team-senior {
+  margin-bottom: 40px;
+}
+
+.admin-team-section-title {
+  font-size: 1.2rem;
+  color: var(--pine-deep);
+  margin-bottom: 18px;
+}
+
 /* Team albums grouped by academic year */
 .admin-team-albums {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 }
 
 .admin-team-album {
@@ -489,9 +500,18 @@
   box-shadow: 0 4px 20px rgba(15, 61, 46, 0.08);
 }
 
+.admin-team-album-header {
+  width: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
 .admin-team-album-cover {
   position: relative;
-  height: 160px;
+  height: 140px;
   background: linear-gradient(135deg, var(--pine-deep), var(--moss));
   overflow: hidden;
 }
@@ -533,6 +553,15 @@
 .admin-team-album-overlay span {
   font-size: 0.9rem;
   opacity: 0.9;
+}
+
+.admin-team-album-toggle {
+  display: block;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pine-deep);
+  background: #f7f9f8;
 }
 
 .admin-team-album-body {

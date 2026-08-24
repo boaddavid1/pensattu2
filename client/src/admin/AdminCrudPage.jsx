@@ -140,48 +140,83 @@ export default function AdminCrudPage({ entity, title }) {
     return value || '-';
   }
 
+  function MemberCard({ p }) {
+    return (
+      <div key={p.id} className="admin-team-card">
+        <img src={p.image_url || ''} alt={p.name} className="admin-team-img" />
+        <div className="admin-team-body">
+          <strong>{p.name}</strong>
+          <span>{p.role}</span>
+        </div>
+        <div className="admin-team-actions">
+          <button className="admin-edit" onClick={() => startEdit(p)}>Edit</button>
+          <button className="admin-delete" onClick={() => remove(p.id)}>Delete</button>
+        </div>
+      </div>
+    );
+  }
+
   function TeamCards() {
-    const groups = items.reduce((acc, p) => {
+    const [expanded, setExpanded] = useState({});
+
+    const isSenior = (p) => ['pastor', 'patroness'].includes(p.category);
+    const seniorLeaders = items.filter(isSenior);
+    const albumMembers = items.filter((p) => !isSenior(p));
+
+    const groups = albumMembers.reduce((acc, p) => {
       const year = p.academic_year || 'Other';
       (acc[year] = acc[year] || []).push(p);
       return acc;
     }, {});
     const sortedYears = Object.keys(groups).sort((a, b) => b.localeCompare(a));
 
+    function toggleYear(year) {
+      setExpanded((prev) => ({ ...prev, [year]: !prev[year] }));
+    }
+
     return (
-      <div className="admin-team-albums">
-        {sortedYears.map((year) => {
-          const members = groups[year];
-          const cover = members.find((p) => p.image_url)?.image_url || '';
-          return (
-            <div key={year} className="admin-team-album">
-              <div className="admin-team-album-cover">
-                {cover ? <img src={cover} alt={year} /> : <span className="admin-team-album-placeholder">{year}</span>}
-                <div className="admin-team-album-overlay">
-                  <h3>{year}</h3>
-                  <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
-                </div>
-              </div>
-              <div className="admin-team-album-body">
-                <div className="admin-team-grid compact">
-                  {members.map((p) => (
-                    <div key={p.id} className="admin-team-card">
-                      <img src={p.image_url || ''} alt={p.name} className="admin-team-img" />
-                      <div className="admin-team-body">
-                        <strong>{p.name}</strong>
-                        <span>{p.role}</span>
-                      </div>
-                      <div className="admin-team-actions">
-                        <button className="admin-edit" onClick={() => startEdit(p)}>Edit</button>
-                        <button className="admin-delete" onClick={() => remove(p.id)}>Delete</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      <div>
+        {seniorLeaders.length > 0 && (
+          <div className="admin-team-senior">
+            <h3 className="admin-team-section-title">Senior Leaders</h3>
+            <div className="admin-team-grid">
+              {seniorLeaders.map((p) => <MemberCard key={p.id} p={p} />)}
             </div>
-          );
-        })}
+          </div>
+        )}
+
+        <div className="admin-team-albums">
+          {sortedYears.map((year) => {
+            const members = groups[year];
+            const cover = members.find((p) => p.image_url)?.image_url || '';
+            const isOpen = !!expanded[year];
+            return (
+              <div key={year} className="admin-team-album">
+                <button
+                  type="button"
+                  className="admin-team-album-header"
+                  onClick={() => toggleYear(year)}
+                >
+                  <div className="admin-team-album-cover">
+                    {cover ? <img src={cover} alt={year} /> : <span className="admin-team-album-placeholder">{year}</span>}
+                    <div className="admin-team-album-overlay">
+                      <h3>{year}</h3>
+                      <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                  <span className="admin-team-album-toggle">{isOpen ? '▲ Collapse' : '▼ Expand'}</span>
+                </button>
+                {isOpen && (
+                  <div className="admin-team-album-body">
+                    <div className="admin-team-grid compact">
+                      {members.map((p) => <MemberCard key={p.id} p={p} />)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   }
