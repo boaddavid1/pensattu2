@@ -5,6 +5,7 @@ import { api, getImageUrl } from '../api.js';
 export default function Leadership() {
   const [modal, setModal] = useState(null);
   const [leadership, setLeadership] = useState([]);
+  const [selectedYear, setSelectedYear] = useState('');
 
   useEffect(() => {
     // Fetch leadership data from API
@@ -17,13 +18,21 @@ export default function Leadership() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Group leaders by academic year, most recent year first
-  const groups = leadership.reduce((acc, p) => {
+  const seniorLeaders = leadership.filter((p) => ['pastor', 'patroness'].includes(p.category));
+  const albumMembers = leadership.filter((p) => !['pastor', 'patroness'].includes(p.category));
+
+  const yearGroups = albumMembers.reduce((acc, p) => {
     const year = p.academic_year || 'Leadership';
     (acc[year] = acc[year] || []).push(p);
     return acc;
   }, {});
-  const leadershipByYear = Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+  const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
+
+  useEffect(() => {
+    if (sortedYears.length && !selectedYear) setSelectedYear(sortedYears[0]);
+  }, [sortedYears.join(','), selectedYear]);
+
+  const selectedLeaders = yearGroups[selectedYear] || [];
 
   return (
     <main className="leadership-page">
@@ -44,11 +53,40 @@ export default function Leadership() {
             <span className="eyebrow">leadership</span>
             <h2>Setting the <em>direction</em>.</h2>
           </div>
-          {leadershipByYear.map(([year, leaders]) => (
-            <div className="lead-year-group" key={year}>
-              {year !== 'N/A' && <h3 className="lead-year-heading">{year}</h3>}
-              <div className={`featured-grid show-all${year === 'N/A' ? ' featured-grid-top' : ''}`}>
-                {leaders.map((p) => (
+
+          {seniorLeaders.length > 0 && (
+            <div className="featured-grid show-all featured-grid-top" style={{ marginBottom: '48px' }}>
+              {seniorLeaders.map((p) => (
+                <div className="featured-card" key={p.id} onClick={() => setModal(p)}>
+                  <div className="img">
+                    <img src={getImageUrl(p.image_url) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
+                  </div>
+                  <div className="body">
+                    <span className="role">{p.role}</span>
+                    <h3>{p.name}</h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {sortedYears.length > 0 && (
+            <div className="lead-year-group">
+              <div className="lead-year-select-wrap">
+                <label htmlFor="lead-year-select">Academic Year</label>
+                <select
+                  id="lead-year-select"
+                  className="lead-year-select"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                >
+                  {sortedYears.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="featured-grid show-all">
+                {selectedLeaders.map((p) => (
                   <div className="featured-card" key={p.id} onClick={() => setModal(p)}>
                     <div className="img">
                       <img src={getImageUrl(p.image_url) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
@@ -61,7 +99,7 @@ export default function Leadership() {
                 ))}
               </div>
             </div>
-          ))}
+          )}
         </div>
       </section>
 

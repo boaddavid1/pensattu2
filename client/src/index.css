@@ -716,6 +716,33 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .lead-year-heading { font-family: 'Fraunces', serif; font-size: 19px; color: var(--pine-deep); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .featured-grid-top { grid-template-columns: repeat(2, 1fr) !important; }
 
+.lead-year-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.lead-year-select-wrap label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.lead-year-select {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  color: var(--pine-deep);
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  min-width: 160px;
+}
+
 .lead-team { background: var(--paper); }
 
 .elders { background: #fff; }
