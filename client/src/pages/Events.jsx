@@ -1,47 +1,89 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api, getImageUrl } from '../api.js';
+
+const fallbackPast = [
+  { day: '17', month: 'AUG', year: '2026', title: 'Back to School Sunday', img: 'https://images.unsplash.com/photo-1503676267431-0d268eb132b9?w=600&q=80' },
+  { day: '10', month: 'AUG', year: '2026', title: 'Worship Night', img: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80' },
+  { day: '03', month: 'AUG', year: '2026', title: 'Baptism Sunday', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80' },
+  { day: '27', month: 'JUL', year: '2026', title: 'Family Picnic', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80' },
+  { day: '20', month: 'JUL', year: '2026', title: 'Missions Conference', img: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=600&q=80' },
+  { day: '13', month: 'JUL', year: '2026', title: 'Youth Camp Finale', img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80' },
+  { day: '06', month: 'JUL', year: '2026', title: 'Prayer & Fasting', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80' },
+  { day: '29', month: 'JUN', year: '2026', title: 'Sunday Fellowship', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80' },
+];
+
+const timeline = [
+  { month: 'January 2026', dates: [
+    { weekday: 'WED', day: '14' },
+    { weekday: 'WED', day: '28' },
+  ] },
+  { month: 'February 2026', dates: [
+    { weekday: 'SUN', day: '22' },
+  ] },
+  { month: 'March 2026', dates: [
+    { weekday: 'SUN', day: '1' },
+    { weekday: 'FRI', day: '20' },
+    { weekday: 'SUN', day: '22' },
+  ] },
+];
+
+function parseEvent(ev) {
+  const date = ev.event_date ? new Date(ev.event_date) : null;
+  const startDay = date ? String(date.getDate()).padStart(2, '0') : '';
+  const startMonth = date ? date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
+  const year = date ? String(date.getFullYear()) : '';
+  const timeParts = (ev.event_time || '').split(/\s*[-–]\s*/);
+  const startTime = timeParts[0] || ev.event_time || '';
+  const endTime = timeParts[1] || '';
+  return {
+    ...ev,
+    startDay,
+    startMonth,
+    endDay: startDay,
+    endMonth: startMonth,
+    year,
+    startTime,
+    endTime,
+    body: ev.description || '',
+    img: getImageUrl(ev.image_url) || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&q=80',
+  };
+}
 
 export default function Events() {
   const [activeEvent, setActiveEvent] = useState(null);
+  const [upcoming, setUpcoming] = useState([]);
+  const [past, setPast] = useState(fallbackPast);
+  const [loading, setLoading] = useState(true);
 
-  const upcoming = [
-    { startDay: '24', startMonth: 'AUG', endDay: '24', endMonth: 'AUG', year: '2026', startTime: '9:00 AM', endTime: '12:30 PM', title: 'Sunday Celebration', body: 'Join us for worship, teaching, and communion across both morning services.', location: 'Main Sanctuary', img: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=900&q=80' },
-    { startDay: '26', startMonth: 'AUG', endDay: '26', endMonth: 'AUG', year: '2026', startTime: '6:30 PM', endTime: '8:00 PM', title: 'Midweek Bible Study', body: 'A smaller gathering for scripture, discussion, and prayer.', location: 'Fellowship Hall', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=900&q=80' },
-    { startDay: '30', startMonth: 'AUG', endDay: '30', endMonth: 'AUG', year: '2026', startTime: '8:00 AM', endTime: '1:00 PM', title: 'Community Outreach Day', body: 'Serving the local neighborhood with practical help and conversation.', location: 'Church Parking Lot', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=900&q=80' },
-    { startDay: '04', startMonth: 'SEP', endDay: '06', endMonth: 'SEP', year: '2026', startTime: '6:00 PM', endTime: '9:00 PM', title: 'Youth Night', body: 'An evening of worship, games, and teaching specifically for students.', location: 'Youth Center', img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=900&q=80' },
-  ];
+  useEffect(() => {
+    api.get('/events')
+      .then((data) => setUpcoming((Array.isArray(data) ? data : []).map(parseEvent)))
+      .catch(() => setUpcoming([]));
 
-  const timeline = [
-    { month: 'January 2026', dates: [
-      { weekday: 'WED', day: '14' },
-      { weekday: 'WED', day: '28' },
-    ] },
-    { month: 'February 2026', dates: [
-      { weekday: 'SUN', day: '22' },
-    ] },
-    { month: 'March 2026', dates: [
-      { weekday: 'SUN', day: '1' },
-      { weekday: 'FRI', day: '20' },
-      { weekday: 'SUN', day: '22' },
-    ] },
-  ];
-
-  const past = [
-    { day: '17', month: 'AUG', year: '2026', title: 'Back to School Sunday', img: 'https://images.unsplash.com/photo-1503676267431-0d268eb132b9?w=600&q=80' },
-    { day: '10', month: 'AUG', year: '2026', title: 'Worship Night', img: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80' },
-    { day: '03', month: 'AUG', year: '2026', title: 'Baptism Sunday', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80' },
-    { day: '27', month: 'JUL', year: '2026', title: 'Family Picnic', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80' },
-    { day: '20', month: 'JUL', year: '2026', title: 'Missions Conference', img: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=600&q=80' },
-    { day: '13', month: 'JUL', year: '2026', title: 'Youth Camp Finale', img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80' },
-    { day: '06', month: 'JUL', year: '2026', title: 'Prayer & Fasting', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80' },
-    { day: '29', month: 'JUN', year: '2026', title: 'Sunday Fellowship', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80' },
-  ];
+    api.get('/events?past=1')
+      .then((data) => {
+        const items = (Array.isArray(data) ? data : []).map((ev) => {
+          const date = ev.event_date ? new Date(ev.event_date) : null;
+          return {
+            day: date ? String(date.getDate()).padStart(2, '0') : '',
+            month: date ? date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '',
+            year: date ? String(date.getFullYear()) : '',
+            title: ev.title,
+            img: getImageUrl(ev.image_url) || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80',
+          };
+        });
+        if (items.length) setPast(items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const formatRange = (ev) => {
     const sameDay = ev.startDay === ev.endDay && ev.startMonth === ev.endMonth;
     const dateStr = sameDay
       ? `${ev.startMonth} ${ev.startDay}, ${ev.year}`
       : `${ev.startMonth} ${ev.startDay} – ${ev.endMonth} ${ev.endDay}, ${ev.year}`;
-    return `${dateStr} · ${ev.startTime} – ${ev.endTime}`;
+    return `${dateStr} · ${ev.startTime}${ev.endTime ? ` – ${ev.endTime}` : ''}`;
   };
 
   return (
@@ -93,26 +135,32 @@ export default function Events() {
             <span className="eyebrow">Upcoming</span>
             <h2>What's <em>coming up</em>.</h2>
           </div>
-          <div className="upcoming-events-grid">
-            {upcoming.map((ev) => (
-              <article
-                className="upcoming-event-card"
-                key={ev.title}
-                onClick={() => setActiveEvent(ev)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') setActiveEvent(ev); }}
-              >
-                <div className="upcoming-event-img">
-                  <img src={ev.img} alt={ev.title} />
-                  <div className="upcoming-event-overlay">
-                    <h3>{ev.title}</h3>
-                    <span className="upcoming-event-range">{formatRange(ev)}</span>
+          {loading ? (
+            <p>Loading events...</p>
+          ) : upcoming.length === 0 ? (
+            <p>No upcoming events right now.</p>
+          ) : (
+            <div className="upcoming-events-grid">
+              {upcoming.map((ev) => (
+                <article
+                  className="upcoming-event-card"
+                  key={ev.id}
+                  onClick={() => setActiveEvent(ev)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') setActiveEvent(ev); }}
+                >
+                  <div className="upcoming-event-img">
+                    <img src={ev.img} alt={ev.title} />
+                    <div className="upcoming-event-overlay">
+                      <h3>{ev.title}</h3>
+                      <span className="upcoming-event-range">{formatRange(ev)}</span>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -124,7 +172,7 @@ export default function Events() {
           </div>
           <div className="past-events-grid">
             {past.map((ev) => (
-              <article className="past-event-card" key={ev.title}>
+              <article className="past-event-card" key={ev.title + ev.day + ev.month}>
                 <div className="past-event-img">
                   <img src={ev.img} alt={ev.title} />
                 </div>

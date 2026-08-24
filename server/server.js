@@ -66,8 +66,10 @@ app.get('/api/team', async (req, res) => {
 // Events
 app.get('/api/events', async (req, res) => {
   try {
+    const past = req.query.past === '1' || req.query.past === 'true';
+    const comparison = past ? '<' : '>=';
     const [rows] = await pool.query(
-      'SELECT * FROM events WHERE event_date >= CURDATE() ORDER BY event_date LIMIT 4'
+      `SELECT * FROM events WHERE event_date ${comparison} CURDATE() ORDER BY event_date ${past ? 'DESC' : 'ASC'} LIMIT 8`
     );
     res.json(rows);
   } catch (err) {
