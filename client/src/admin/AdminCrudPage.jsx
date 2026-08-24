@@ -166,8 +166,7 @@ export default function AdminCrudPage({ entity, title }) {
     const [expanded, setExpanded] = useState({});
 
     const seniorLeaders = items.filter((p) => ['pastor', 'patroness'].includes(p.category));
-    const ecMembers = items.filter((p) => p.category === 'ec');
-    const albumMembers = items.filter((p) => !['pastor', 'patroness', 'ec'].includes(p.category));
+    const albumMembers = items.filter((p) => !['pastor', 'patroness'].includes(p.category));
 
     const groups = albumMembers.reduce((acc, p) => {
       const year = p.academic_year || 'Other';
@@ -195,7 +194,6 @@ export default function AdminCrudPage({ entity, title }) {
     return (
       <div>
         {renderSection('Senior Leaders', seniorLeaders)}
-        {renderSection('Executive Committee (EC)', ecMembers)}
 
         {sortedYears.length > 0 && (
           <div className="admin-team-albums">
