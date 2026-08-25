@@ -9,7 +9,7 @@ const teamFields = [
   { name: 'category', label: 'Category', type: 'select', required: true, options: ['pastor', 'patroness', 'ec', 'lcc'] },
   { name: 'academic_year', label: 'Academic Year of Administration', type: 'select', required: true, options: ['2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'] },
   { name: 'programme', label: 'Programme of Study', type: 'text' },
-  { name: 'hall', label: 'Affiliated Hall', type: 'text' },
+  { name: 'hall', label: 'Affiliated Hall', type: 'select', options: ['Nzima-Mensah Hall', 'Ahanta Hall', 'Prof. Duncan Hall', 'University Hall', 'GETFund Hall', 'SRC Hall Complex'] },
   { name: 'previous_portfolio', label: 'Portfolio(s) Held Previously at PENSA TTU', type: 'textarea' },
   { name: 'description', label: 'Bio / Description', type: 'textarea' },
   { name: 'image_url', label: 'Upload Image', type: 'image', folder: 'pensattu/team' },
