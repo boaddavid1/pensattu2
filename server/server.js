@@ -7,6 +7,7 @@ import webPush from 'web-push';
 import pool from './db.js';
 import adminRoutes from './adminRoutes.js';
 import { requireAuth } from './auth.js';
+import syncSchema from './syncSchema.js';
 import {
   ministries, sermons, team, events,
   addVisit, addSubscriber, addContact,
@@ -30,6 +31,9 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 
 app.use(cors());
 app.use(express.json());
+
+// Ensure required tables exist
+syncSchema();
 
 // Health check
 app.get('/api/health', async (req, res) => {
