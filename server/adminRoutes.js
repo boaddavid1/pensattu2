@@ -209,7 +209,7 @@ router.get('/stats', requireAuth, async (req, res) => {
       stats[table] = await safeCount(table);
     }
     const [recent] = await pool.query(
-      'SELECT al.*, u.name FROM activity_logs al LEFT JOIN admin_users u ON al.user_id = u.id ORDER BY al.id DESC LIMIT 10'
+      'SELECT al.*, u.full_name AS name FROM activity_logs al LEFT JOIN admin_users u ON al.user_id = u.id ORDER BY al.id DESC LIMIT 10'
     );
     res.json({ stats, recentActivity: recent });
   } catch (err) {
