@@ -188,17 +188,25 @@ router.get('/me', requireAuth, (req, res) => {
 });
 
 // Dashboard stats
+async function safeCount(table) {
+  try {
+    const [rows] = await pool.query(`SELECT COUNT(*) AS count FROM \`${table}\``);
+    return rows[0].count;
+  } catch (err) {
+    if (err.code === 'ER_NO_SUCH_TABLE' || err.errno === 1146) return 0;
+    throw err;
+  }
+}
+
 router.get('/stats', requireAuth, async (req, res) => {
   try {
     const stats = {};
     for (const [key, config] of Object.entries(TABLES)) {
       const actualTable = config.actualTable || key;
-      const [rows] = await pool.query(`SELECT COUNT(*) AS count FROM ${actualTable}`);
-      stats[key] = rows[0].count;
+      stats[key] = await safeCount(actualTable);
     }
     for (const table of READONLY_TABLES) {
-      const [rows] = await pool.query(`SELECT COUNT(*) AS count FROM ${table}`);
-      stats[table] = rows[0].count;
+      stats[table] = await safeCount(table);
     }
     const [recent] = await pool.query(
       'SELECT al.*, u.name FROM activity_logs al LEFT JOIN admin_users u ON al.user_id = u.id ORDER BY al.id DESC LIMIT 10'

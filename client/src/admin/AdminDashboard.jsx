@@ -19,6 +19,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({});
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     adminApi.stats()
@@ -26,6 +27,7 @@ export default function AdminDashboard() {
         setStats(res.stats);
         setActivity(res.recentActivity || []);
       })
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,6 +37,8 @@ export default function AdminDashboard() {
       <p className="admin-intro">Overview of everything happening on the PENSA TTU website.</p>
       {loading ? (
         <div className="admin-loading">Loading dashboard...</div>
+      ) : error ? (
+        <div className="admin-error">Failed to load dashboard: {error}</div>
       ) : (
         <>
           <div className="admin-stats-grid">
