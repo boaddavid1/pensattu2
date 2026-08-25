@@ -45,7 +45,8 @@ const memory = {
 
 function isDbUnavailable(err) {
   const msg = err && err.message ? err.message.toLowerCase() : '';
-  return msg.includes('unknown database') || msg.includes('econnrefused') || msg.includes('access denied') || msg.includes("can't connect") || msg.includes('connection lost') || msg.includes('connect timeout');
+  const code = err && err.code ? err.code.toLowerCase() : '';
+  return msg.includes('unknown database') || msg.includes('econnrefused') || msg.includes('etimedout') || msg.includes('access denied') || msg.includes("can't connect") || msg.includes('connection lost') || msg.includes('connect timeout') || code === 'etimedout';
 }
 
 function memoryList(table) { return memory[table] || []; }
