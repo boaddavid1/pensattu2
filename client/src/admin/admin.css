@@ -548,8 +548,8 @@
 
 /* Team albums grouped by academic year */
 .admin-team-albums {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 24px;
 }
 
@@ -558,6 +558,8 @@
   border-radius: 18px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(15, 61, 46, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
 .admin-team-album-header {
@@ -567,11 +569,12 @@
   background: transparent;
   cursor: pointer;
   text-align: left;
+  flex: 1;
 }
 
 .admin-team-album-cover {
   position: relative;
-  height: 140px;
+  aspect-ratio: 4 / 3;
   background: linear-gradient(135deg, var(--pine-deep), var(--moss));
   overflow: hidden;
 }
@@ -589,7 +592,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.9);
 }
@@ -606,7 +609,7 @@
 }
 
 .admin-team-album-overlay h3 {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   margin: 0;
 }
 
@@ -625,7 +628,7 @@
 }
 
 .admin-team-album-body {
-  padding: 24px;
+  padding: 18px;
 }
 
 .admin-team-grid {
