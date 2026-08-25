@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
@@ -19,16 +19,20 @@ const teamFields = [
 export default function AdminTeamForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isNew = id === 'new';
+  const passedItem = location.state?.item;
   const [form, setForm] = useState(() =>
-    Object.fromEntries(teamFields.map((f) => [f.name, f.type === 'number' ? 0 : '']))
+    isNew
+      ? Object.fromEntries(teamFields.map((f) => [f.name, f.type === 'number' ? 0 : '']))
+      : { ...passedItem }
   );
-  const [loading, setLoading] = useState(!isNew);
+  const [loading, setLoading] = useState(!isNew && !passedItem);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isNew) return;
+    if (isNew || passedItem) return;
     adminApi.get('team', id)
       .then((data) => {
         const formatted = { ...data };
@@ -37,9 +41,9 @@ export default function AdminTeamForm() {
         }
         setForm((prev) => ({ ...prev, ...formatted }));
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(err.message || 'Unable to load this team member'))
       .finally(() => setLoading(false));
-  }, [id, isNew]);
+  }, [id, isNew, passedItem]);
 
   function handleChange(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));

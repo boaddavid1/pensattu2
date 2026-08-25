@@ -98,7 +98,7 @@ export default function AdminCrudPage({ entity, title }) {
 
   function startEdit(item) {
     if (entity === 'team') {
-      navigate(`/admin/team/${item.id}/edit`);
+      navigate(`/admin/team/${item.id}/edit`, { state: { item } });
       return;
     }
     setEditing(item.id);

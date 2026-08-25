@@ -249,7 +249,7 @@ for (const [table, config] of Object.entries(TABLES)) {
     } catch (err) {
       if (isDbUnavailable(err)) {
         const row = memoryGet(table, req.params.id);
-        if (!row) return res.status(404).json({ error: 'Not found' });
+        if (!row) return res.status(503).json({ error: 'Database connection is temporarily unavailable. Please try again.' });
         return res.json(row);
       }
       res.status(500).json({ error: err.message });
