@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
+const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '');
+
 const fieldConfig = {
   ministries: [
     { name: 'title', label: 'Title', type: 'text', required: true },
@@ -139,15 +141,38 @@ export default function AdminCrudPage({ entity, title }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function isZeroDate(value) {
+    if (!value) return true;
+    const str = String(value);
+    return str.startsWith('0000') || str.startsWith('1899-11-30');
+  }
+
+  function formatDate(value) {
+    if (isZeroDate(value)) return <span className="admin-cell-empty">—</span>;
+    const d = new Date(value);
+    if (isNaN(d)) return value;
+    return d.toLocaleDateString();
+  }
+
+  function resolveImageUrl(value) {
+    if (!value) return null;
+    if (value.startsWith('http')) return value;
+    return `${API_ROOT}/${value.replace(/^\//, '')}`;
+  }
+
   function renderCellValue(f, item) {
     const value = item[f.name];
     if (f.type === 'image' || f.name === 'image_url' || f.name === 'cover') {
-      return value ? <img src={value} alt="" style={{ maxWidth: '80px', maxHeight: '80px', borderRadius: '4px' }} /> : '-';
+      const src = resolveImageUrl(value);
+      return src ? <img src={src} alt="" className="admin-table-img" /> : <span className="admin-cell-empty">—</span>;
+    }
+    if (f.type === 'date' || f.name.includes('date') || f.name.includes('_at')) {
+      return formatDate(value);
     }
     if (f.type === 'textarea') {
-      return (value || '').slice(0, 60) + ((value || '').length > 60 ? '...' : '');
+      return <span className="admin-cell-text">{(value || '').slice(0, 60) + ((value || '').length > 60 ? '...' : '')}</span>;
     }
-    return value || '-';
+    return value ? <span className="admin-cell-text" title={String(value)}>{String(value)}</span> : <span className="admin-cell-empty">—</span>;
   }
 
   function MemberCard({ p }) {

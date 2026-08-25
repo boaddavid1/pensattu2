@@ -499,6 +499,22 @@
   object-fit: cover;
 }
 
+.admin-table-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.admin-cell-text {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Gallery grid */
 .admin-gallery-grid {
   display: grid;

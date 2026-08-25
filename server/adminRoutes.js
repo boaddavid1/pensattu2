@@ -328,7 +328,7 @@ for (const [table, config] of Object.entries(TABLES)) {
 for (const table of READONLY_TABLES) {
   router.get(`/${table}`, requireAuth, async (req, res) => {
     try {
-      const order = table === 'subscribers' ? 'subscribed_at DESC' : 'created_at DESC';
+      const order = 'created_at DESC';
       const [rows] = await pool.query(`SELECT * FROM ${table} ORDER BY ${order}`);
       res.json(rows);
     } catch (err) {
