@@ -489,6 +489,16 @@
 
 .admin-actions-col { width: 90px; text-align: right !important; }
 
+.admin-cover-preview,
+.admin-photo-preview {
+  max-width: 120px;
+  max-height: 120px;
+  display: block;
+  margin-top: 8px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
 /* Gallery grid */
 .admin-gallery-grid {
   display: grid;
