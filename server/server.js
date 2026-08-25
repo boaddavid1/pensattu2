@@ -77,10 +77,12 @@ app.get('/api/team', async (req, res) => {
 app.get('/api/events', async (req, res) => {
   try {
     const past = req.query.past === '1' || req.query.past === 'true';
+    const today = new Date().toISOString().split('T')[0];
     const [rows] = await pool.query(
       past
-        ? "SELECT * FROM events WHERE status = 'past' OR (status IS NULL AND event_date < CURDATE()) ORDER BY event_date DESC LIMIT 8"
-        : "SELECT * FROM events WHERE status = 'upcoming' OR (status IS NULL AND event_date >= CURDATE()) ORDER BY event_date ASC LIMIT 8"
+        ? 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) < ? ORDER BY event_date DESC LIMIT 8'
+        : 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) >= ? ORDER BY event_date ASC LIMIT 8',
+      [today]
     );
     res.json(rows);
   } catch (err) {
