@@ -19,8 +19,8 @@ const IMAGE_COLUMNS = [
   { table: 'sermons', column: 'image_url' },
   { table: 'events', column: 'image_url' },
   { table: 'news', column: 'image_url' },
-  { table: 'gallery', column: 'image_url' },
-  { table: 'albums', column: 'cover_image' },
+  { table: 'gallery_albums', column: 'cover' },
+  { table: 'gallery_photos', column: 'src' },
   { table: 'about_gallery', column: 'image_url' },
 ];
 
