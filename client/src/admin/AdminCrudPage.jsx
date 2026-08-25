@@ -141,6 +141,39 @@ export default function AdminCrudPage({ entity, title }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function getImageField() {
+    return fields.find((f) => f.type === 'image' || ['image_url', 'cover', 'cover_image'].includes(f.name));
+  }
+
+  function getTitle(item) {
+    return item.title || item.name || item.full_name || `Item #${item.id}`;
+  }
+
+  function renderCardImage(item) {
+    const imgField = getImageField();
+    const src = imgField ? resolveImageUrl(item[imgField.name]) : null;
+    return src ? <img src={src} alt="" /> : <div className="admin-crud-card-noimg" />;
+  }
+
+  function renderCardMeta(item) {
+    const metaFields = fields
+      .filter((f) => f.type !== 'image' && f.type !== 'textarea' && !['title', 'name', 'full_name'].includes(f.name))
+      .slice(0, 3);
+    return metaFields.map((f) => (
+      <div key={f.name} className="admin-crud-card-meta-item">
+        <span className="admin-crud-card-meta-label">{f.label}</span>
+        <span className="admin-crud-card-meta-value">{renderCellValue(f, item)}</span>
+      </div>
+    ));
+  }
+
+  function renderCardDescription(item) {
+    const descField = fields.find((f) => f.type === 'textarea' || ['description', 'body', 'content'].includes(f.name));
+    if (!descField) return '';
+    const value = item[descField.name] || '';
+    return value.length > 90 ? value.slice(0, 90) + '...' : value;
+  }
+
   function isZeroDate(value) {
     if (!value) return true;
     const str = String(value);
@@ -345,31 +378,28 @@ export default function AdminCrudPage({ entity, title }) {
       ) : entity === 'team' ? (
         <TeamCards />
       ) : (
-        <div className="admin-table-wrap admin-card">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                {fields.map((f) => <th key={f.name}>{f.label}</th>)}
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id}>
-                  {fields.map((f) => (
-                    <td key={f.name}>{renderCellValue(f, item)}</td>
-                  ))}
-                  <td className="admin-actions">
-                    <button className="admin-edit" onClick={() => startEdit(item)}>Edit</button>
-                    <button className="admin-delete" onClick={() => remove(item.id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr><td colSpan={fields.length + 1} className="admin-empty">No items yet.</td></tr>
-              )}
-            </tbody>
-          </table>
+        <div className="admin-crud-grid">
+          {items.map((item) => (
+            <div key={item.id} className="admin-crud-card">
+              <div className="admin-crud-card-img">
+                {renderCardImage(item)}
+              </div>
+              <div className="admin-crud-card-body">
+                <h3>{getTitle(item)}</h3>
+                <div className="admin-crud-card-meta">
+                  {renderCardMeta(item)}
+                </div>
+                {renderCardDescription(item) && (
+                  <p className="admin-crud-card-desc">{renderCardDescription(item)}</p>
+                )}
+              </div>
+              <div className="admin-crud-card-actions">
+                <button className="admin-edit" onClick={() => startEdit(item)}>Edit</button>
+                <button className="admin-delete" onClick={() => remove(item.id)}>Delete</button>
+              </div>
+            </div>
+          ))}
+          {items.length === 0 && <p className="admin-empty">No items yet.</p>}
         </div>
       )}
     </div>

@@ -551,6 +551,110 @@
   white-space: nowrap;
 }
 
+/* Admin CRUD cards */
+.admin-crud-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.admin-crud-card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(15, 61, 46, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-crud-card-img {
+  position: relative;
+  height: 160px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.admin-crud-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-crud-card-noimg {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--pine-deep), var(--moss));
+}
+
+.admin-crud-card-body {
+  padding: 18px;
+  flex: 1;
+}
+
+.admin-crud-card-body h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1.1rem;
+  color: var(--pine-deep);
+  margin: 0 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-crud-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-crud-card-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  gap: 10px;
+}
+
+.admin-crud-card-meta-label {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.admin-crud-card-meta-value {
+  color: var(--pine-deep);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.admin-crud-card-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-crud-card-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  background: #f7f9f8;
+  border-top: 1px solid var(--line);
+}
+
+.admin-crud-card-actions .admin-edit,
+.admin-crud-card-actions .admin-delete {
+  flex: 1;
+  text-align: center;
+}
+
 /* Gallery albums */
 .admin-gallery-albums {
   display: grid;
