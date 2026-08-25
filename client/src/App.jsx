@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'rea
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MobileTabBar from './components/MobileTabBar';
+import PwaPrompt from './components/PwaPrompt';
 import Home from './pages/Home';
 import About from './pages/About';
 import Leadership from './pages/Leadership';
@@ -47,6 +48,7 @@ function AppShell() {
     <>
       <ScrollToHash />
       <Header />
+      <PwaPrompt />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
