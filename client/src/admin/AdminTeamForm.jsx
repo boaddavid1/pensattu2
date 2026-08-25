@@ -64,6 +64,7 @@ export default function AdminTeamForm() {
       const payload = { ...form };
       teamFields.forEach((f) => {
         if (f.type === 'number') payload[f.name] = Number(payload[f.name]);
+        if (!f.required && payload[f.name] === '') payload[f.name] = null;
       });
       if (isNew) {
         await adminApi.create('team', payload);
