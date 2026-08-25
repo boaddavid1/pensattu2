@@ -4,25 +4,29 @@ import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
 export default function AdminGallery() {
   const [albums, setAlbums] = useState([]);
-  const [photos, setPhotos] = useState([]);
-  const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [allPhotos, setAllPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [photoForm, setPhotoForm] = useState({ src: '', alt: '', category: '', caption: '' });
+  const [photoForm, setPhotoForm] = useState({ src: '', alt: '', category: '', caption: '', album_id: '' });
   const [albumForm, setAlbumForm] = useState({ name: '', description: '', cover_image: '' });
   const [uploading, setUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
+  const [expandedAlbum, setExpandedAlbum] = useState(null);
 
   useEffect(() => {
-    loadAlbums();
+    loadData();
   }, []);
 
-  async function loadAlbums() {
+  async function loadData() {
     setLoading(true);
     try {
-      const data = await adminApi.list('gallery_albums');
-      setAlbums(data);
-      if (data.length && !selectedAlbum) setSelectedAlbum(data[0].id);
+      const [albumsData, photosData] = await Promise.all([
+        adminApi.list('gallery_albums'),
+        adminApi.listPhotos(),
+      ]);
+      setAlbums(albumsData);
+      setAllPhotos(photosData);
+      if (albumsData.length) setExpandedAlbum(albumsData[0].id);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -30,10 +34,9 @@ export default function AdminGallery() {
     }
   }
 
-  useEffect(() => {
-    if (!selectedAlbum) return;
-    adminApi.listPhotos(selectedAlbum).then(setPhotos).catch(() => setPhotos([]));
-  }, [selectedAlbum]);
+  function photosForAlbum(albumId) {
+    return allPhotos.filter((p) => p.album_id === albumId);
+  }
 
   async function handlePhotoFileChange(e) {
     const file = e.target.files[0];
@@ -72,8 +75,8 @@ export default function AdminGallery() {
         cover_image: albumForm.cover_image,
       });
       setAlbumForm({ name: '', description: '', cover_image: '' });
-      setSelectedAlbum(newAlbum.id);
-      await loadAlbums();
+      setExpandedAlbum(newAlbum.id);
+      await loadData();
     } catch (err) {
       setError(err.message);
     }
@@ -82,10 +85,10 @@ export default function AdminGallery() {
   async function addPhoto(e) {
     e.preventDefault();
     try {
-      await adminApi.addPhoto({ ...photoForm, album_id: selectedAlbum });
-      setPhotoForm({ src: '', alt: '', category: '', caption: '' });
-      const list = await adminApi.listPhotos(selectedAlbum);
-      setPhotos(list);
+      await adminApi.addPhoto({ ...photoForm, album_id: photoForm.album_id });
+      setPhotoForm({ src: '', alt: '', category: '', caption: '', album_id: photoForm.album_id });
+      const list = await adminApi.listPhotos();
+      setAllPhotos(list);
     } catch (err) {
       setError(err.message);
     }
@@ -95,10 +98,15 @@ export default function AdminGallery() {
     if (!window.confirm('Delete this photo?')) return;
     try {
       await adminApi.removePhoto(id);
-      setPhotos((prev) => prev.filter((p) => p.id !== id));
+      const list = await adminApi.listPhotos();
+      setAllPhotos(list);
     } catch (err) {
       setError(err.message);
     }
+  }
+
+  function toggleAlbum(albumId) {
+    setExpandedAlbum((prev) => (prev === albumId ? null : albumId));
   }
 
   if (loading) {
@@ -153,61 +161,96 @@ export default function AdminGallery() {
         </div>
       </form>
 
-      <div className="admin-card">
-        <label className="admin-inline-label">
-          Album
-          <select value={selectedAlbum || ''} onChange={(e) => setSelectedAlbum(Number(e.target.value))}>
-            {albums.map((album) => (
-              <option key={album.id} value={album.id}>{album.name}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <form className="admin-form admin-card" onSubmit={addPhoto}>
+        <h3>Add photo to album</h3>
+        <div className="admin-form-grid">
+          <label>
+            Album
+            <select
+              value={photoForm.album_id}
+              onChange={(e) => setPhotoForm({ ...photoForm, album_id: Number(e.target.value) })}
+              required
+            >
+              <option value="">Select album</option>
+              {albums.map((album) => (
+                <option key={album.id} value={album.id}>{album.name}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Image
+            <input type="file" accept="image/*" onChange={handlePhotoFileChange} disabled={uploading} required />
+            {uploading && <span>Uploading...</span>}
+            {photoForm.src && (
+              <img src={photoForm.src} alt="Preview" className="admin-photo-preview" />
+            )}
+          </label>
+          <label>
+            Alt text
+            <input type="text" value={photoForm.alt} onChange={(e) => setPhotoForm({ ...photoForm, alt: e.target.value })} />
+          </label>
+          <label>
+            Category
+            <input type="text" value={photoForm.category} onChange={(e) => setPhotoForm({ ...photoForm, category: e.target.value })} />
+          </label>
+          <label>
+            Caption
+            <input type="text" value={photoForm.caption} onChange={(e) => setPhotoForm({ ...photoForm, caption: e.target.value })} />
+          </label>
+        </div>
+        <div className="admin-form-actions">
+          <button type="submit" className="btn btn-primary" disabled={!photoForm.src || !photoForm.album_id || uploading}>
+            Add Photo
+          </button>
+        </div>
+      </form>
 
-      {selectedAlbum && (
-        <form className="admin-form admin-card" onSubmit={addPhoto}>
-          <h3>Add photo to album</h3>
-          <div className="admin-form-grid">
-            <label>
-              Image
-              <input type="file" accept="image/*" onChange={handlePhotoFileChange} disabled={uploading} required />
-              {uploading && <span>Uploading...</span>}
-              {photoForm.src && (
-                <img src={photoForm.src} alt="Preview" className="admin-photo-preview" />
+      <div className="admin-gallery-albums">
+        {albums.map((album) => {
+          const photos = photosForAlbum(album.id);
+          const isOpen = expandedAlbum === album.id;
+          return (
+            <div key={album.id} className="admin-gallery-album-section">
+              <button
+                type="button"
+                className="admin-gallery-album-header"
+                onClick={() => toggleAlbum(album.id)}
+              >
+                <div className="admin-gallery-album-cover">
+                  {album.cover_image ? (
+                    <img src={album.cover_image} alt={album.name} />
+                  ) : (
+                    <span className="admin-gallery-album-placeholder">{album.name[0]}</span>
+                  )}
+                  <div className="admin-gallery-album-overlay">
+                    <h3>{album.name}</h3>
+                    <span>{photos.length} photo{photos.length !== 1 ? 's' : ''}</span>
+                  </div>
+                </div>
+                <span className="admin-gallery-album-toggle">{isOpen ? '▲ Collapse' : '▼ Expand'}</span>
+              </button>
+              {isOpen && (
+                <div className="admin-gallery-album-body">
+                  {photos.length === 0 ? (
+                    <p className="admin-empty">No photos in this album yet.</p>
+                  ) : (
+                    <div className="admin-gallery-grid">
+                      {photos.map((photo) => (
+                        <div key={photo.id} className="admin-gallery-card">
+                          <img src={photo.image_url} alt={photo.title || ''} />
+                          <div className="admin-gallery-meta">
+                            <strong>{photo.title || 'Untitled'}</strong>
+                            <button className="admin-delete" onClick={() => removePhoto(photo.id)}>Delete</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
-            </label>
-            <label>
-              Alt text
-              <input type="text" value={photoForm.alt} onChange={(e) => setPhotoForm({ ...photoForm, alt: e.target.value })} />
-            </label>
-            <label>
-              Category
-              <input type="text" value={photoForm.category} onChange={(e) => setPhotoForm({ ...photoForm, category: e.target.value })} />
-            </label>
-            <label>
-              Caption
-              <input type="text" value={photoForm.caption} onChange={(e) => setPhotoForm({ ...photoForm, caption: e.target.value })} />
-            </label>
-          </div>
-          <div className="admin-form-actions">
-            <button type="submit" className="btn btn-primary" disabled={!photoForm.src || uploading}>
-              Add Photo
-            </button>
-          </div>
-        </form>
-      )}
-
-      <div className="admin-gallery-grid">
-        {photos.map((photo) => (
-          <div key={photo.id} className="admin-gallery-card">
-            <img src={photo.image_url || photo.src} alt={photo.title || photo.alt || ''} />
-            <div className="admin-gallery-meta">
-              <strong>{photo.title || photo.caption || 'Untitled'}</strong>
-              <button className="admin-delete" onClick={() => removePhoto(photo.id)}>Delete</button>
             </div>
-          </div>
-        ))}
-        {photos.length === 0 && <p className="admin-empty">No photos in this album yet.</p>}
+          );
+        })}
       </div>
     </div>
   );
