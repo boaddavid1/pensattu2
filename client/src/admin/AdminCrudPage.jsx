@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
@@ -62,6 +63,7 @@ const fieldConfig = {
 };
 
 export default function AdminCrudPage({ entity, title }) {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -86,11 +88,19 @@ export default function AdminCrudPage({ entity, title }) {
   }
 
   function startCreate() {
+    if (entity === 'team') {
+      navigate('/admin/team/new');
+      return;
+    }
     setEditing('new');
     setForm(Object.fromEntries(fields.map((f) => [f.name, f.type === 'number' ? 0 : ''])));
   }
 
   function startEdit(item) {
+    if (entity === 'team') {
+      navigate(`/admin/team/${item.id}/edit`);
+      return;
+    }
     setEditing(item.id);
     const formatted = { ...item };
     if (formatted.published_at && formatted.published_at.includes('T')) {

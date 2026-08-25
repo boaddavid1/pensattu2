@@ -20,6 +20,7 @@ import AdminDashboard from './admin/AdminDashboard';
 import AdminCrudPage from './admin/AdminCrudPage';
 import AdminGallery from './admin/AdminGallery';
 import AdminReadonly from './admin/AdminReadonly';
+import AdminTeamForm from './admin/AdminTeamForm';
 import AdminUsers from './admin/AdminUsers';
 import { isLoggedIn } from './admin/adminApi';
 
@@ -77,6 +78,8 @@ function AdminShell() {
         <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Ministries" />} />
         <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
         <Route path="team" element={<AdminCrudPage entity="team" title="Leadership Team" />} />
+        <Route path="team/new" element={<AdminTeamForm />} />
+        <Route path="team/:id/edit" element={<AdminTeamForm />} />
         <Route path="events" element={<AdminCrudPage entity="events" title="Events" />} />
         <Route path="announcements" element={<AdminCrudPage entity="announcements" title="Announcements" />} />
         <Route path="notices" element={<AdminCrudPage entity="notices" title="Notices" />} />
