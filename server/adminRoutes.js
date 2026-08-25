@@ -208,6 +208,7 @@ router.get('/stats', requireAuth, async (req, res) => {
     for (const table of READONLY_TABLES) {
       stats[table] = await safeCount(table);
     }
+    stats.contacts = stats.contact_messages || 0;
     const [recent] = await pool.query(
       'SELECT al.*, u.full_name AS name FROM activity_logs al LEFT JOIN admin_users u ON al.user_id = u.id ORDER BY al.id DESC LIMIT 10'
     );
@@ -351,6 +352,33 @@ for (const table of READONLY_TABLES) {
     }
   });
 }
+
+// Contacts alias for contact_messages table
+router.get('/contacts', requireAuth, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (err) {
+    if (isDbUnavailable(err)) return res.json(memoryList('contacts'));
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/contacts/:id', requireAuth, async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM contact_messages WHERE id = ?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
+    logAction(req.user.id, 'DELETE', 'contact_messages', Number(req.params.id));
+    res.json({ message: 'Deleted' });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      const ok = memoryDelete('contacts', req.params.id);
+      if (!ok) return res.status(404).json({ error: 'Not found' });
+      return res.json({ message: 'Deleted', demo: true });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Gallery photos nested under album
 router.get('/gallery_photos', requireAuth, async (req, res) => {
