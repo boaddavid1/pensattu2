@@ -33,16 +33,33 @@ export default function AdminTeamForm() {
 
   useEffect(() => {
     if (isNew || passedItem) return;
-    adminApi.get('team', id)
-      .then((data) => {
-        const formatted = { ...data };
-        if (formatted.image_url && !formatted.image_url.startsWith('http')) {
-          formatted.image_url = '';
+    let cancelled = false;
+    async function load() {
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const data = await adminApi.get('team', id);
+          if (cancelled) return;
+          const formatted = { ...data };
+          if (formatted.image_url && !formatted.image_url.startsWith('http')) {
+            formatted.image_url = '';
+          }
+          setForm((prev) => ({ ...prev, ...formatted }));
+          setLoading(false);
+          return;
+        } catch (err) {
+          if (attempt < 3) {
+            await new Promise((r) => setTimeout(r, 1000 * attempt));
+          } else {
+            if (!cancelled) {
+              setError(err.message || 'Unable to load this team member. The database may be temporarily unavailable.');
+              setLoading(false);
+            }
+          }
         }
-        setForm((prev) => ({ ...prev, ...formatted }));
-      })
-      .catch((err) => setError(err.message || 'Unable to load this team member'))
-      .finally(() => setLoading(false));
+      }
+    }
+    load();
+    return () => { cancelled = true; };
   }, [id, isNew, passedItem]);
 
   function handleChange(name, value) {
