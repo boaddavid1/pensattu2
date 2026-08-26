@@ -32,8 +32,11 @@ export default function AdminTeamForm() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Always reset form when mode/route changes
+    setForm(emptyForm());
+    setError('');
+
     if (isNew) {
-      setForm(emptyForm());
       setLoading(false);
       return;
     }
