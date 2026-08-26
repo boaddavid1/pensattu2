@@ -38,7 +38,7 @@ export default function Leadership() {
     <main className="leadership-page">
       <section className="page-hero">
         <div className="page-hero-bg">
-          <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1600&q=80" alt="Leadership team in conversation" />
+          <img src="/images/leadership-hero.png" alt="Leadership team in conversation" />
         </div>
         <div className="page-hero-inner">
           <span className="eyebrow">Our leadership</span>

@@ -53,7 +53,7 @@ export default function Contact() {
     <main className="contact-page">
       <section className="page-hero contact-hero">
         <div className="page-hero-bg">
-          <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=1600&q=80" alt="Greeters welcoming visitors at PENSA TTU" />
+          <img src="/images/contact-hero.png" alt="Greeters welcoming visitors at PENSA TTU" />
         </div>
         <div className="page-hero-inner">
           <span className="eyebrow">Get in touch</span>

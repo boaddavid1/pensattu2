@@ -35,6 +35,14 @@
   object-fit: cover;
   border-radius: 14px;
   display: block;
+  filter: brightness(0.85) contrast(1.1) saturate(0.8);
+  transition: opacity 0.8s ease;
+  animation: fadeInImg 0.8s ease;
+}
+
+@keyframes fadeInImg {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .g-col:nth-child(odd) .g-col-track { animation: scrollUp linear infinite; }
 .g-col:nth-child(even) .g-col-track { animation: scrollDown linear infinite; }
@@ -59,7 +67,8 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(180deg, rgba(10, 30, 22, 0.72) 0%, rgba(10, 30, 22, 0.45) 40%, rgba(10, 30, 22, 0.72) 100%);
+  backdrop-filter: blur(4px);
+  background: linear-gradient(to top, rgba(10, 25, 60, 0.92) 0%, rgba(10, 25, 60, 0.55) 60%, rgba(10, 25, 60, 0.25) 100%);
 }
 .g-hero-content {
   position: relative;

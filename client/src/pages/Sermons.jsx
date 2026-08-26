@@ -39,7 +39,7 @@ export default function Sermons() {
     <main className="sermons-page">
       <section className="page-hero">
         <div className="page-hero-bg">
-          <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=1600&q=80" alt="Pastor preaching on a Sunday morning" />
+          <img src="/images/sermons-hero.png" alt="Pastor preaching on a Sunday morning" />
         </div>
         <div className="page-hero-inner">
           <span className="eyebrow">Sermons &amp; messages</span>

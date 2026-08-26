@@ -3,22 +3,48 @@ import { Link } from 'react-router-dom';
 import './Gallery.css';
 import { api, getImageUrl } from '../api';
 
-const heroColumns = [
-  ['https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80', 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80'],
-  ['https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80', 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=500&q=80', 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80'],
-  ['https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80', 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80', 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=500&q=80'],
-  ['https://images.unsplash.com/photo-1478147427282-58a87a120781?w=500&q=80', 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80'],
-  ['https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80', 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80', 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80'],
-];
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildColumns(urls, colCount = 5, perCol = 3) {
+  if (urls.length === 0) return Array.from({ length: colCount }, () => []);
+  const shuffled = shuffle(urls);
+  const cols = [];
+  for (let c = 0; c < colCount; c++) {
+    const col = [];
+    for (let i = 0; i < perCol; i++) {
+      col.push(shuffled[(c * perCol + i) % shuffled.length]);
+    }
+    cols.push(col);
+  }
+  return cols;
+}
 
 export default function Gallery() {
   const heroRef = useRef(null);
   const tracksRef = useRef([]);
   const [albums, setAlbums] = useState([]);
+  const [heroColumns, setHeroColumns] = useState([[], [], [], [], []]);
 
   useEffect(() => {
     api.get('/gallery')
-      .then(setAlbums)
+      .then((data) => {
+        setAlbums(data);
+        const allPhotos = data.flatMap((album) => (album.items || []).map((p) => getImageUrl(p.src)).filter(Boolean));
+        if (allPhotos.length > 0) {
+          setHeroColumns(buildColumns(allPhotos));
+          const interval = setInterval(() => {
+            setHeroColumns(buildColumns(allPhotos));
+          }, 5000);
+          return () => clearInterval(interval);
+        }
+      })
       .catch(() => setAlbums([]));
   }, []);
 

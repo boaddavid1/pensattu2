@@ -105,7 +105,7 @@ export default function Events() {
     <main className="feed-page events-page">
       <section className="page-hero">
         <div className="page-hero-bg">
-          <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&q=80" alt="Church event crowd" />
+          <img src="/images/events-hero.png" alt="Church event crowd" />
         </div>
         <div className="page-hero-inner">
           <span className="eyebrow">Events</span>
