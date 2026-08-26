@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
 import adminRoutes from './adminRoutes.js';
-import { requireAuth } from './auth.js';
+import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
 import syncSchema from './syncSchema.js';
 import {
   ministries, sermons, team, events,
@@ -344,6 +344,62 @@ app.post('/api/admin/send-notification', requireAuth, async (req, res) => {
 app.use('/api/admin', adminRoutes);
 
 // Past Questions - public endpoints
+
+// Library user auth
+app.post('/api/library/register', async (req, res) => {
+  try {
+    const { full_name, email, password } = req.body;
+    if (!full_name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    const [existing] = await pool.query('SELECT id FROM library_users WHERE email = ?', [email]);
+    if (existing[0]) {
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+    const hashed = await hashPassword(password);
+    const [result] = await pool.query(
+      'INSERT INTO library_users (full_name, email, password) VALUES (?, ?, ?)',
+      [full_name, email, hashed]
+    );
+    const token = generateToken({ id: result.insertId, email, name: full_name, role: 'library_user' });
+    res.status(201).json({ token, user: { id: result.insertId, full_name, email } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/library/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    const [rows] = await pool.query('SELECT * FROM library_users WHERE email = ?', [email]);
+    const user = rows[0];
+    if (!user || !(await comparePassword(password, user.password))) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    const token = generateToken({ id: user.id, email: user.email, name: user.full_name, role: 'library_user' });
+    res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/library/me', (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  res.json({ id: user.id, full_name: user.name, email: user.email });
+});
+
+// Past Questions - public endpoints
 app.get('/api/past-questions', async (req, res) => {
   try {
     const { search, year, semester, level, programme, exam_type } = req.query;
@@ -379,13 +435,16 @@ app.get('/api/past-questions/:id', async (req, res) => {
   }
 });
 
-app.post('/api/past-questions/:id/download', async (req, res) => {
-  try {
-    await pool.query('UPDATE past_questions SET downloads = downloads + 1 WHERE id = ?', [req.params.id]);
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+app.post('/api/past-questions/:id/download', (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Please log in to download past questions' });
   }
+  pool.query('UPDATE past_questions SET downloads = downloads + 1 WHERE id = ?', [req.params.id])
+    .then(() => res.json({ ok: true }))
+    .catch((err) => res.status(500).json({ error: err.message }));
 });
 
 app.get('/api/past-questions-meta', async (req, res) => {

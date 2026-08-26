@@ -1,15 +1,23 @@
 import { useEffect, useState, useMemo } from 'react';
-import { fetchPastQuestions, fetchMeta, trackDownload } from './api';
+import { fetchPastQuestions, fetchMeta, trackDownload, auth } from './api';
+import Landing from './Landing';
+import AuthPage from './AuthPage';
 
 export default function App() {
+  const [view, setView] = useState('landing');
+  const [user, setUser] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [meta, setMeta] = useState({ years: [], semesters: [], levels: [], examTypes: [], programmes: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ year: '', semester: '', level: '', programme: '', exam_type: '' });
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
+    if (auth.isLoggedIn()) {
+      auth.me().then((u) => setUser(u)).catch(() => auth.removeToken());
+    }
     fetchMeta().then(setMeta).catch(() => {});
     loadQuestions();
   }, []);
@@ -48,22 +56,72 @@ export default function App() {
   }, [filters, search]);
 
   async function handleDownload(q) {
-    await trackDownload(q.id);
-    window.open(q.file_url, '_blank');
+    if (!auth.isLoggedIn()) {
+      setShowLoginModal(true);
+      return;
+    }
+    try {
+      await trackDownload(q.id);
+      window.open(q.file_url, '_blank');
+    } catch (err) {
+      if (err.message.includes('log in') || err.message.includes('Unauthorized')) {
+        setShowLoginModal(true);
+      } else {
+        setError(err.message);
+      }
+    }
+  }
+
+  function handleAuthSuccess(userData) {
+    setUser(userData);
+    setShowLoginModal(false);
+    setView('browse');
+  }
+
+  function handleLogout() {
+    auth.removeToken();
+    setUser(null);
+    setView('landing');
+  }
+
+  if (view === 'landing') {
+    return (
+      <>
+        <Landing onBrowse={() => setView('browse')} onLogin={() => setShowLoginModal(true)} />
+        {showLoginModal && (
+          <div className="pq-modal-overlay" onClick={() => setShowLoginModal(false)}>
+            <div onClick={(e) => e.stopPropagation()}>
+              <AuthPage onSuccess={handleAuthSuccess} />
+              <button className="pq-modal-close" onClick={() => setShowLoginModal(false)}>×</button>
+            </div>
+          </div>
+        )}
+      </>
+    );
   }
 
   return (
     <div className="pq-app">
       <header className="pq-header">
         <div className="pq-header-content">
-          <div className="pq-logo">
+          <div className="pq-logo" onClick={() => setView('landing')} style={{ cursor: 'pointer' }}>
             <span className="pq-logo-icon">📚</span>
             <div>
               <h1>PENSA TTU Library</h1>
               <p>Past Question Hub</p>
             </div>
           </div>
-          <a href="https://pensattu.com" className="pq-back-link">← Back to main site</a>
+          <div className="pq-header-right">
+            <a href="https://pensattu.com" className="pq-back-link">← Main site</a>
+            {user ? (
+              <div className="pq-user-menu">
+                <span className="pq-user-name">Hi, {user.full_name.split(' ')[0]}</span>
+                <button className="pq-logout-btn" onClick={handleLogout}>Log out</button>
+              </div>
+            ) : (
+              <button className="pq-login-btn" onClick={() => setShowLoginModal(true)}>Log In</button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -130,7 +188,7 @@ export default function App() {
               <div className="pq-card-footer">
                 <span className="pq-downloads">{q.downloads || 0} downloads</span>
                 <button className="pq-download-btn" onClick={() => handleDownload(q)}>
-                  Download
+                  {auth.isLoggedIn() ? 'Download' : 'Log in to download'}
                 </button>
               </div>
             </div>
@@ -148,6 +206,15 @@ export default function App() {
         <p>PENSA TTU Library — Past Question Hub</p>
         <p className="pq-footer-sub">Pentecost Students and Associates, Takoradi Technical University</p>
       </footer>
+
+      {showLoginModal && (
+        <div className="pq-modal-overlay" onClick={() => setShowLoginModal(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <AuthPage onSuccess={handleAuthSuccess} />
+            <button className="pq-modal-close" onClick={() => setShowLoginModal(false)}>×</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

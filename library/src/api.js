@@ -1,13 +1,42 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-async function request(path) {
-  const res = await fetch(`${API_BASE}${path}`);
+function getToken() {
+  return localStorage.getItem('pensa_library_token');
+}
+
+function setToken(token) {
+  localStorage.setItem('pensa_library_token', token);
+}
+
+function removeToken() {
+  localStorage.removeItem('pensa_library_token');
+}
+
+async function request(path, options = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+    ...options,
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || `Request failed: ${res.status}`);
   }
   return res.json();
 }
+
+export const auth = {
+  getToken,
+  setToken,
+  removeToken,
+  isLoggedIn: () => !!getToken(),
+
+  register: (body) => request('/library/register', { method: 'POST', body: JSON.stringify(body) }),
+  login: (body) => request('/library/login', { method: 'POST', body: JSON.stringify(body) }),
+  me: () => request('/library/me'),
+};
 
 export async function fetchPastQuestions(filters = {}) {
   const params = new URLSearchParams();
@@ -26,7 +55,5 @@ export async function fetchMeta() {
 }
 
 export async function trackDownload(id) {
-  try {
-    await fetch(`${API_BASE}/past-questions/${id}/download`, { method: 'POST' });
-  } catch {}
+  return request(`/past-questions/${id}/download`, { method: 'POST' });
 }
