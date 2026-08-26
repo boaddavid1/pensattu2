@@ -16,23 +16,40 @@ const teamFields = [
   { name: 'display_order', label: 'Display Order', type: 'number' },
 ];
 
+function emptyForm() {
+  return Object.fromEntries(teamFields.map((f) => [f.name, f.type === 'number' ? 0 : '']));
+}
+
 export default function AdminTeamForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const isNew = id === 'new';
   const passedItem = location.state?.item;
-  const [form, setForm] = useState(() =>
-    isNew
-      ? Object.fromEntries(teamFields.map((f) => [f.name, f.type === 'number' ? 0 : '']))
-      : { ...passedItem }
-  );
-  const [loading, setLoading] = useState(!isNew && !passedItem);
+  const [form, setForm] = useState(emptyForm);
+  const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isNew || passedItem) return;
+    if (isNew) {
+      setForm(emptyForm());
+      setLoading(false);
+      return;
+    }
+
+    // Edit mode: use passed item data if available, otherwise fetch from API
+    if (passedItem) {
+      const formatted = { ...passedItem };
+      if (formatted.image_url && !formatted.image_url.startsWith('http')) {
+        formatted.image_url = '';
+      }
+      setForm({ ...emptyForm(), ...formatted });
+      setLoading(false);
+      return;
+    }
+
+    // No passed data — fetch from API with retry
     let cancelled = false;
     async function load() {
       for (let attempt = 1; attempt <= 3; attempt++) {
@@ -43,7 +60,7 @@ export default function AdminTeamForm() {
           if (formatted.image_url && !formatted.image_url.startsWith('http')) {
             formatted.image_url = '';
           }
-          setForm((prev) => ({ ...prev, ...formatted }));
+          setForm({ ...emptyForm(), ...formatted });
           setLoading(false);
           return;
         } catch (err) {
@@ -105,68 +122,39 @@ export default function AdminTeamForm() {
   return (
     <div>
       <div className="admin-page-header">
-        <h2>{isNew ? 'Add Team Member' : 'Edit Team Member'}</h2>
+        <h2>{isNew ? 'Add New Team Member' : 'Edit Team Member'}</h2>
+        <button className="btn btn-ghost" onClick={() => navigate('/admin/team')}>
+          ← Back to list
+        </button>
       </div>
+
       {error && <div className="admin-error">{error}</div>}
+
       <form className="admin-form admin-card" onSubmit={handleSubmit}>
-        <div className="admin-form-grid">
-          {teamFields.map((field) => {
-            if (field.type === 'image') {
-              return (
-                <label key={field.name}>
-                  {field.label}
-                  <input type="file" accept="image/*" onChange={(e) => handleImageUpload(field, e)} />
-                  {form[field.name] && (
-                    <img src={form[field.name]} alt="Preview" className="admin-cover-preview" />
-                  )}
-                </label>
-              );
-            }
-            if (field.type === 'textarea') {
-              return (
-                <label key={field.name}>
-                  {field.label}
-                  <textarea
-                    value={form[field.name] || ''}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    required={field.required}
-                  />
-                </label>
-              );
-            }
-            if (field.type === 'select') {
-              return (
-                <label key={field.name}>
-                  {field.label}
-                  <select
-                    value={form[field.name] || ''}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    required={field.required}
-                  >
-                    <option value="">Select {field.label}</option>
-                    {field.options.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                </label>
-              );
-            }
-            return (
-              <label key={field.name}>
-                {field.label}
-                <input
-                  type={field.type}
-                  value={form[field.name] || ''}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  required={field.required}
-                />
-              </label>
-            );
-          })}
+        <div className="admin-form-section">
+          <h3 className="admin-form-section-title">Required Information</h3>
+          <div className="admin-form-grid">
+            {teamFields.filter((f) => f.required).map((field) => renderField(field, form, handleChange, handleImageUpload))}
+          </div>
         </div>
+
+        <div className="admin-form-section">
+          <h3 className="admin-form-section-title">Additional Information</h3>
+          <div className="admin-form-grid">
+            {teamFields.filter((f) => !f.required && f.type !== 'image').map((field) => renderField(field, form, handleChange, handleImageUpload))}
+          </div>
+        </div>
+
+        <div className="admin-form-section">
+          <h3 className="admin-form-section-title">Image</h3>
+          <div className="admin-form-grid">
+            {teamFields.filter((f) => f.type === 'image').map((field) => renderField(field, form, handleChange, handleImageUpload))}
+          </div>
+        </div>
+
         <div className="admin-form-actions">
           <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? 'Saving...' : isNew ? 'Add Team Member' : 'Update Team Member'}
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => navigate('/admin/team')}>
             Cancel
@@ -174,5 +162,60 @@ export default function AdminTeamForm() {
         </div>
       </form>
     </div>
+  );
+}
+
+function renderField(field, form, handleChange, handleImageUpload) {
+  if (field.type === 'image') {
+    return (
+      <label key={field.name}>
+        {field.label}
+        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(field, e)} />
+        {form[field.name] && (
+          <img src={form[field.name]} alt="Preview" className="admin-cover-preview" />
+        )}
+      </label>
+    );
+  }
+  if (field.type === 'textarea') {
+    return (
+      <label key={field.name} className="admin-form-full">
+        {field.label}
+        <textarea
+          value={form[field.name] || ''}
+          onChange={(e) => handleChange(field.name, e.target.value)}
+          required={field.required}
+          rows={3}
+        />
+      </label>
+    );
+  }
+  if (field.type === 'select') {
+    return (
+      <label key={field.name}>
+        {field.label}
+        <select
+          value={form[field.name] || ''}
+          onChange={(e) => handleChange(field.name, e.target.value)}
+          required={field.required}
+        >
+          <option value="">Select {field.label}</option>
+          {field.options.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+      </label>
+    );
+  }
+  return (
+    <label key={field.name}>
+      {field.label}
+      <input
+        type={field.type}
+        value={form[field.name] ?? ''}
+        onChange={(e) => handleChange(field.name, e.target.value)}
+        required={field.required}
+      />
+    </label>
   );
 }

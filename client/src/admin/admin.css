@@ -373,6 +373,23 @@
   margin-top: 20px;
 }
 
+.admin-form-section {
+  margin-bottom: 24px;
+}
+
+.admin-form-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--pine, #1a4d3a);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e0e8e4;
+}
+
+.admin-form-full {
+  grid-column: 1 / -1;
+}
+
 .admin-inline-label {
   font-weight: 600;
   font-size: 14px;
