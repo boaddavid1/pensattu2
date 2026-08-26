@@ -343,6 +343,70 @@ app.post('/api/admin/send-notification', requireAuth, async (req, res) => {
 // Admin routes
 app.use('/api/admin', adminRoutes);
 
+// Past Questions - public endpoints
+app.get('/api/past-questions', async (req, res) => {
+  try {
+    const { search, year, semester, level, programme, exam_type } = req.query;
+    let sql = 'SELECT * FROM past_questions WHERE is_active = 1';
+    const params = [];
+
+    if (search) {
+      sql += ' AND (course_code LIKE ? OR course_title LIKE ?)';
+      const term = `%${search}%`;
+      params.push(term, term);
+    }
+    if (year) { sql += ' AND year = ?'; params.push(Number(year)); }
+    if (semester) { sql += ' AND semester = ?'; params.push(semester); }
+    if (level) { sql += ' AND level = ?'; params.push(level); }
+    if (programme) { sql += ' AND programme LIKE ?'; params.push(`%${programme}%`); }
+    if (exam_type) { sql += ' AND exam_type = ?'; params.push(exam_type); }
+
+    sql += ' ORDER BY year DESC, course_code ASC';
+    const [rows] = await pool.query(sql, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/past-questions/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM past_questions WHERE id = ? AND is_active = 1', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/past-questions/:id/download', async (req, res) => {
+  try {
+    await pool.query('UPDATE past_questions SET downloads = downloads + 1 WHERE id = ?', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/past-questions-meta', async (req, res) => {
+  try {
+    const [years] = await pool.query('SELECT DISTINCT year FROM past_questions WHERE is_active = 1 ORDER BY year DESC');
+    const [semesters] = await pool.query('SELECT DISTINCT semester FROM past_questions WHERE is_active = 1 ORDER BY semester');
+    const [levels] = await pool.query('SELECT DISTINCT level FROM past_questions WHERE is_active = 1 ORDER BY level');
+    const [examTypes] = await pool.query('SELECT DISTINCT exam_type FROM past_questions WHERE is_active = 1 ORDER BY exam_type');
+    const [programmes] = await pool.query('SELECT DISTINCT programme FROM past_questions WHERE is_active = 1 AND programme IS NOT NULL ORDER BY programme');
+    res.json({
+      years: years.map(r => r.year),
+      semesters: semesters.map(r => r.semester),
+      levels: levels.map(r => r.level),
+      examTypes: examTypes.map(r => r.exam_type),
+      programmes: programmes.map(r => r.programme),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Serve uploaded images from the uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

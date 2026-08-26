@@ -117,6 +117,12 @@ const TABLES = {
     required: ['name'],
     orderBy: 'id',
   },
+  past_questions: {
+    actualTable: 'past_questions',
+    columns: ['course_code', 'course_title', 'year', 'semester', 'level', 'programme', 'exam_type', 'file_url', 'file_type', 'file_size', 'is_active'],
+    required: ['course_code', 'course_title', 'year', 'semester', 'level', 'exam_type', 'file_url'],
+    orderBy: 'created_at DESC',
+  },
 };
 
 const READONLY_TABLES = ['visits', 'subscribers', 'contact_messages'];

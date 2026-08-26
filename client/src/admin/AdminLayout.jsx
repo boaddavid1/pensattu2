@@ -12,6 +12,7 @@ const navItems = [
   { to: '/admin/announcements', label: 'Announcements' },
   { to: '/admin/notices', label: 'Notices' },
   { to: '/admin/gallery', label: 'Gallery' },
+  { to: '/admin/past-questions', label: 'Past Questions' },
   { to: '/admin/visits', label: 'Visits' },
   { to: '/admin/subscribers', label: 'Subscribers' },
   { to: '/admin/contacts', label: 'Messages' },

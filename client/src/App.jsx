@@ -21,6 +21,7 @@ import AdminCrudPage from './admin/AdminCrudPage';
 import AdminGallery from './admin/AdminGallery';
 import AdminReadonly from './admin/AdminReadonly';
 import AdminTeamForm from './admin/AdminTeamForm';
+import AdminPastQuestions from './admin/AdminPastQuestions';
 import AdminUsers from './admin/AdminUsers';
 import { isLoggedIn } from './admin/adminApi';
 
@@ -87,6 +88,7 @@ function AdminShell() {
         <Route path="subscribers" element={<AdminReadonly entity="subscribers" title="Subscribers" />} />
         <Route path="contacts" element={<AdminReadonly entity="contacts" title="Contact Messages" />} />
         <Route path="gallery" element={<AdminGallery />} />
+        <Route path="past-questions" element={<AdminPastQuestions />} />
         <Route path="users" element={<AdminUsers />} />
       </Route>
     </Routes>

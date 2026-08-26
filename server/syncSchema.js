@@ -134,6 +134,23 @@ const TABLES = [
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`,
+
+  `CREATE TABLE IF NOT EXISTS past_questions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    course_code VARCHAR(50) NOT NULL,
+    course_title VARCHAR(200) NOT NULL,
+    year INT NOT NULL,
+    semester VARCHAR(50) NOT NULL,
+    level VARCHAR(50) NOT NULL,
+    programme VARCHAR(200),
+    exam_type VARCHAR(100) NOT NULL,
+    file_url VARCHAR(500) NOT NULL,
+    file_type VARCHAR(50),
+    file_size INT,
+    downloads INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
 ];
 
 export default async function syncSchema() {
