@@ -272,13 +272,12 @@ export default function AdminCrudPage({ entity, title }) {
             {sortedYears.map((year) => {
               const members = groups[year];
               const cover = members.find((p) => p.image_url)?.image_url || '';
-              const isOpen = !!expanded[year];
               return (
                 <div key={year} className="admin-team-album">
                   <button
                     type="button"
                     className="admin-team-album-header"
-                    onClick={() => toggleYear(year)}
+                    onClick={() => navigate(`/admin/team/year/${encodeURIComponent(year)}`)}
                   >
                     <div className="admin-team-album-cover">
                       {cover ? <img src={cover} alt={year} /> : <span className="admin-team-album-placeholder">{year}</span>}
@@ -287,15 +286,8 @@ export default function AdminCrudPage({ entity, title }) {
                         <span>{members.length} member{members.length !== 1 ? 's' : ''}</span>
                       </div>
                     </div>
-                    <span className="admin-team-album-toggle">{isOpen ? '▲ Collapse' : '▼ Expand'}</span>
+                    <span className="admin-team-album-toggle">View Members →</span>
                   </button>
-                  {isOpen && (
-                    <div className="admin-team-album-body">
-                      <div className="admin-team-grid compact">
-                        {members.map((p) => <MemberCard key={p.id} p={p} />)}
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}

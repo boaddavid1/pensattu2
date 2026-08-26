@@ -21,6 +21,7 @@ import AdminCrudPage from './admin/AdminCrudPage';
 import AdminGallery from './admin/AdminGallery';
 import AdminReadonly from './admin/AdminReadonly';
 import AdminTeamForm from './admin/AdminTeamForm';
+import AdminTeamYear from './admin/AdminTeamYear';
 import AdminPastQuestions from './admin/AdminPastQuestions';
 import AdminBooks from './admin/AdminBooks';
 import AdminUsers from './admin/AdminUsers';
@@ -81,6 +82,7 @@ function AdminShell() {
         <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
         <Route path="team" element={<AdminCrudPage entity="team" title="Leadership Team" />} />
         <Route path="team/new" element={<AdminTeamForm />} />
+        <Route path="team/year/:year" element={<AdminTeamYear />} />
         <Route path="team/:id/edit" element={<AdminTeamForm />} />
         <Route path="events" element={<AdminCrudPage entity="events" title="Events" />} />
         <Route path="announcements" element={<AdminCrudPage entity="announcements" title="Announcements" />} />
