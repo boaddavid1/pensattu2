@@ -5,7 +5,7 @@ import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
 const teamFields = [
   { name: 'name', label: 'Full Name', type: 'text', required: true },
-  { name: 'role', label: 'Role/Position', type: 'text' },
+  { name: 'role', label: 'Role/Position', type: 'text', required: true },
   { name: 'category', label: 'Category', type: 'select', required: true, options: ['pastor', 'patroness', 'ec', 'lcc'] },
   { name: 'academic_year', label: 'Academic Year of Administration', type: 'select', required: true, options: ['2025/2026', '2026/2027', '2027/2028', '2028/2029', '2029/2030'] },
   { name: 'programme', label: 'Programme of Study', type: 'text' },

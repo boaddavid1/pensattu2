@@ -16,7 +16,7 @@ export default function NoticeBoard() {
     <main className="feed-page notice-board-page">
       <section className="page-hero">
         <div className="page-hero-bg">
-          <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1600&q=80" alt="Church notice board" />
+          <img src="/images/noticeboard-hero.png" alt="Church notice board" />
         </div>
         <div className="page-hero-inner">
           <span className="eyebrow">News</span>
