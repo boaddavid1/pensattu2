@@ -57,3 +57,24 @@ export async function fetchMeta() {
 export async function trackDownload(id) {
   return request(`/past-questions/${id}/download`, { method: 'POST' });
 }
+
+// Books
+export async function fetchBooks(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.search) params.append('search', filters.search);
+  if (filters.category) params.append('category', filters.category);
+  const qs = params.toString();
+  return request(`/books${qs ? `?${qs}` : ''}`);
+}
+
+export async function fetchBook(id) {
+  return request(`/books/${id}`);
+}
+
+export async function fetchBookCategories() {
+  return request('/books-categories');
+}
+
+export async function trackBookDownload(id) {
+  return request(`/books/${id}/download`, { method: 'POST' });
+}

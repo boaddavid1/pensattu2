@@ -466,6 +466,57 @@ app.get('/api/past-questions-meta', async (req, res) => {
   }
 });
 
+// Library Books - public endpoints
+app.get('/api/books', async (req, res) => {
+  try {
+    const { search, category } = req.query;
+    let sql = 'SELECT id, title, author, category, description, cover_image, file_type, pages, is_readable, downloads, created_at FROM library_books WHERE is_active = 1';
+    const params = [];
+    if (search) {
+      sql += ' AND (title LIKE ? OR author LIKE ?)';
+      const term = `%${search}%`;
+      params.push(term, term);
+    }
+    if (category) { sql += ' AND category = ?'; params.push(category); }
+    sql += ' ORDER BY created_at DESC';
+    const [rows] = await pool.query(sql, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/books/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM library_books WHERE id = ? AND is_active = 1', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/books/:id/download', (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Please log in to download books' });
+  }
+  pool.query('UPDATE library_books SET downloads = downloads + 1 WHERE id = ?', [req.params.id])
+    .then(() => res.json({ ok: true }))
+    .catch((err) => res.status(500).json({ error: err.message }));
+});
+
+app.get('/api/books-categories', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT DISTINCT category FROM library_books WHERE is_active = 1 AND category IS NOT NULL ORDER BY category');
+    res.json(rows.map(r => r.category));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Serve uploaded images from the uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

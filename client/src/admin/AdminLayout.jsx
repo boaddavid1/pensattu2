@@ -13,6 +13,7 @@ const navItems = [
   { to: '/admin/notices', label: 'Notices' },
   { to: '/admin/gallery', label: 'Gallery' },
   { to: '/admin/past-questions', label: 'Past Questions' },
+  { to: '/admin/books', label: 'Books' },
   { to: '/admin/visits', label: 'Visits' },
   { to: '/admin/subscribers', label: 'Subscribers' },
   { to: '/admin/contacts', label: 'Messages' },

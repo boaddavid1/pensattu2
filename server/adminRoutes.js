@@ -123,6 +123,12 @@ const TABLES = {
     required: ['course_code', 'course_title', 'year', 'semester', 'level', 'exam_type', 'file_url'],
     orderBy: 'created_at DESC',
   },
+  books: {
+    actualTable: 'library_books',
+    columns: ['title', 'author', 'category', 'description', 'cover_image', 'file_url', 'file_type', 'file_size', 'pages', 'is_readable', 'content', 'is_active'],
+    required: ['title', 'file_url'],
+    orderBy: 'created_at DESC',
+  },
 };
 
 const READONLY_TABLES = ['visits', 'subscribers', 'contact_messages'];

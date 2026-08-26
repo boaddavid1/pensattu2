@@ -154,3 +154,21 @@ CREATE TABLE IF NOT EXISTS library_users (
   password VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS library_books (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(300) NOT NULL,
+  author VARCHAR(200),
+  category VARCHAR(100),
+  description TEXT,
+  cover_image VARCHAR(500),
+  file_url VARCHAR(500) NOT NULL,
+  file_type VARCHAR(50),
+  file_size INT,
+  pages INT,
+  is_readable BOOLEAN DEFAULT FALSE,
+  content TEXT,
+  downloads INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
