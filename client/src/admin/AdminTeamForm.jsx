@@ -20,11 +20,11 @@ function emptyForm() {
   return Object.fromEntries(teamFields.map((f) => [f.name, f.type === 'number' ? 0 : '']));
 }
 
-export default function AdminTeamForm() {
+export default function AdminTeamForm({ isNew: isNewProp }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const isNew = id === 'new';
+  const isNew = isNewProp || id === 'new';
   const passedItem = location.state?.item;
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(!isNew);
