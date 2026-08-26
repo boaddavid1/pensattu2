@@ -42,5 +42,10 @@ export async function hashPassword(password) {
 }
 
 export async function comparePassword(password, hash) {
-  return bcrypt.compare(password, hash);
+  // Handle PHP bcrypt hashes ($2y$) by converting to $2b$ which bcryptjs supports
+  let normalizedHash = hash;
+  if (hash && hash.startsWith('$2y$')) {
+    normalizedHash = '$2b$' + hash.slice(4);
+  }
+  return bcrypt.compare(password, normalizedHash);
 }
