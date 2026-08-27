@@ -526,16 +526,25 @@ router.get('/messages/logs', requireSecAuth, async (req, res) => {
 // ─── Halls ─────────────────────────────────────────────────
 router.get('/halls', requireSecAuth, async (req, res) => {
   try {
+    // On-campus halls — exclude NULL, empty string, and the literal string "null"
     const [halls] = await secPool.query(
-      `SELECT campus_hall, COUNT(*) as count FROM registrations WHERE campus_hall IS NOT NULL AND campus_hall != '' GROUP BY campus_hall ORDER BY count DESC`
+      `SELECT campus_hall, COUNT(*) as count FROM registrations
+       WHERE campus_hall IS NOT NULL AND campus_hall != '' AND campus_hall != 'null'
+       GROUP BY campus_hall ORDER BY count DESC`
     );
     const result = [];
     for (const h of halls) {
-      const [members] = await secPool.query('SELECT id, surname, othernames, gender, contact, program, education_level, program_duration FROM registrations WHERE campus_hall = ? ORDER BY surname', [h.campus_hall]);
+      const [members] = await secPool.query(
+        'SELECT id, surname, othernames, gender, contact, program, education_level, program_duration FROM registrations WHERE campus_hall = ? ORDER BY surname',
+        [h.campus_hall]
+      );
       result.push({ hall: h.campus_hall, count: h.count, members });
     }
-    // Also include off-campus
-    const [offcampus] = await secPool.query("SELECT id, surname, othernames, gender, contact, program, education_level, offcampus_location FROM registrations WHERE campus_residence = 'off-campus' ORDER BY surname");
+    // Off-campus members — campus_residence is stored as 'no' for off-campus
+    const [offcampus] = await secPool.query(
+      `SELECT id, surname, othernames, gender, contact, program, education_level, offcampus_location
+       FROM registrations WHERE campus_residence = 'no' ORDER BY surname`
+    );
     if (offcampus.length) result.push({ hall: 'Off-Campus', count: offcampus.length, members: offcampus });
     res.json({ halls: result });
   } catch (err) {
