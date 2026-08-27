@@ -38,6 +38,7 @@ export const secApi = {
 
   // Members
   listMembers: (params = '') => request(`/members${params ? `?${params}` : ''}`),
+  membersByLevel: (params = '') => request(`/members/by-level${params ? `?${params}` : ''}`),
   getMember: (id) => request(`/members/${id}`),
   createMember: (data) => request('/members', { method: 'POST', body: JSON.stringify(data) }),
   updateMember: (id, data) => request(`/members/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

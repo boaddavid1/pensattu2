@@ -75,7 +75,7 @@ export default function Alumni() {
             <div className="empty-state"><i className='bx bxs-graduation'></i><p>No alumni found</p></div>
           ) : (
             <table>
-              <thead><tr><th>Name</th><th>Gender</th><th>Contact</th><th>Program</th><th>Year</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Name</th><th>Gender</th><th>Contact</th><th>Program</th><th>Level</th><th>Year</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
                 {alumni.map(a => (
                   <tr key={a.id}>
@@ -83,8 +83,9 @@ export default function Alumni() {
                     <td>{a.gender}</td>
                     <td>{a.contact || '-'}</td>
                     <td>{a.program || '-'}</td>
+                    <td>{a.education_level || '-'}</td>
                     <td>{a.graduation_year || '-'}</td>
-                    <td>{a.current_status || '-'}</td>
+                    <td><span className={`badge ${a.alumni_status === 'active' ? 'badge-green' : 'badge-yellow'}`}>{a.alumni_status || 'active'}</span></td>
                     <td>
                       <button className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }} onClick={() => setEditAlumni(a)}>Edit</button>
                       <button className="btn btn-danger" style={{ padding: '4px 10px' }} onClick={() => setShowDelete(a)}>Delete</button>
@@ -114,11 +115,20 @@ export default function Alumni() {
             <form onSubmit={handleUpdate}>
               <div className="form-group"><label>Surname</label><input value={editAlumni.surname || ''} onChange={e => setEditAlumni(a => ({ ...a, surname: e.target.value }))} /></div>
               <div className="form-group"><label>Other Names</label><input value={editAlumni.othernames || ''} onChange={e => setEditAlumni(a => ({ ...a, othernames: e.target.value }))} /></div>
+              <div className="form-group"><label>Gender</label>
+                <select value={editAlumni.gender || 'male'} onChange={e => setEditAlumni(a => ({ ...a, gender: e.target.value }))}>
+                  <option value="male">Male</option><option value="female">Female</option>
+                </select>
+              </div>
               <div className="form-group"><label>Contact</label><input value={editAlumni.contact || ''} onChange={e => setEditAlumni(a => ({ ...a, contact: e.target.value }))} /></div>
-              <div className="form-group"><label>Email</label><input value={editAlumni.email || ''} onChange={e => setEditAlumni(a => ({ ...a, email: e.target.value }))} /></div>
-              <div className="form-group"><label>Current Status</label><input value={editAlumni.current_status || ''} onChange={e => setEditAlumni(a => ({ ...a, current_status: e.target.value }))} /></div>
-              <div className="form-group"><label>Workplace</label><input value={editAlumni.workplace || ''} onChange={e => setEditAlumni(a => ({ ...a, workplace: e.target.value }))} /></div>
+              <div className="form-group"><label>Program</label><input value={editAlumni.program || ''} onChange={e => setEditAlumni(a => ({ ...a, program: e.target.value }))} /></div>
+              <div className="form-group"><label>Education Level</label><input value={editAlumni.education_level || ''} onChange={e => setEditAlumni(a => ({ ...a, education_level: e.target.value }))} /></div>
               <div className="form-group"><label>Graduation Year</label><input type="number" value={editAlumni.graduation_year || ''} onChange={e => setEditAlumni(a => ({ ...a, graduation_year: e.target.value }))} /></div>
+              <div className="form-group"><label>Alumni Status</label>
+                <select value={editAlumni.alumni_status || 'active'} onChange={e => setEditAlumni(a => ({ ...a, alumni_status: e.target.value }))}>
+                  <option value="active">Active</option><option value="inactive">Inactive</option>
+                </select>
+              </div>
               <div className="modal-actions">
                 <button type="button" className="btn btn-back" onClick={() => setEditAlumni(null)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Update</button>

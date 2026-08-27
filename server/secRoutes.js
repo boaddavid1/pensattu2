@@ -190,9 +190,57 @@ router.get('/members', requireSecAuth, async (req, res) => {
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
     const [[{ total }]] = await secPool.query(`SELECT COUNT(*) as total FROM registrations ${whereSql}`, params);
-    const [rows] = await secPool.query(`SELECT * FROM registrations ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, pp, offset]);
+    const [rows] = await secPool.query(
+      `SELECT * FROM registrations ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, pp, offset]
+    );
 
     res.json({ members: rows, pagination: { page: pg, perPage: pp, total, totalPages: Math.ceil(total / pp) } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Members grouped by education level — returns only counts (fast, no member data)
+router.get('/members/by-level', requireSecAuth, async (req, res) => {
+  try {
+    const { search, gender, membership_type, hall, officer, duration } = req.query;
+    const where = [];
+    const params = [];
+    if (search) {
+      where.push('(surname LIKE ? OR othernames LIKE ? OR contact LIKE ? OR program LIKE ?)');
+      const s = `%${search}%`;
+      params.push(s, s, s, s);
+    }
+    if (gender) { where.push('gender = ?'); params.push(gender); }
+    if (membership_type) { where.push('membership_type = ?'); params.push(membership_type); }
+    if (hall) { where.push('campus_hall = ?'); params.push(hall); }
+    if (officer === 'true') { where.push('is_officer = 1'); }
+    if (duration) { where.push('program_duration = ?'); params.push(duration); }
+
+    // Single query: counts per level (only fetches aggregate, no row data)
+    const levelWhere = where.length
+      ? `WHERE ${where.join(' AND ')} AND education_level IS NOT NULL AND education_level != ''`
+      : `WHERE education_level IS NOT NULL AND education_level != ''`;
+    const [rows] = await secPool.query(
+      `SELECT education_level as level, COUNT(*) as count FROM registrations ${levelWhere} GROUP BY education_level ORDER BY CAST(education_level AS UNSIGNED), education_level`,
+      params
+    );
+
+    // Also get unspecified count
+    const unspecWhere = where.length
+      ? `WHERE ${where.join(' AND ')} AND (education_level IS NULL OR education_level = '')`
+      : `WHERE education_level IS NULL OR education_level = ''`;
+    const [[{ unspecCount }]] = await secPool.query(
+      `SELECT COUNT(*) as unspecCount FROM registrations ${unspecWhere}`,
+      params
+    );
+
+    const levels = rows.map(r => ({ level: r.level, count: r.count }));
+    if (unspecCount > 0) levels.push({ level: 'Unspecified', count: unspecCount });
+
+    const total = levels.reduce((sum, l) => sum + l.count, 0);
+    res.json({ levels, total });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -212,9 +260,9 @@ router.post('/members', requireSecAuth, async (req, res) => {
   try {
     const b = req.body;
     const [result] = await secPool.query(
-      `INSERT INTO registrations (surname, othernames, gender, dob, contact, residence, room, program, program_duration, education_level, membership_type, campus_residence, campus_hall, offcampus_location, landmark, is_officer, officer_role, district, pastor, guardian, guardian_contact, departments)
+      `INSERT INTO registrations (surname, othernames, gender, dob, contact, residence, room, program, program_duration, education_level, membership_type, campus_residence, campus_hall, offcampus_location, landmark, is_officer, officer_role, district, pastor, guardian, guardian_contact, other_info)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [b.surname, b.othernames, b.gender, b.dob || null, b.contact || null, b.residence || null, b.room || null, b.program || null, b.program_duration || null, b.education_level || null, b.membership_type || 'member', b.campus_residence || null, b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || null, b.pastor || null, b.guardian || null, b.guardian_contact || null, b.departments || null]
+      [b.surname, b.othernames, b.gender, b.dob || null, b.contact || null, b.residence || null, b.room || null, b.program || null, b.program_duration || null, b.education_level || null, b.membership_type || 'member', b.campus_residence === 'on-campus' ? 'yes' : b.campus_residence === 'off-campus' ? 'no' : (b.campus_residence || null), b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || null, b.pastor || null, b.guardian || null, b.guardian_contact || null, b.departments || b.other_info || null]
     );
     await logActivity(secPool, req.user.id, req.user.username, 'ADD_MEMBER', `Added: ${b.surname} ${b.othernames}`, req);
     res.json({ success: true, id: result.insertId });
@@ -227,8 +275,8 @@ router.put('/members/:id', requireSecAuth, async (req, res) => {
   try {
     const b = req.body;
     await secPool.query(
-      `UPDATE registrations SET surname=?, othernames=?, gender=?, dob=?, contact=?, residence=?, room=?, program=?, program_duration=?, education_level=?, membership_type=?, campus_residence=?, campus_hall=?, offcampus_location=?, landmark=?, is_officer=?, officer_role=?, district=?, pastor=?, guardian=?, guardian_contact=?, departments=?, profile_image=? WHERE id=?`,
-      [b.surname, b.othernames, b.gender, b.dob || null, b.contact || null, b.residence || null, b.room || null, b.program || null, b.program_duration || null, b.education_level || null, b.membership_type || 'member', b.campus_residence || null, b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || null, b.pastor || null, b.guardian || null, b.guardian_contact || null, b.departments || null, b.profile_image || null, req.params.id]
+      `UPDATE registrations SET surname=?, othernames=?, gender=?, dob=?, contact=?, residence=?, room=?, program=?, program_duration=?, education_level=?, membership_type=?, campus_residence=?, campus_hall=?, offcampus_location=?, landmark=?, is_officer=?, officer_role=?, district=?, pastor=?, guardian=?, guardian_contact=?, other_info=? WHERE id=?`,
+      [b.surname, b.othernames, b.gender, b.dob || null, b.contact || null, b.residence || null, b.room || null, b.program || null, b.program_duration || null, b.education_level || null, b.membership_type || 'member', b.campus_residence === 'on-campus' ? 'yes' : b.campus_residence === 'off-campus' ? 'no' : (b.campus_residence || null), b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || null, b.pastor || null, b.guardian || null, b.guardian_contact || null, b.departments || b.other_info || null, req.params.id]
     );
     await logActivity(secPool, req.user.id, req.user.username, 'EDIT_MEMBER', `Edited member #${req.params.id}`, req);
     res.json({ success: true });
@@ -279,9 +327,9 @@ router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
     const m = rows[0];
 
     await secPool.query(
-      `INSERT INTO alumni (surname, othernames, gender, dob, contact, program, program_duration, graduation_year, district, pastor, profile_image)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-      [m.surname, m.othernames, m.gender, m.dob, m.contact, m.program, m.program_duration, new Date().getFullYear(), m.district, m.pastor, m.profile_image]
+      `INSERT INTO alumni (registration_id, surname, othernames, gender, dob, contact, program, education_level, graduation_year)
+       VALUES (?,?,?,?,?,?,?,?,?)`,
+      [m.id, m.surname, m.othernames, m.gender, m.dob, m.contact, m.program, m.education_level, new Date().getFullYear()]
     );
     await secPool.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [req.params.id]);
     await logActivity(secPool, req.user.id, req.user.username, 'GRADUATE_MEMBER', `Graduated: ${m.surname} ${m.othernames}`, req);
@@ -512,8 +560,8 @@ router.put('/alumni/:id', requireSecAuth, async (req, res) => {
   try {
     const b = req.body;
     await secPool.query(
-      `UPDATE alumni SET surname=?, othernames=?, gender=?, contact=?, email=?, program=?, program_duration=?, graduation_year=?, district=?, current_status=?, workplace=? WHERE id=?`,
-      [b.surname, b.othernames, b.gender, b.contact || null, b.email || null, b.program || null, b.program_duration || null, b.graduation_year || null, b.district || null, b.current_status || null, b.workplace || null, req.params.id]
+      `UPDATE alumni SET surname=?, othernames=?, gender=?, dob=?, contact=?, program=?, education_level=?, graduation_year=?, alumni_status=? WHERE id=?`,
+      [b.surname, b.othernames, b.gender, b.dob || null, b.contact || null, b.program || null, b.education_level || null, b.graduation_year || null, b.alumni_status || 'active', req.params.id]
     );
     await logActivity(secPool, req.user.id, req.user.username, 'EDIT_ALUMNI', `Edited alumni #${req.params.id}`, req);
     res.json({ success: true });

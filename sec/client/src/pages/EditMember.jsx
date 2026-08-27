@@ -68,7 +68,7 @@ export default function EditMember() {
             <div className="form-group"><label>Program</label><input name="program" value={form.program || ''} onChange={handleChange} /></div>
             <div className="form-group"><label>Program Duration</label>
               <select name="program_duration" value={form.program_duration || ''} onChange={handleChange}>
-                <option value="">--</option><option value="HND">HND</option><option value="B-TECH">B-TECH</option><option value="Diploma">Diploma</option><option value="Certificate">Certificate</option>
+                <option value="">--</option><option value="HND">HND</option><option value="B-TECH">B-TECH</option><option value="Diploma">Diploma</option>
               </select>
             </div>
             <div className="form-group"><label>Education Level</label><input name="education_level" value={form.education_level || ''} onChange={handleChange} /></div>
@@ -79,7 +79,7 @@ export default function EditMember() {
             </div>
             <div className="form-group"><label>Campus Residence</label>
               <select name="campus_residence" value={form.campus_residence || ''} onChange={handleChange}>
-                <option value="">--</option><option value="on-campus">On-Campus</option><option value="off-campus">Off-Campus</option>
+                <option value="">--</option><option value="yes">On-Campus</option><option value="no">Off-Campus</option>
               </select>
             </div>
             <div className="form-group"><label>Campus Hall</label><input name="campus_hall" value={form.campus_hall || ''} onChange={handleChange} /></div>
@@ -89,8 +89,12 @@ export default function EditMember() {
             <div className="form-group"><label>Pastor</label><input name="pastor" value={form.pastor || ''} onChange={handleChange} /></div>
             <div className="form-group"><label>Guardian</label><input name="guardian" value={form.guardian || ''} onChange={handleChange} /></div>
             <div className="form-group"><label>Guardian Contact</label><input name="guardian_contact" value={form.guardian_contact || ''} onChange={handleChange} /></div>
-            <div className="form-group"><label>Officer Role</label><input name="officer_role" value={form.officer_role || ''} onChange={handleChange} /></div>
-            <div className="form-group"><label>Departments</label><input name="departments" value={form.departments || ''} onChange={handleChange} /></div>
+            <div className="form-group"><label>Officer Role</label>
+              <select name="officer_role" value={form.officer_role || ''} onChange={handleChange}>
+                <option value="">--</option><option value="Elder">Elder</option><option value="Deacon">Deacon</option><option value="Deaconess">Deaconess</option>
+              </select>
+            </div>
+            <div className="form-group"><label>Other Info</label><input name="departments" value={form.departments || ''} onChange={handleChange} /></div>
           </div>
           <div className="form-group" style={{ marginTop: 16 }}>
             <label className="col-1">

@@ -5,6 +5,7 @@ import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Members from './pages/Members.jsx';
+import LevelMembers from './pages/LevelMembers.jsx';
 import AddMember from './pages/AddMember.jsx';
 import EditMember from './pages/EditMember.jsx';
 import ViewMember from './pages/ViewMember.jsx';
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>} />
+      <Route path="/members/level/:level" element={<ProtectedRoute><LevelMembers /></ProtectedRoute>} />
       <Route path="/members/add" element={<ProtectedRoute><AddMember /></ProtectedRoute>} />
       <Route path="/members/:id/edit" element={<ProtectedRoute><EditMember /></ProtectedRoute>} />
       <Route path="/members/:id" element={<ProtectedRoute><ViewMember /></ProtectedRoute>} />

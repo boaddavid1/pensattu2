@@ -1,4 +1,4 @@
-// Members.jsx — Member list with search, filter, pagination, graduate (ported from members.php)
+// Members.jsx — Members grouped by education level in cards (ported from members.php)
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
@@ -12,8 +12,7 @@ export default function Members() {
   const [membershipType, setMembershipType] = useState('');
   const [hall, setHall] = useState('');
   const [officer, setOfficer] = useState(false);
-  const [page, setPage] = useState(1);
-  const [showDelete, setShowDelete] = useState(null);
+  const [duration, setDuration] = useState('');
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -25,39 +24,32 @@ export default function Members() {
       if (membershipType) params.set('membership_type', membershipType);
       if (hall) params.set('hall', hall);
       if (officer) params.set('officer', 'true');
-      params.set('page', page);
-      params.set('perPage', 20);
-      const result = await secApi.listMembers(params.toString());
+      if (duration) params.set('duration', duration);
+      const result = await secApi.membersByLevel(params.toString());
       setData(result);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [search, gender, membershipType, hall, officer, page]);
+  }, [search, gender, membershipType, hall, officer, duration]);
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
-  const handleSearch = (e) => { e.preventDefault(); setPage(1); fetchMembers(); };
+  const handleSearch = (e) => { e.preventDefault(); fetchMembers(); };
 
-  const handleDelete = async (id) => {
-    try {
-      await secApi.deleteMember(id);
-      setShowDelete(null);
-      fetchMembers();
-    } catch (err) { setError(err.message); }
-  };
+  const levels = data?.levels || [];
+  const total = data?.total || 0;
 
-  const handleGraduate = async (id) => {
-    if (!confirm('Graduate this member to alumni?')) return;
-    try {
-      await secApi.graduateMember(id);
-      fetchMembers();
-    } catch (err) { setError(err.message); }
-  };
-
-  const members = data?.members || [];
-  const pagination = data?.pagination;
+  // Level card colors
+  const levelColors = [
+    { bg: 'var(--light-blue)', icon: 'var(--blue)', text: 'var(--blue)' },
+    { bg: 'var(--light-yellow)', icon: 'var(--yellow)', text: '#b78c00' },
+    { bg: 'var(--light-orange)', icon: 'var(--orange)', text: 'var(--orange)' },
+    { bg: '#d4f5dd', icon: '#27ae60', text: '#27ae60' },
+    { bg: '#f9d6d4', icon: 'var(--red)', text: 'var(--red)' },
+    { bg: '#e8d5f5', icon: '#8e44ad', text: '#8e44ad' },
+  ];
 
   return (
     <>
@@ -77,6 +69,7 @@ export default function Members() {
 
       {error && <div className="error-msg">{error}</div>}
 
+      {/* Search & filters */}
       <div className="card">
         <form className="filter-bar" onSubmit={handleSearch}>
           <input type="text" placeholder="Search name, contact, program..." value={search}
@@ -92,6 +85,13 @@ export default function Members() {
             <option value="associate">Associate</option>
           </select>
           <input type="text" placeholder="Hall" value={hall} onChange={e => setHall(e.target.value)} />
+          <select value={duration} onChange={e => setDuration(e.target.value)}>
+            <option value="">All Durations</option>
+            <option value="HND">HND</option>
+            <option value="B-TECH">B-TECH</option>
+            <option value="Diploma">Diploma</option>
+            <option value="Certificate">Certificate</option>
+          </select>
           <label className="col-1">
             <input type="checkbox" checked={officer} onChange={e => setOfficer(e.target.checked)} /> Officers only
           </label>
@@ -99,78 +99,40 @@ export default function Members() {
         </form>
       </div>
 
-      <div className="table-data">
-        <div className="order">
-          <div className="head">
-            <h3>Member List {pagination && `(${pagination.total})`}</h3>
-          </div>
-          {loading ? <div className="loading">Loading...</div> : members.length === 0 ? (
-            <div className="empty-state">
-              <i className='bx bxs-group'></i>
-              <p>No members found</p>
-            </div>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Gender</th>
-                  <th>Contact</th>
-                  <th>Program</th>
-                  <th>Level</th>
-                  <th>Type</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map(m => (
-                  <tr key={m.id}>
-                    <td>
-                      {m.profile_image && <img src={m.profile_image} alt="" />}
-                      {m.surname} {m.othernames}
-                      {m.is_officer == 1 && <span className="badge badge-yellow" style={{ marginLeft: 8 }}>Officer</span>}
-                    </td>
-                    <td>{m.gender}</td>
-                    <td>{m.contact || '-'}</td>
-                    <td>{m.program || '-'}</td>
-                    <td>{m.education_level || '-'}</td>
-                    <td><span className={`status ${m.membership_type}`}>{m.membership_type}</span></td>
-                    <td>
-                      <Link to={`/members/${m.id}`} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4 }}>View</Link>
-                      <Link to={`/members/${m.id}/edit`} className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }}>Edit</Link>
-                      <button onClick={() => handleGraduate(m.id)} className="btn btn-success" style={{ padding: '4px 10px', marginRight: 4 }}>Graduate</button>
-                      <button onClick={() => setShowDelete(m)} className="btn btn-danger" style={{ padding: '4px 10px' }}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {pagination && pagination.totalPages > 1 && (
-            <div className="pagination">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).slice(0, 10).map(p => (
-                <button key={p} className={p === page ? 'active' : ''} onClick={() => setPage(p)}>{p}</button>
-              ))}
-              <button onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))} disabled={page >= pagination.totalPages}>Next</button>
-            </div>
-          )}
+      {/* Level cards */}
+      {loading ? (
+        <div className="loading">Loading members...</div>
+      ) : levels.length === 0 ? (
+        <div className="empty-state">
+          <i className='bx bxs-group'></i>
+          <p>No members found</p>
         </div>
-      </div>
-
-      {showDelete && (
-        <div className="modal-overlay" onClick={() => setShowDelete(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <h2>Delete Member</h2>
-            <p>Are you sure you want to delete <strong>{showDelete.surname} {showDelete.othernames}</strong>?</p>
-            <div className="modal-actions">
-              <button className="btn btn-back" onClick={() => setShowDelete(null)}>Cancel</button>
-              <button className="btn btn-danger" onClick={() => handleDelete(showDelete.id)}>Delete</button>
-            </div>
+      ) : (
+        <>
+          <div style={{ marginTop: 24, marginBottom: 8, color: 'var(--dark-grey)', fontSize: 14 }}>
+            {total} members across {levels.length} level{levels.length !== 1 ? 's' : ''}
           </div>
-        </div>
+          <div className="box-info" style={{ marginTop: 12 }}>
+            {levels.map((lvl, i) => {
+              const colors = levelColors[i % levelColors.length];
+              return (
+                <li key={lvl.level} style={{ listStyle: 'none', cursor: 'pointer', transition: 'all 0.3s ease' }}>
+                  <Link to={`/members/level/${encodeURIComponent(lvl.level)}`} style={{ display: 'flex', alignItems: 'center', gap: 24, width: '100%', color: 'inherit' }}>
+                    <i className='bx bxs-graduation'
+                      style={{ background: colors.bg, color: colors.icon, width: 80, height: 80, borderRadius: 10, fontSize: 36, display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}></i>
+                    <span className="text" style={{ flex: 1 }}>
+                      <h3>{lvl.count}</h3>
+                      <p>Level {lvl.level}</p>
+                    </span>
+                    <i className='bx bx-chevron-right' style={{ fontSize: 24, color: 'var(--dark-grey)' }}></i>
+                  </Link>
+                </li>
+              );
+            })}
+          </div>
+        </>
       )}
+
     </>
   );
 }
