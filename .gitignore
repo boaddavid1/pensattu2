@@ -6,3 +6,4 @@ build/
 *.log
 server/uploads/
 .git-commit-msg.txt
+client/src/prayer-admin/

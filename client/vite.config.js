@@ -4,11 +4,6 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@prayer': path.resolve(__dirname, '../prayer'),
-    },
-  },
   server: {
     port: 5173,
     fs: {

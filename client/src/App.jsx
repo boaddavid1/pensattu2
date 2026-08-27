@@ -25,7 +25,7 @@ import AdminTeamYear from './admin/AdminTeamYear';
 import AdminPastQuestions from './admin/AdminPastQuestions';
 import AdminBooks from './admin/AdminBooks';
 import AdminUsers from './admin/AdminUsers';
-import AdminPrayers from '@prayer/admin/AdminPrayers';
+import AdminPrayers from './prayer-admin/AdminPrayers';
 import { isLoggedIn } from './admin/adminApi';
 
 function ScrollToHash() {
