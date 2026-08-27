@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
 import adminRoutes from './adminRoutes.js';
-import prayerRoutes from './prayerRoutes.js';
+import prayerRoutes from '../prayer/routes.js';
 import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
 import syncSchema from './syncSchema.js';
 import cloudinary from './cloudinary.js';
@@ -350,14 +350,22 @@ app.use('/api/prayers', prayerRoutes);
 
 // Standalone Operation Paga pages (public form + student admin) — served as
 // static HTML so they stay independent of the React SPA, matching the original.
-app.use('/operation-paga', express.static(path.join(__dirname, 'public/prayer')));
+const prayerPublic = path.join(__dirname, '../prayer/public');
+
+// Explicit route handlers FIRST (before static middleware) so that the root
+// path of each mount serves the correct HTML file instead of express.static's
+// default index.html behavior.
 app.get('/operation-paga', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/prayer/index.html'));
+  res.sendFile(path.join(prayerPublic, 'index.html'));
 });
-app.use('/student-prayers', express.static(path.join(__dirname, 'public/prayer')));
 app.get('/student-prayers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/prayer/students.html'));
+  res.sendFile(path.join(prayerPublic, 'students.html'));
 });
+
+// Static assets (pns.png, ps.svg, etc.) — index: false so the root path
+// doesn't auto-serve index.html, which would shadow the route handlers above.
+app.use('/operation-paga', express.static(prayerPublic, { index: false }));
+app.use('/student-prayers', express.static(prayerPublic, { index: false }));
 
 // Past Questions - public endpoints
 

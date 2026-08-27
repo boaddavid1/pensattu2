@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="ps.svg" type="image/svg+xml">
+    <title>Operation Paga for Alumni — PENSA TTU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a1a8a;
+            --primary-light: #1a2fb0;
+            --accent: #f5e100;
+            --accent-dark: #d4c200;
+            --bg: #f0f2ff;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-light: #5a5a7a;
+            --border: #d0d4e8;
+            --shadow: 0 4px 6px -1px rgba(10, 26, 138, 0.1), 0 2px 4px -1px rgba(10, 26, 138, 0.06);
+            --shadow-lg: 0 20px 25px -5px rgba(10, 26, 138, 0.15), 0 10px 10px -5px rgba(10, 26, 138, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #050d4a 100%);
+            color: white;
+            padding: 3rem 1rem 6rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: var(--bg);
+            clip-path: ellipse(60% 100% at 50% 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .org-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .org-badge .globe {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .presents {
+            font-size: 0.8rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-bottom: 1rem;
+        }
+
+        .event-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4.0rem;
+            line-height: 0.95;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-name .highlight {
+            color: var(--accent);
+            display: block;
+        }
+
+        .event-time {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-top: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .event-schedule {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
+            font-weight: 300;
+        }
+
+        .theme-box {
+            margin-top: 2rem;
+            padding: 1.5rem 2rem;
+            background: rgba(245, 225, 0, 0.1);
+            border: 1px solid rgba(245, 225, 0, 0.3);
+            border-radius: 16px;
+            display: inline-block;
+        }
+
+        .theme-label {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            opacity: 0.7;
+            margin-bottom: 0.3rem;
+        }
+
+        .theme-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 0.03em;
+            color: var(--accent);
+        }
+
+        .theme-ref {
+            font-size: 0.85rem;
+            opacity: 0.6;
+            margin-top: 0.3rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        /* Social Links */
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: var(--accent);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 1.5rem 3rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Prayer Form Card */
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-top: -2rem;
+            position: relative;
+            z-index: 2;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .form-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+        }
+
+        .form-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.9rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .privacy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(10, 26, 138, 0.06);
+            color: var(--primary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(10, 26, 138, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .label-hint {
+            font-weight: 400;
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        textarea, select {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg);
+            resize: vertical;
+            color: var(--text);
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(10, 26, 138, 0.08);
+            background: white;
+        }
+
+        textarea {
+            min-height: 180px;
+            line-height: 1.7;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235a5a7a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
+            padding-right: 3rem;
+        }
+
+        select option {
+            padding: 0.5rem;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.4rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            padding: 1.2rem;
+            background: rgba(10, 26, 138, 0.03);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            transition: border-color 0.3s ease;
+        }
+
+        .checkbox-group:focus-within {
+            border-color: var(--primary-light);
+        }
+
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--primary);
+            margin-top: 2px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            flex: 1;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.2rem;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .radio-option:hover {
+            border-color: var(--primary-light);
+            background: white;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--primary);
+            flex-shrink: 0;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .radio-option:has(input[type="radio"]:checked) {
+            border-color: var(--primary);
+            background: rgba(10, 26, 138, 0.06);
+            box-shadow: 0 0 0 4px rgba(10, 26, 138, 0.08);
+        }
+
+        .checkbox-label {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.6;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -5px rgba(10, 26, 138, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-btn .btn-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Success State */
+        .success-state {
+            display: none;
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .success-state.active {
+            display: block;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+
+        .success-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .success-message {
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 400px;
+            margin: 0 auto 2rem;
+        }
+
+        .success-verse {
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            padding: 1.5rem;
+            background: rgba(10, 26, 138, 0.03);
+            border-radius: 14px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .submit-another-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-another-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+        }
+
+        footer .heart {
+            color: #e53e3e;
+        }
+
+        footer .website {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer .website:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .event-name { font-size: 3.2rem; }
+            .event-time { font-size: 1.4rem; }
+            .theme-text { font-size: 1.4rem; }
+            .form-card { padding: 1.75rem; margin-top: -1.5rem; border-radius: 20px; }
+            .form-title { font-size: 1.6rem; }
+            textarea { min-height: 150px; }
+            .hero { padding: 2rem 1rem 5rem; }
+            .social-links { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="org-badge">
+                <img src="pns.png" alt="Pentecost Student & Associates" style="height: 30px; width: auto; margin-right: 0.5rem;">
+                <span>Pentecost Student & Associates — Takoradi Technical University</span>
+            </div>
+
+            <div class="presents">Presents</div>
+
+            <h1 class="event-name">
+                OPERATION<br>
+                <span class="highlight">PAGA FOR ALUMNI</span>
+            </h1>
+
+            <div class="event-time">7:30PM — 8:30PM</div>
+            <div class="event-schedule">This & Every Tuesday</div>
+
+            <div class="theme-box">
+                <div class="theme-label">Theme:</div>
+                <div class="theme-text">THE COUNCIL OF THE LORD SHALL STAND.</div>
+                <div class="theme-ref">ISAIAH 46:10</div>
+            </div>
+
+            <div class="social-links">
+                <a href="https://www.pensattu.com" class="social-link" target="_blank">🌐 www.pensattu.com</a>
+                <span style="opacity:0.3">|</span>
+                <a href="" class="social-link">@pensattu</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="form-card" id="formCard">
+            <!-- Form View -->
+            <div id="formView">
+                <h2 class="form-title">Submit Your Prayer Request</h2>
+                <p class="form-subtitle">
+                    Share your prayer anonymously with the Operation Paga prayer team. 
+                    Your identity is never collected or displayed.
+                </p>
+
+                <div style="text-align: center;">
+                    <span class="privacy-badge">🔒 100% Anonymous — No names, no emails</span>
+                </div>
+
+                <form id="prayerForm">
+                    <div class="form-group">
+                        <label for="category">Prayer Category</label>
+                        <select id="category" required>
+                            <option value="">Select a category...</option>
+                            <option value="healing">🙏 Healing & Health</option>
+                            <option value="academics">📚 Academics & Exams</option>
+                            <option value="family">👨‍👩‍👧‍👦 Family & Relationships</option>
+                            <option value="career">💼 Career & Finances</option>
+                            <option value="spiritual">✝️ Spiritual Growth & Guidance</option>
+                            <option value="campus">🎓 Campus Life & Fellowship</option>
+                            <option value="thanks">🙌 Thanksgiving & Praise</option>
+                            <option value="other">✨ Other Requests</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Your Status</label>
+                        <div class="radio-group" role="radiogroup" aria-label="Your Status">
+                            <label class="radio-option">
+                                <input type="radio" name="userStatus" value="Alumni" required>
+                                <span>🎓 Alumni</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="userStatus" value="Student">
+                                <span>📚 Student</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prayerText">
+                            Your Prayer Request
+                            <span class="label-hint"> — Write freely. The Lord hears every word.</span>
+                        </label>
+                        <textarea 
+                            id="prayerText" 
+                            placeholder="Heavenly Father, I come before You today..."
+                            maxlength="2000"
+                            required
+                        ></textarea>
+                        <div class="char-count"><span id="charCount">0</span> / 2000</div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="agreement" required>
+                            <label for="agreement" class="checkbox-label">
+                                I understand this prayer request is submitted anonymously. 
+                                I trust the Operation Paga prayer team to lift this before the Lord in confidence.
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span class="btn-text">
+                            <span>✉</span> Submit Prayer Request
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Success View -->
+            <div class="success-state" id="successView">
+                <div class="success-icon">🙏</div>
+                <h2 class="success-title">Your Prayer Has Been Lifted Up</h2>
+                <p class="success-message">
+                    Thank you for sharing your heart with us. The Operation Paga prayer team 
+                    has received your request and will commit to praying over it in faith.
+                </p>
+                <div class="success-verse">
+                    "Cast all your anxiety on Him because He cares for you."<br>
+                    <strong>— 1 Peter 5:7</strong>
+                </div>
+                <button class="submit-another-btn" onclick="resetForm()">
+                    <span>↻</span> Submit Another Prayer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Made with <span class="heart">❤</span> for the PENSA TTU Alumni Family</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem;">
+            <a href="https://www.pensattu.com" class="website" target="_blank">www.pensattu.com</a> · 
+            "Bear one another's burdens, and so fulfill the law of Christ." — Galatians 6:2
+        </p>
+    </footer>
+
+<script>
+    document.getElementById('prayerText').addEventListener('input', function() {
+        document.getElementById('charCount').textContent = this.value.length;
+    });
+
+    document.getElementById('prayerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const category = document.getElementById('category').value;
+        const userStatus = document.querySelector('input[name="userStatus"]:checked')?.value;
+        const text = document.getElementById('prayerText').value.trim();
+        const agreed = document.getElementById('agreement').checked;
+
+        if (!category || !userStatus || !text) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+        if (!agreed) {
+            alert('You must agree to the anonymous submission statement.');
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        const originalContent = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Submitting...';
+
+        try {
+            const response = await fetch('/api/prayers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    category: category,
+                    userStatus: userStatus,
+                    prayerText: text
+                })
+            });
+
+            const responseText = await response.text();
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Server did not return JSON. Status:', response.status, 'Response:', responseText);
+                alert('Server error (HTTP ' + response.status + '). Check the browser console for details.');
+                return;
+            }
+
+            if (result.success) {
+                document.getElementById('formView').style.display = 'none';
+                document.getElementById('successView').classList.add('active');
+            } else {
+                alert('Error: ' + (result.message || 'Could not submit prayer.'));
+            }
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert('Network error: ' + error.message + '. Make sure the page is loaded via http:// and the server is running.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    });
+
+    window.resetForm = function() {
+        document.getElementById('prayerForm').reset();
+        document.getElementById('charCount').textContent = '0';
+        document.getElementById('successView').classList.remove('active');
+        document.getElementById('formView').style.display = 'block';
+        document.getElementById('formView').style.animation = 'fadeInUp 0.5s ease forwards';
+        setTimeout(() => {
+            document.getElementById('formView').style.animation = '';
+        }, 500);
+    };
+</script>
+</body>
+</html>

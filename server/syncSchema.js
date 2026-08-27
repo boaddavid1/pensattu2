@@ -188,6 +188,22 @@ const TABLES = [
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`,
+
+  // Operation Paga prayer requests (migrated from the PHP prayer project)
+  `CREATE TABLE IF NOT EXISTS prayer_requests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    category VARCHAR(50) NOT NULL,
+    user_status ENUM('Alumni','Student') NOT NULL DEFAULT 'Alumni',
+    prayer_text TEXT NOT NULL,
+    submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending','prayed') DEFAULT 'pending',
+    prayed_at DATETIME DEFAULT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    INDEX idx_category (category),
+    INDEX idx_status (status),
+    INDEX idx_user_status (user_status),
+    INDEX idx_submitted_at (submitted_at)
+  )`,
 ];
 
 // Columns that must exist for the public library view to work correctly.
@@ -228,6 +244,14 @@ const REQUIRED_COLUMNS = [
   { table: 'library_books', column: 'downloads', definition: "INT DEFAULT 0" },
   { table: 'library_books', column: 'is_active', definition: "BOOLEAN DEFAULT TRUE" },
   { table: 'library_books', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+  // prayer_requests (backward-compatible migration for tables created by the PHP app)
+  { table: 'prayer_requests', column: 'category', definition: "VARCHAR(50) NOT NULL" },
+  { table: 'prayer_requests', column: 'user_status', definition: "ENUM('Alumni','Student') NOT NULL DEFAULT 'Alumni'" },
+  { table: 'prayer_requests', column: 'prayer_text', definition: "TEXT NOT NULL" },
+  { table: 'prayer_requests', column: 'submitted_at', definition: "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP" },
+  { table: 'prayer_requests', column: 'status', definition: "ENUM('pending','prayed') DEFAULT 'pending'" },
+  { table: 'prayer_requests', column: 'prayed_at', definition: "DATETIME DEFAULT NULL" },
+  { table: 'prayer_requests', column: 'ip_address', definition: "VARCHAR(45) DEFAULT NULL" },
 ];
 
 async function syncColumns() {

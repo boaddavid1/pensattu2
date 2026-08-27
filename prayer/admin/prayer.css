@@ -1,0 +1,301 @@
+/* ===== Operation Paga Prayer Admin ===== */
+/* Self-contained styles. CSS variables fall back to hardcoded values so this
+   works even when the admin portal's CSS variables aren't available. */
+
+.admin-prayer-alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.admin-prayer-alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.admin-prayer-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(15, 61, 46, 0.06);
+  margin-bottom: 24px;
+}
+.admin-prayer-filter-group {
+  flex: 1;
+  min-width: 150px;
+}
+.admin-prayer-filter-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--ink, #1a2e26);
+}
+.admin-prayer-filter-group input,
+.admin-prayer-filter-group select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line, #e0e8e4);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #FAFBFD;
+}
+.admin-prayer-filter-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-prayer-btn {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, opacity .2s;
+}
+.admin-prayer-btn:disabled { opacity: .5; cursor: not-allowed; }
+.admin-prayer-btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 20px; }
+.admin-prayer-btn-blue { background: var(--pine-deep, #0f3d2e); color: #fff; }
+.admin-prayer-btn-blue:hover { background: var(--pine, #1a4d3a); }
+.admin-prayer-btn-green { background: #10b981; color: #fff; }
+.admin-prayer-btn-green:hover { background: #059669; }
+.admin-prayer-btn-red { background: #ef4444; color: #fff; }
+.admin-prayer-btn-red:hover { background: #b91c1c; }
+.admin-prayer-btn-ghost { background: transparent; color: var(--ink-soft, #5a6b62); border: 1px solid var(--line, #e0e8e4); }
+.admin-prayer-btn-ghost:hover { border-color: var(--pine, #1a4d3a); color: var(--pine, #1a4d3a); }
+
+.admin-prayer-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid var(--line, #e0e8e4);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin: 16px 0 20px;
+}
+.admin-prayer-select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+.admin-prayer-selected-count { color: var(--ink-soft, #5a6b62); font-size: 13.5px; }
+
+.admin-prayer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 22px;
+}
+.admin-prayer-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--line, #e0e8e4);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(15, 61, 46, 0.06);
+  display: flex;
+  flex-direction: column;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.admin-prayer-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(15, 61, 46, 0.1);
+  border-color: var(--moss, #4fa66f);
+}
+.admin-prayer-checkbox {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--pine-deep, #0f3d2e);
+}
+.admin-prayer-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-left: 30px;
+}
+.admin-prayer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.admin-prayer-badge-category { background: var(--pine-deep, #0f3d2e); color: #fff; }
+.admin-prayer-badge-status.pending { background: #f39c12; color: #fff; }
+.admin-prayer-badge-status.prayed { background: #27ae60; color: #fff; }
+.admin-prayer-card-meta {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink-soft, #5a6b62);
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line, #e0e8e4);
+  padding-bottom: 10px;
+}
+.admin-prayer-card-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink, #1a2e26);
+  background: rgba(15, 61, 46, 0.03);
+  padding: 15px;
+  border-radius: 12px;
+  margin: 10px 0 15px;
+  white-space: pre-wrap;
+  font-style: italic;
+  border-left: 4px solid var(--pine-deep, #0f3d2e);
+  flex: 1;
+}
+.admin-prayer-card-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line, #e0e8e4);
+}
+
+.admin-prayer-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 36px 0;
+  flex-wrap: wrap;
+}
+.admin-prayer-pagination button {
+  padding: 8px 15px;
+  background: #fff;
+  border: 1px solid var(--line, #e0e8e4);
+  border-radius: 8px;
+  color: var(--pine-deep, #0f3d2e);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.admin-prayer-pagination button:hover:not(:disabled) {
+  background: var(--pine-deep, #0f3d2e);
+  color: #fff;
+  border-color: var(--pine-deep, #0f3d2e);
+}
+.admin-prayer-pagination button.active {
+  background: var(--pine-deep, #0f3d2e);
+  color: #fff;
+  border-color: var(--pine-deep, #0f3d2e);
+}
+.admin-prayer-pagination button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Reuse admin portal shared classes with fallbacks */
+.admin-prayer-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.admin-prayer-page-header h2 {
+  font-family: 'Fraunces', serif;
+  color: var(--pine-deep, #0f3d2e);
+  font-size: 28px;
+  margin: 0;
+}
+.admin-prayer-page-header p {
+  color: var(--ink-soft, #5a6b62);
+  margin: 4px 0 0;
+}
+.admin-prayer-refresh {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--pine-deep, #0f3d2e);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+.admin-prayer-refresh:hover { background: var(--moss, #4fa66f); }
+.admin-prayer-refresh:disabled { opacity: .6; cursor: not-allowed; }
+
+.admin-prayer-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+.admin-prayer-stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 2px 12px rgba(15, 61, 46, 0.06);
+  transition: transform .2s, box-shadow .2s;
+}
+.admin-prayer-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(15, 61, 46, 0.1);
+}
+.admin-prayer-stat-card strong {
+  display: block;
+  font-family: 'Fraunces', serif;
+  font-size: 34px;
+  color: var(--pine-deep, #0f3d2e);
+}
+.admin-prayer-stat-card span {
+  font-size: 13.5px;
+  color: var(--ink-soft, #5a6b62);
+  font-weight: 500;
+}
+
+.admin-prayer-error {
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.admin-prayer-loading {
+  color: var(--ink-soft, #5a6b62);
+  padding: 24px 0;
+}
+.admin-prayer-empty {
+  text-align: center;
+  color: var(--ink-soft, #5a6b62);
+  padding: 24px 0;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(15, 61, 46, 0.06);
+}
+.admin-prayer-empty h3 {
+  font-family: 'Fraunces', serif;
+  color: var(--pine-deep, #0f3d2e);
+  margin: 8px 0;
+}
+
+@media (max-width: 768px) {
+  .admin-prayer-filters { flex-direction: column; }
+  .admin-prayer-grid { grid-template-columns: 1fr; }
+  .admin-prayer-card-header { padding-left: 0; }
+  .admin-prayer-checkbox { position: relative; top: 0; left: 0; margin-bottom: 10px; }
+  .admin-prayer-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
