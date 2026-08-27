@@ -3,9 +3,20 @@ import { fetchPastQuestions, fetchMeta, trackDownload, fetchBooks, fetchBook, fe
 import Landing from './Landing';
 import AuthPage from './AuthPage';
 
+// Read initial view/tab from the URL hash so refreshes keep the user's place.
+// Hash format: #browse, #browse/past-questions, #browse/books
+function readHash() {
+  const hash = window.location.hash.replace(/^#/, '');
+  const parts = hash.split('/');
+  const view = parts[0] === 'browse' ? 'browse' : 'landing';
+  const tab = parts[1] === 'books' ? 'books' : 'past-questions';
+  return { view, tab };
+}
+
 export default function App() {
-  const [view, setView] = useState('landing');
-  const [tab, setTab] = useState('past-questions');
+  const initial = readHash();
+  const [view, setView] = useState(initial.view);
+  const [tab, setTab] = useState(initial.tab);
   const [user, setUser] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [error, setError] = useState('');
@@ -33,6 +44,25 @@ export default function App() {
     fetchBookCategories().then(setCategories).catch(() => {});
     loadQuestions();
     loadBooks();
+  }, []);
+
+  // Keep the URL hash in sync with view/tab so refreshes preserve state
+  useEffect(() => {
+    const newHash = view === 'browse' ? `#browse/${tab}` : '';
+    if (newHash !== window.location.hash && !(newHash === '' && window.location.hash === '')) {
+      window.history.replaceState(null, '', newHash || window.location.pathname);
+    }
+  }, [view, tab]);
+
+  // Respond to back/forward navigation
+  useEffect(() => {
+    const onHashChange = () => {
+      const h = readHash();
+      setView(h.view);
+      setTab(h.tab);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
   async function loadQuestions(currentFilters = {}) {
