@@ -112,18 +112,27 @@ export default function App() {
 
   async function handleDownload(q) {
     if (!auth.isLoggedIn()) { setShowLoginModal(true); return; }
-    try { await trackDownload(q.id); window.open(q.file_url, '_blank'); }
+    try {
+      const result = await trackDownload(q.id);
+      const url = result.download_url || q.file_url;
+      if (url) window.open(url, '_blank');
+      else setError('Download file is not available.');
+    }
     catch (err) { if (err.message.includes('log in') || err.message.includes('Unauthorized')) setShowLoginModal(true); else setError(err.message); }
   }
 
   async function handleBookDownload(book) {
     if (!auth.isLoggedIn()) { setShowLoginModal(true); return; }
     try {
-      await trackBookDownload(book.id);
-      // The list endpoint omits file_url for security; fetch full details to get it
-      const full = await fetchBook(book.id);
-      if (full.file_url) window.open(full.file_url, '_blank');
-      else setError('Download file is not available for this book.');
+      const result = await trackBookDownload(book.id);
+      const url = result.download_url;
+      if (url) window.open(url, '_blank');
+      else {
+        // Fallback: fetch full book details to get file_url
+        const full = await fetchBook(book.id);
+        if (full.file_url) window.open(full.file_url, '_blank');
+        else setError('Download file is not available for this book.');
+      }
     }
     catch (err) { if (err.message.includes('log in') || err.message.includes('Unauthorized')) setShowLoginModal(true); else setError(err.message); }
   }
@@ -341,7 +350,7 @@ export default function App() {
       {/* Grid */}
       <div className="max-w-7xl mx-auto px-6 pb-24">
         {tab === 'past-questions' ? (
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {!pqLoading && questions.map((q) => (
               <div key={q.id} className="group bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-amber-500/30 hover:bg-slate-800/60 transition-all duration-300 hover:-translate-y-1">
                 <div className="h-40 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 flex items-center justify-center relative overflow-hidden">
@@ -375,7 +384,7 @@ export default function App() {
             )}
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {!booksLoading && books.map((book) => (
               <div key={book.id} className="group bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-amber-500/30 hover:bg-slate-800/60 transition-all duration-300 hover:-translate-y-1">
                 <div className="h-40 bg-gradient-to-br from-emerald-900/50 to-teal-900/50 flex items-center justify-center relative overflow-hidden">

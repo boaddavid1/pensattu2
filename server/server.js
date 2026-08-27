@@ -6,8 +6,10 @@ import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
 import adminRoutes from './adminRoutes.js';
+import prayerRoutes from './prayerRoutes.js';
 import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
 import syncSchema from './syncSchema.js';
+import cloudinary from './cloudinary.js';
 import {
   ministries, sermons, team, events,
   addVisit, addSubscriber, addContact,
@@ -343,6 +345,20 @@ app.post('/api/admin/send-notification', requireAuth, async (req, res) => {
 // Admin routes
 app.use('/api/admin', adminRoutes);
 
+// Operation Paga prayer request routes (converted from the PHP prayer project)
+app.use('/api/prayers', prayerRoutes);
+
+// Standalone Operation Paga pages (public form + student admin) — served as
+// static HTML so they stay independent of the React SPA, matching the original.
+app.use('/operation-paga', express.static(path.join(__dirname, 'public/prayer')));
+app.get('/operation-paga', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/prayer/index.html'));
+});
+app.use('/student-prayers', express.static(path.join(__dirname, 'public/prayer')));
+app.get('/student-prayers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/prayer/students.html'));
+});
+
 // Past Questions - public endpoints
 
 // Library user auth
@@ -534,20 +550,80 @@ app.get('/api/past-questions/:id', async (req, res) => {
   }
 });
 
-app.post('/api/past-questions/:id/download', (req, res) => {
+// Generate a download URL for a Cloudinary file.
+// For raw files (which may require authentication), we proxy through the server.
+// For image/auto files, the public URL works directly.
+function getDownloadUrl(fileUrl) {
+  if (!fileUrl) return null;
+  if (!fileUrl.includes('cloudinary.com')) return fileUrl;
+  // If it's a raw/upload URL, we need to proxy it (raw files may not be publicly accessible)
+  if (fileUrl.includes('/raw/upload/')) {
+    // Return a proxy URL that goes through our backend
+    const encoded = encodeURIComponent(fileUrl);
+    return `/api/proxy-download?url=${encoded}`;
+  }
+  // image/upload or auto/upload URLs are publicly accessible
+  return fileUrl;
+}
+
+// Proxy endpoint for Cloudinary raw files that aren't publicly accessible.
+// The backend generates a signed download URL and redirects to it.
+app.get('/api/proxy-download', async (req, res) => {
+  const { url } = req.query;
+  if (!url || !url.includes('cloudinary.com')) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+  try {
+    // Extract public_id from the Cloudinary raw URL
+    const match = url.match(/\/raw\/upload\/(?:v\d+\/)?(.+)$/);
+    if (!match) {
+      // Not a raw file, just redirect to the public URL
+      return res.redirect(url);
+    }
+    const publicId = match[1];
+    // Compensate for server clock skew: if the server's clock is behind
+    // Cloudinary's, signed URLs will be rejected as "stale". We temporarily
+    // shift time forward by 4 hours to ensure the timestamp is valid.
+    const realNow = Date.now;
+    const offset = 4 * 60 * 60 * 1000; // 4 hours in ms
+    Date.now = () => realNow() + offset;
+    const origGetTime = Date.prototype.getTime;
+    Date.prototype.getTime = function () { return realNow() + offset; };
+    try {
+      var signedUrl = cloudinary.utils.private_download_url(publicId, 'raw', {
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
+        resource_type: 'raw',
+      });
+    } finally {
+      Date.now = realNow;
+      Date.prototype.getTime = origGetTime;
+    }
+    res.redirect(signedUrl);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate download URL: ' + err.message });
+  }
+});
+
+app.post('/api/past-questions/:id/download', async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   const user = verifyToken(token);
   if (!user || user.role !== 'library_user') {
     return res.status(401).json({ error: 'Please log in to download past questions' });
   }
-  pool.query('UPDATE past_questions SET downloads = downloads + 1 WHERE id = ?', [req.params.id])
-    .then(() => pool.query(
+  try {
+    const [rows] = await pool.query('SELECT file_url FROM past_questions WHERE id = ?', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    await pool.query('UPDATE past_questions SET downloads = downloads + 1 WHERE id = ?', [req.params.id]);
+    await pool.query(
       'INSERT INTO download_history (user_id, resource_type, resource_id) VALUES (?, ?, ?)',
       [user.id, 'past_question', req.params.id]
-    ))
-    .then(() => res.json({ ok: true }))
-    .catch((err) => res.status(500).json({ error: err.message }));
+    );
+    const downloadUrl = getDownloadUrl(rows[0].file_url);
+    res.json({ ok: true, download_url: downloadUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/past-questions-meta', async (req, res) => {
@@ -599,20 +675,26 @@ app.get('/api/books/:id', async (req, res) => {
   }
 });
 
-app.post('/api/books/:id/download', (req, res) => {
+app.post('/api/books/:id/download', async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   const user = verifyToken(token);
   if (!user || user.role !== 'library_user') {
     return res.status(401).json({ error: 'Please log in to download books' });
   }
-  pool.query('UPDATE library_books SET downloads = downloads + 1 WHERE id = ?', [req.params.id])
-    .then(() => pool.query(
+  try {
+    const [rows] = await pool.query('SELECT file_url FROM library_books WHERE id = ?', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    await pool.query('UPDATE library_books SET downloads = downloads + 1 WHERE id = ?', [req.params.id]);
+    await pool.query(
       'INSERT INTO download_history (user_id, resource_type, resource_id) VALUES (?, ?, ?)',
       [user.id, 'book', req.params.id]
-    ))
-    .then(() => res.json({ ok: true }))
-    .catch((err) => res.status(500).json({ error: err.message }));
+    );
+    const downloadUrl = getDownloadUrl(rows[0].file_url);
+    res.json({ ok: true, download_url: downloadUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/books-categories', async (req, res) => {

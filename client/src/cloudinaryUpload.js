@@ -35,6 +35,8 @@ export async function uploadFileToCloudinary(file, folder = 'pensattu/files') {
   form.append('upload_preset', UPLOAD_PRESET);
   form.append('folder', folder);
 
+  // Use 'raw' upload type for non-image files (PDFs, docs, etc.)
+  // This stores them as raw resources which are publicly accessible.
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`, {
     method: 'POST',
     body: form,
