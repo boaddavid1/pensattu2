@@ -1,6 +1,12 @@
-// Dashboard.jsx — Stats overview (ported from dashboard.php)
+// Dashboard.jsx — Stats overview with charts (ported from dashboard.php)
 import { useState, useEffect } from 'react';
 import { secApi } from '../api/secApi.js';
+import {
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+} from 'recharts';
+
+const COLORS = ['#3c91e6', '#f5a623', '#27ae60', '#e74c3c', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -15,6 +21,27 @@ export default function Dashboard() {
 
   const { stats, durations, levels, halls, recentMembers } = data;
 
+  // Chart data transforms
+  const genderData = [
+    { name: 'Male', value: stats.male },
+    { name: 'Female', value: stats.female },
+  ];
+  const membershipData = [
+    { name: 'Members', value: stats.members },
+    { name: 'Associates', value: stats.associates },
+  ];
+  const durationData = Object.entries(durations)
+    .filter(([k]) => k && k !== 'null')
+    .map(([name, value]) => ({ name: name || 'Unknown', value }));
+  const levelData = Object.entries(levels)
+    .filter(([k]) => k && k !== 'null')
+    .map(([name, value]) => ({ name: `Level ${name}`, value }))
+    .sort((a, b) => parseInt(a.name.replace('Level ', '')) - parseInt(b.name.replace('Level ', '')));
+  const hallData = Object.entries(halls)
+    .filter(([k]) => k && k !== 'null')
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+
   return (
     <>
       <div className="head-title">
@@ -28,6 +55,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Stat cards */}
       <ul className="box-info">
         <li>
           <i className='bx bxs-group'></i>
@@ -93,7 +121,115 @@ export default function Dashboard() {
         </li>
       </ul>
 
-      <div className="table-data">
+      {/* Charts row 1: Gender pie + Membership pie */}
+      <div className="table-data" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <div className="order" style={{ padding: 24 }}>
+          <div className="head"><h3>Gender Distribution</h3></div>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={genderData}
+                cx="50%" cy="50%"
+                innerRadius={60} outerRadius={100}
+                paddingAngle={4}
+                dataKey="value"
+                label={({ name, value }) => `${name}: ${value}`}
+              >
+                {genderData.map((_, i) => (
+                  <Cell key={i} fill={i === 0 ? '#3c91e6' : '#f5a623'} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="order" style={{ padding: 24 }}>
+          <div className="head"><h3>Membership Type</h3></div>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={membershipData}
+                cx="50%" cy="50%"
+                innerRadius={60} outerRadius={100}
+                paddingAngle={4}
+                dataKey="value"
+                label={({ name, value }) => `${name}: ${value}`}
+              >
+                <Cell fill="#27ae60" />
+                <Cell fill="#e67e22" />
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Charts row 2: Education level bar + Program duration bar */}
+      <div className="table-data" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 24 }}>
+        <div className="order" style={{ padding: 24 }}>
+          <div className="head"><h3>Education Level Distribution</h3></div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={levelData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--grey)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="value" name="Members" radius={[8, 8, 0, 0]}>
+                {levelData.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="order" style={{ padding: 24 }}>
+          <div className="head"><h3>Program Duration</h3></div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={durationData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--grey)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="value" name="Members" radius={[8, 8, 0, 0]}>
+                {durationData.map((_, i) => (
+                  <Cell key={i} fill={COLORS[(i + 3) % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Charts row 3: Hall distribution horizontal bar */}
+      <div className="table-data" style={{ marginTop: 24 }}>
+        <div className="order" style={{ padding: 24 }}>
+          <div className="head"><h3>Hall Distribution</h3></div>
+          <ResponsiveContainer width="100%" height={Math.max(250, hallData.length * 40)}>
+            <BarChart
+              data={hallData}
+              layout="vertical"
+              margin={{ top: 10, right: 30, left: 80, bottom: 10 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--grey)" />
+              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
+              <Tooltip />
+              <Bar dataKey="value" name="Members" radius={[0, 8, 8, 0]}>
+                {hallData.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Recent registrations table */}
+      <div className="table-data" style={{ marginTop: 24 }}>
         <div className="order">
           <div className="head">
             <h3>Recent Registrations</h3>
@@ -120,52 +256,6 @@ export default function Dashboard() {
               ))}
             </tbody>
           </table>
-        </div>
-
-        <div className="todo">
-          <div className="head">
-            <h3>Program Duration</h3>
-          </div>
-          <ul className="todo-list">
-            {Object.entries(durations).length === 0 ? (
-              <li><span>No data</span></li>
-            ) : Object.entries(durations).map(([dur, count]) => (
-              <li key={dur} className="completed">
-                <span>{dur}</span>
-                <span className="badge badge-blue">{count}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="table-data">
-        <div className="order">
-          <div className="head"><h3>Hall Distribution</h3></div>
-          <table>
-            <thead><tr><th>Hall</th><th>Count</th></tr></thead>
-            <tbody>
-              {Object.entries(halls).length === 0 ? (
-                <tr><td colSpan="2" style={{ textAlign: 'center', color: 'var(--dark-grey)' }}>No hall data</td></tr>
-              ) : Object.entries(halls).map(([hall, count]) => (
-                <tr key={hall}><td>{hall}</td><td><span className="badge badge-blue">{count}</span></td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="todo">
-          <div className="head"><h3>Education Level</h3></div>
-          <ul className="todo-list">
-            {Object.entries(levels).length === 0 ? (
-              <li><span>No data</span></li>
-            ) : Object.entries(levels).map(([lvl, count]) => (
-              <li key={lvl} className="not-completed">
-                <span>Level {lvl}</span>
-                <span className="badge badge-orange">{count}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </>
