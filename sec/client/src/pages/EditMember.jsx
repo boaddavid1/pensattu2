@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
+import PhotoUpload from '../components/PhotoUpload.jsx';
 
 export default function EditMember() {
   const { id } = useParams();
@@ -53,6 +54,13 @@ export default function EditMember() {
 
       <div className="card">
         <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', gap: 32, marginBottom: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <PhotoUpload photoData={form.photo_data || ''} onChange={(data) => setForm(f => ({ ...f, photo_data: data }))} />
+            <div style={{ flex: 1, minWidth: 250 }}>
+              <h3 style={{ marginBottom: 8 }}>Profile Photo</h3>
+              <p style={{ color: 'var(--dark-grey)', fontSize: 14 }}>Upload or update the profile photo. Click the circle or drag and drop. Max 5MB.</p>
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
             <div className="form-group"><label>Surname *</label><input name="surname" value={form.surname || ''} onChange={handleChange} required /></div>
             <div className="form-group"><label>Other Names *</label><input name="othernames" value={form.othernames || ''} onChange={handleChange} required /></div>

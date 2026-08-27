@@ -2,13 +2,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
+import PhotoUpload from '../components/PhotoUpload.jsx';
 
 const emptyForm = {
   surname: '', othernames: '', gender: 'male', dob: '', contact: '', residence: '',
   room: '', program: '', program_duration: '', education_level: '', membership_type: 'member',
   campus_residence: '', campus_hall: '', offcampus_location: '', landmark: '',
   is_officer: false, officer_role: '', district: '', pastor: '', guardian: '',
-  guardian_contact: '', departments: '',
+  guardian_contact: '', departments: '', photo_data: '',
 };
 
 export default function AddMember() {
@@ -53,6 +54,13 @@ export default function AddMember() {
 
       <div className="card">
         <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', gap: 32, marginBottom: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <PhotoUpload photoData={form.photo_data} onChange={(data) => setForm(f => ({ ...f, photo_data: data }))} />
+            <div style={{ flex: 1, minWidth: 250 }}>
+              <h3 style={{ marginBottom: 8 }}>Profile Photo</h3>
+              <p style={{ color: 'var(--dark-grey)', fontSize: 14 }}>Upload a profile photo for this member. Click the circle or drag and drop an image. Max 5MB — images are automatically compressed to 400x400.</p>
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
             <div className="form-group"><label>Surname *</label><input name="surname" value={form.surname} onChange={handleChange} required /></div>
             <div className="form-group"><label>Other Names *</label><input name="othernames" value={form.othernames} onChange={handleChange} required /></div>

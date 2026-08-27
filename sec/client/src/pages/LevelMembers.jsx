@@ -120,7 +120,7 @@ export default function LevelMembers() {
                 {members.map(m => (
                   <tr key={m.id}>
                     <td>
-                      {m.profile_image && <img src={m.profile_image} alt="" />}
+                      {m.photo_data && <img src={m.photo_data} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', marginRight: 6 }} />}
                       {m.surname} {m.othernames}
                       {m.is_officer == 1 && <span className="badge badge-yellow" style={{ marginLeft: 8 }}>Officer</span>}
                     </td>

@@ -48,8 +48,8 @@ export default function ViewMember() {
 
       <div className="card">
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', marginBottom: 24 }}>
-          {member.profile_image ? (
-            <img src={member.profile_image} alt="Profile" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} />
+          {member.photo_data ? (
+            <img src={member.photo_data} alt="Profile" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
             <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'var(--grey)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: 'var(--dark-grey)' }}>
               <i className='bx bxs-user'></i>

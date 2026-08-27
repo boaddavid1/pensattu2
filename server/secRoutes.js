@@ -259,10 +259,12 @@ router.get('/members/:id', requireSecAuth, async (req, res) => {
 router.post('/members', requireSecAuth, async (req, res) => {
   try {
     const b = req.body;
+    // NOT NULL columns get empty string fallback instead of null
+    const cr = b.campus_residence === 'on-campus' ? 'yes' : b.campus_residence === 'off-campus' ? 'no' : (b.campus_residence || 'no');
     const [result] = await secPool.query(
-      `INSERT INTO registrations (surname, othernames, gender, dob, contact, residence, room, program, program_duration, education_level, membership_type, campus_residence, campus_hall, offcampus_location, landmark, is_officer, officer_role, district, pastor, guardian, guardian_contact, other_info)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [b.surname, b.othernames, b.gender, b.dob || null, b.contact || null, b.residence || null, b.room || null, b.program || null, b.program_duration || null, b.education_level || null, b.membership_type || 'member', b.campus_residence === 'on-campus' ? 'yes' : b.campus_residence === 'off-campus' ? 'no' : (b.campus_residence || null), b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || null, b.pastor || null, b.guardian || null, b.guardian_contact || null, b.departments || b.other_info || null]
+      `INSERT INTO registrations (surname, othernames, gender, dob, contact, residence, room, program, program_duration, education_level, membership_type, campus_residence, campus_hall, offcampus_location, landmark, is_officer, officer_role, district, pastor, guardian, guardian_contact, other_info, photo_data)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [b.surname, b.othernames, b.gender, b.dob || '', b.contact || '', b.residence || '', b.room || '', b.program || '', b.program_duration || null, b.education_level || '', b.membership_type || 'member', cr, b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || '', b.pastor || '', b.guardian || '', b.guardian_contact || '', b.departments || b.other_info || null, b.photo_data || null]
     );
     await logActivity(secPool, req.user.id, req.user.username, 'ADD_MEMBER', `Added: ${b.surname} ${b.othernames}`, req);
     res.json({ success: true, id: result.insertId });
@@ -274,10 +276,19 @@ router.post('/members', requireSecAuth, async (req, res) => {
 router.put('/members/:id', requireSecAuth, async (req, res) => {
   try {
     const b = req.body;
-    await secPool.query(
-      `UPDATE registrations SET surname=?, othernames=?, gender=?, dob=?, contact=?, residence=?, room=?, program=?, program_duration=?, education_level=?, membership_type=?, campus_residence=?, campus_hall=?, offcampus_location=?, landmark=?, is_officer=?, officer_role=?, district=?, pastor=?, guardian=?, guardian_contact=?, other_info=? WHERE id=?`,
-      [b.surname, b.othernames, b.gender, b.dob || null, b.contact || null, b.residence || null, b.room || null, b.program || null, b.program_duration || null, b.education_level || null, b.membership_type || 'member', b.campus_residence === 'on-campus' ? 'yes' : b.campus_residence === 'off-campus' ? 'no' : (b.campus_residence || null), b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || null, b.pastor || null, b.guardian || null, b.guardian_contact || null, b.departments || b.other_info || null, req.params.id]
-    );
+    const cr = b.campus_residence === 'on-campus' ? 'yes' : b.campus_residence === 'off-campus' ? 'no' : (b.campus_residence || 'no');
+    // photo_data is optional — only update it if provided (allows clearing or keeping existing)
+    if (b.photo_data !== undefined) {
+      await secPool.query(
+        `UPDATE registrations SET surname=?, othernames=?, gender=?, dob=?, contact=?, residence=?, room=?, program=?, program_duration=?, education_level=?, membership_type=?, campus_residence=?, campus_hall=?, offcampus_location=?, landmark=?, is_officer=?, officer_role=?, district=?, pastor=?, guardian=?, guardian_contact=?, other_info=?, photo_data=? WHERE id=?`,
+        [b.surname, b.othernames, b.gender, b.dob || '', b.contact || '', b.residence || '', b.room || '', b.program || '', b.program_duration || null, b.education_level || '', b.membership_type || 'member', cr, b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || '', b.pastor || '', b.guardian || '', b.guardian_contact || '', b.departments || b.other_info || null, b.photo_data || null, req.params.id]
+      );
+    } else {
+      await secPool.query(
+        `UPDATE registrations SET surname=?, othernames=?, gender=?, dob=?, contact=?, residence=?, room=?, program=?, program_duration=?, education_level=?, membership_type=?, campus_residence=?, campus_hall=?, offcampus_location=?, landmark=?, is_officer=?, officer_role=?, district=?, pastor=?, guardian=?, guardian_contact=?, other_info=? WHERE id=?`,
+        [b.surname, b.othernames, b.gender, b.dob || '', b.contact || '', b.residence || '', b.room || '', b.program || '', b.program_duration || null, b.education_level || '', b.membership_type || 'member', cr, b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || '', b.pastor || '', b.guardian || '', b.guardian_contact || '', b.departments || b.other_info || null, req.params.id]
+      );
+    }
     await logActivity(secPool, req.user.id, req.user.username, 'EDIT_MEMBER', `Edited member #${req.params.id}`, req);
     res.json({ success: true });
   } catch (err) {
