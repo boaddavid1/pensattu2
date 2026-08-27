@@ -8,9 +8,11 @@ import pool from './db.js';
 import adminRoutes from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
+import alumniRoutes from './alumniRoutes.js';
 import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
 import syncSchema from './syncSchema.js';
 import secSyncSchema from './secSyncSchema.js';
+import alumniSyncSchema from './alumniSyncSchema.js';
 import cloudinary from './cloudinary.js';
 import {
   ministries, sermons, team, events,
@@ -39,6 +41,7 @@ app.use(express.json({ limit: '10mb' }));
 // Ensure required tables exist
 syncSchema();
 secSyncSchema();
+alumniSyncSchema();
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -353,6 +356,9 @@ app.use('/api/prayers', prayerRoutes);
 
 // SEC member management routes (converted from the PHP sec project)
 app.use('/api/sec', secRoutes);
+
+// Alumni portal routes (converted from the PHP alumni project)
+app.use('/api/alumni', alumniRoutes);
 
 // Standalone Operation Paga pages (public form + student admin) — served as
 // static HTML so they stay independent of the React SPA, matching the original.
