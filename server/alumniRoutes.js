@@ -44,6 +44,7 @@
 
 import { Router } from 'express';
 import secPool from './secDb.js';
+import pool from './db.js';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import { parse } from 'csv-parse/sync';
@@ -554,6 +555,7 @@ router.delete('/broadcast/scheduled/:id', requireAlumniAuth, async (req, res) =>
 });
 
 // ─── Prayer Requests ───────────────────────────────────────
+// prayer_requests lives in the main COP database (pool), not the pensattu DB
 router.get('/prayers', requireAlumniAuth, async (req, res) => {
   try {
     const { status, page = 1, perPage = 20 } = req.query;
@@ -563,12 +565,12 @@ router.get('/prayers', requireAlumniAuth, async (req, res) => {
     const offset = (Math.max(1, page) - 1) * perPage;
     sql += ' ORDER BY submitted_at DESC LIMIT ? OFFSET ?';
     params.push(Number(perPage), offset);
-    const [prayers] = await secPool.query(sql, params);
+    const [prayers] = await pool.query(sql, params);
 
     let countSql = "SELECT COUNT(*) as total FROM prayer_requests WHERE user_status = 'Alumni'";
     const countParams = [];
     if (status) { countSql += ' AND status = ?'; countParams.push(status); }
-    const [[{ total }]] = await secPool.query(countSql, countParams);
+    const [[{ total }]] = await pool.query(countSql, countParams);
 
     res.json({ prayers, pagination: { total, page: Number(page), perPage: Number(perPage), totalPages: Math.ceil(total / perPage) } });
   } catch (err) {
@@ -578,7 +580,7 @@ router.get('/prayers', requireAlumniAuth, async (req, res) => {
 
 router.post('/prayers/:id/prayed', requireAlumniAuth, async (req, res) => {
   try {
-    await secPool.query("UPDATE prayer_requests SET status = 'prayed', prayed_at = NOW() WHERE id = ? AND user_status = 'Alumni'", [req.params.id]);
+    await pool.query("UPDATE prayer_requests SET status = 'prayed', prayed_at = NOW() WHERE id = ? AND user_status = 'Alumni'", [req.params.id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -587,7 +589,7 @@ router.post('/prayers/:id/prayed', requireAlumniAuth, async (req, res) => {
 
 router.delete('/prayers/:id', requireAlumniAuth, async (req, res) => {
   try {
-    await secPool.query('DELETE FROM prayer_requests WHERE id = ?', [req.params.id]);
+    await pool.query("DELETE FROM prayer_requests WHERE id = ? AND user_status = 'Alumni'", [req.params.id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

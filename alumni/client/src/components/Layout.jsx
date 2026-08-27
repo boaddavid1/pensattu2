@@ -24,10 +24,10 @@ export default function Layout({ children }) {
   return (
     <>
       <section id="sidebar" className={sidebarHidden ? 'hide' : ''}>
-        <a href="/" className="brand">
-          <i className='bx bxs-smile'></i>
+        <NavLink to="/" className="brand">
+          <img src="/pns.png" alt="PENSA" />
           <span className="text">PENSA TTU</span>
-        </a>
+        </NavLink>
         <ul className="side-menu top">
           {menuItems.map(item => (
             <li key={item.to}>
