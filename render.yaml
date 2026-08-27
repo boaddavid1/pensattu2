@@ -33,3 +33,11 @@ services:
         sync: false
       - key: PRAYER_ADMIN_PASSWORD_HASH
         sync: false
+      - key: SEC_DB_NAME
+        value: u197926764_pensattu
+      - key: SEC_JWT_SECRET
+        sync: false
+      - key: ARKESEL_API_KEY
+        sync: false
+      - key: ARKESEL_SENDER_ID
+        value: PENSA-TTU

@@ -1,0 +1,81 @@
+// Layout.jsx — Sidebar + Navbar + main content area
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../api/AuthContext.jsx';
+
+const menuItems = [
+  { to: '/', icon: 'bxs-dashboard', label: 'Dashboard', end: true },
+  { to: '/members', icon: 'bxs-group', label: 'Members' },
+  { to: '/attendance', icon: 'bxs-doughnut-chart', label: 'Attendance' },
+  { to: '/messages', icon: 'bxs-message-dots', label: 'Messages' },
+  { to: '/halls', icon: 'bx-building', label: 'Halls' },
+  { to: '/alumni', icon: 'bxs-graduation', label: 'Alumni' },
+  { to: '/export', icon: 'bx-export', label: 'Export' },
+  { to: '/reports', icon: 'bxs-report', label: 'Reports' },
+];
+
+export default function Layout({ children }) {
+  const [sidebarHidden, setSidebarHidden] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
+    <>
+      <section id="sidebar" className={sidebarHidden ? 'hide' : ''}>
+        <a href="/" className="brand">
+          <i className='bx bxs-smile'></i>
+          <span className="text">PENSA TTU</span>
+        </a>
+        <ul className="side-menu top">
+          {menuItems.map(item => (
+            <li key={item.to}>
+              <NavLink to={item.to} end={item.end}>
+                <i className={`bx ${item.icon}`}></i>
+                <span className="text">{item.label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+        <ul className="side-menu">
+          <li>
+            <NavLink to="/settings">
+              <i className='bx bxs-cog'></i>
+              <span className="text">Settings</span>
+            </NavLink>
+          </li>
+          <li>
+            <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="logout">
+              <i className='bx bxs-log-out-circle'></i>
+              <span className="text">Logout</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section id="content">
+        <nav>
+          <i className='bx bx-menu' onClick={() => setSidebarHidden(!sidebarHidden)}></i>
+          <span className="nav-link">Member Management</span>
+          <form onSubmit={(e) => e.preventDefault()}>
+            <div className="form-input">
+              <input type="search" placeholder="Search..." />
+              <button type="submit"><i className='bx bx-search'></i></button>
+            </div>
+          </form>
+          <div className="profile">
+            <span>{user?.username || 'Admin'}</span>
+            <i className='bx bxs-user-circle' style={{ fontSize: 28, marginLeft: 8 }}></i>
+          </div>
+        </nav>
+        <main>
+          {children}
+        </main>
+      </section>
+    </>
+  );
+}

@@ -7,8 +7,10 @@ import webPush from 'web-push';
 import pool from './db.js';
 import adminRoutes from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
+import secRoutes from './secRoutes.js';
 import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
 import syncSchema from './syncSchema.js';
+import secSyncSchema from './secSyncSchema.js';
 import cloudinary from './cloudinary.js';
 import {
   ministries, sermons, team, events,
@@ -36,6 +38,7 @@ app.use(express.json());
 
 // Ensure required tables exist
 syncSchema();
+secSyncSchema();
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -347,6 +350,9 @@ app.use('/api/admin', adminRoutes);
 
 // Operation Paga prayer request routes (converted from the PHP prayer project)
 app.use('/api/prayers', prayerRoutes);
+
+// SEC member management routes (converted from the PHP sec project)
+app.use('/api/sec', secRoutes);
 
 // Standalone Operation Paga pages (public form + student admin) — served as
 // static HTML so they stay independent of the React SPA, matching the original.
