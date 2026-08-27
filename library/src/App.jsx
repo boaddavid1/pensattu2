@@ -40,11 +40,8 @@ export default function App() {
     try {
       const data = await fetchPastQuestions({ ...currentFilters, search });
       setQuestions(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setPqLoading(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setPqLoading(false); }
   }
 
   async function loadBooks(currentFilters = {}) {
@@ -52,95 +49,77 @@ export default function App() {
     try {
       const data = await fetchBooks(currentFilters);
       setBooks(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBooksLoading(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setBooksLoading(false); }
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => loadQuestions({ ...filters, search }), 300);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => loadQuestions({ ...filters, search }), 300);
+    return () => clearTimeout(t);
   }, [search, filters]);
 
   useEffect(() => {
-    const timer = setTimeout(() => loadBooks({ search: bookSearch, category: bookCategory }), 300);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => loadBooks({ search: bookSearch, category: bookCategory }), 300);
+    return () => clearTimeout(t);
   }, [bookSearch, bookCategory]);
 
   function updateFilter(key, value) {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    loadQuestions({ ...newFilters, search });
+    const n = { ...filters, [key]: value };
+    setFilters(n);
+    loadQuestions({ ...n, search });
   }
 
   function clearFilters() {
-    setSearch('');
-    setFilters({ year: '', semester: '', level: '', programme: '', exam_type: '' });
-    setBookSearch('');
-    setBookCategory('');
+    setSearch(''); setFilters({ year: '', semester: '', level: '', programme: '', exam_type: '' });
+    setBookSearch(''); setBookCategory('');
   }
 
   const activeFilterCount = useMemo(() => {
-    if (tab === 'past-questions') {
-      return Object.values(filters).filter(Boolean).length + (search ? 1 : 0);
-    }
+    if (tab === 'past-questions') return Object.values(filters).filter(Boolean).length + (search ? 1 : 0);
     return (bookSearch ? 1 : 0) + (bookCategory ? 1 : 0);
   }, [filters, search, tab, bookSearch, bookCategory]);
 
   async function handleDownload(q) {
     if (!auth.isLoggedIn()) { setShowLoginModal(true); return; }
-    try {
-      await trackDownload(q.id);
-      window.open(q.file_url, '_blank');
-    } catch (err) {
-      if (err.message.includes('log in') || err.message.includes('Unauthorized')) setShowLoginModal(true);
-      else setError(err.message);
-    }
+    try { await trackDownload(q.id); window.open(q.file_url, '_blank'); }
+    catch (err) { if (err.message.includes('log in') || err.message.includes('Unauthorized')) setShowLoginModal(true); else setError(err.message); }
   }
 
   async function handleBookDownload(book) {
     if (!auth.isLoggedIn()) { setShowLoginModal(true); return; }
     try {
       await trackBookDownload(book.id);
-      window.open(book.file_url, '_blank');
-    } catch (err) {
-      if (err.message.includes('log in') || err.message.includes('Unauthorized')) setShowLoginModal(true);
-      else setError(err.message);
+      // The list endpoint omits file_url for security; fetch full details to get it
+      const full = await fetchBook(book.id);
+      if (full.file_url) window.open(full.file_url, '_blank');
+      else setError('Download file is not available for this book.');
     }
+    catch (err) { if (err.message.includes('log in') || err.message.includes('Unauthorized')) setShowLoginModal(true); else setError(err.message); }
   }
 
   async function handleReadBook(book) {
-    try {
-      const full = await fetchBook(book.id);
-      setReadingBook(full);
-    } catch (err) {
-      setError(err.message);
-    }
+    try { const full = await fetchBook(book.id); setReadingBook(full); }
+    catch (err) { setError(err.message); }
   }
 
   function handleAuthSuccess(userData) {
-    setUser(userData);
-    setShowLoginModal(false);
-    setView('browse');
+    setUser(userData); setShowLoginModal(false); setView('browse');
   }
 
   function handleLogout() {
-    auth.removeToken();
-    setUser(null);
-    setView('landing');
+    auth.removeToken(); setUser(null); setView('landing');
   }
 
+  // ===== LANDING =====
   if (view === 'landing') {
     return (
       <>
         <Landing onBrowse={() => setView('browse')} onLogin={() => setShowLoginModal(true)} />
         {showLoginModal && (
-          <div className="pq-modal-overlay" onClick={() => setShowLoginModal(false)}>
-            <div onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-5" onClick={() => setShowLoginModal(false)}>
+            <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md">
               <AuthPage onSuccess={handleAuthSuccess} />
-              <button className="pq-modal-close" onClick={() => setShowLoginModal(false)}>×</button>
+              <button className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-amber-500 text-slate-900 font-bold text-xl flex items-center justify-center shadow-lg" onClick={() => setShowLoginModal(false)}>×</button>
             </div>
           </div>
         )}
@@ -148,30 +127,31 @@ export default function App() {
     );
   }
 
+  // ===== BOOK READER =====
   if (readingBook) {
     return (
-      <div className="pq-app">
-        <header className="pq-header">
-          <div className="pq-header-content">
-            <div className="pq-logo" onClick={() => { setReadingBook(null); setView('browse'); }} style={{ cursor: 'pointer' }}>
-              <span className="pq-logo-icon">📚</span>
-              <div><h1>PENSA TTU Library</h1><p>Past Question Hub</p></div>
-            </div>
-            <button className="pq-back-link" onClick={() => setReadingBook(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>← Back to library</button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+        <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+            <button onClick={() => { setReadingBook(null); setView('browse'); }} className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-amber-500 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              </div>
+              <span className="text-lg font-bold">StudyVault</span>
+            </button>
+            <button onClick={() => setReadingBook(null)} className="text-slate-400 hover:text-amber-400 text-sm font-medium transition-colors">← Back to Library</button>
           </div>
-        </header>
-        <main className="pq-main pq-reader">
-          <h2 className="pq-reader-title">{readingBook.title}</h2>
-          {readingBook.author && <p className="pq-reader-author">by {readingBook.author}</p>}
-          <div className="pq-reader-content">
+        </nav>
+        <main className="max-w-4xl mx-auto px-6 py-12">
+          <h1 className="text-3xl font-bold mb-2">{readingBook.title}</h1>
+          {readingBook.author && <p className="text-slate-400 mb-8 italic">by {readingBook.author}</p>}
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-8 md:p-12 leading-relaxed text-slate-300 min-h-[400px]">
             {readingBook.content ? (
               <div dangerouslySetInnerHTML={{ __html: readingBook.content }} />
             ) : readingBook.file_url ? (
-              <div className="pq-reader-pdf">
-                <iframe src={readingBook.file_url} title={readingBook.title} style={{ width: '100%', height: '70vh', border: 'none' }} />
-              </div>
+              <iframe src={readingBook.file_url} title={readingBook.title} className="w-full border-none" style={{ height: '70vh' }} />
             ) : (
-              <p>No content available for this book.</p>
+              <p className="text-slate-500">No content available for this book.</p>
             )}
           </div>
         </main>
@@ -179,160 +159,233 @@ export default function App() {
     );
   }
 
+  // ===== BROWSE (Library + Past Questions) =====
   return (
-    <div className="pq-app">
-      <header className="pq-header">
-        <div className="pq-header-content">
-          <div className="pq-logo" onClick={() => setView('landing')} style={{ cursor: 'pointer' }}>
-            <span className="pq-logo-icon">📚</span>
-            <div><h1>PENSA TTU Library</h1><p>Knowledge Hub</p></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white font-sans">
+      {/* Top Nav */}
+      <nav className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <button onClick={() => setView('landing')} className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-amber-500 rounded-lg flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <svg className="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            </div>
+            <span className="text-lg font-bold tracking-tight">StudyVault</span>
+          </button>
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+            <button onClick={() => setTab('past-questions')} className={tab === 'past-questions' ? 'text-amber-400' : 'hover:text-amber-400 transition-colors'}>Past Questions</button>
+            <button onClick={() => setTab('books')} className={tab === 'books' ? 'text-amber-400' : 'hover:text-amber-400 transition-colors'}>Library</button>
+            <a href="https://pensattu.com" className="hover:text-amber-400 transition-colors">Main Site</a>
           </div>
-          <div className="pq-header-right">
-            <a href="https://pensattu.com" className="pq-back-link">← Main site</a>
+          <div className="flex items-center gap-4">
             {user ? (
-              <div className="pq-user-menu">
-                <span className="pq-user-name">Hi, {user.full_name.split(' ')[0]}</span>
-                <button className="pq-logout-btn" onClick={handleLogout}>Log out</button>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-bold text-sm">
+                  {user.full_name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
+                </div>
+                <button onClick={handleLogout} className="text-sm text-slate-400 hover:text-amber-400 transition-colors font-medium">Log out</button>
               </div>
             ) : (
-              <button className="pq-login-btn" onClick={() => setShowLoginModal(true)}>Log In</button>
+              <button onClick={() => setShowLoginModal(true)} className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-lg shadow-amber-500/20">Log In</button>
             )}
           </div>
         </div>
-      </header>
+      </nav>
 
-      <div className="pq-tabs">
-        <button className={tab === 'past-questions' ? 'pq-tab active' : 'pq-tab'} onClick={() => setTab('past-questions')}>
-          📝 Past Questions
-        </button>
-        <button className={tab === 'books' ? 'pq-tab active' : 'pq-tab'} onClick={() => setTab('books')}>
-          📖 Books
-        </button>
+      {/* Page Header */}
+      <div className="max-w-7xl mx-auto px-6 pt-10 pb-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              {tab === 'past-questions' ? 'Past Questions' : 'Digital Library'}
+            </h1>
+            <p className="text-slate-400">
+              {tab === 'past-questions'
+                ? 'Browse, search, and download past examination questions.'
+                : 'Browse, read, and download books and study resources.'}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <main className="pq-main">
-        {error && <div className="pq-error">{error}</div>}
+      {/* Tabs */}
+      <div className="max-w-7xl mx-auto px-6 pb-6">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          <button onClick={() => setTab('past-questions')} className={`px-5 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-all ${tab === 'past-questions' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'}`}>
+            📝 Past Questions
+          </button>
+          <button onClick={() => setTab('books')} className={`px-5 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-all ${tab === 'books' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'}`}>
+            📖 Books
+          </button>
+        </div>
+      </div>
 
-        {tab === 'past-questions' ? (
-          <>
-            <div className="pq-search-section">
-              <div className="pq-search-bar">
-                <input type="text" placeholder="Search by course code or title..." value={search} onChange={(e) => setSearch(e.target.value)} />
-                {activeFilterCount > 0 && <button className="pq-clear-btn" onClick={clearFilters}>Clear ({activeFilterCount})</button>}
-              </div>
-              <div className="pq-filters">
-                <select value={filters.year} onChange={(e) => updateFilter('year', e.target.value)}>
+      {/* Search & Filter Bar */}
+      <div className="max-w-7xl mx-auto px-6 pb-8">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <svg className="w-5 h-5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input
+              type="text"
+              placeholder={tab === 'past-questions' ? 'Search by course code or title...' : 'Search by title or author...'}
+              value={tab === 'past-questions' ? search : bookSearch}
+              onChange={(e) => tab === 'past-questions' ? setSearch(e.target.value) : setBookSearch(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all placeholder-slate-600"
+            />
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            {tab === 'past-questions' ? (
+              <>
+                <select value={filters.year} onChange={(e) => updateFilter('year', e.target.value)} className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 text-slate-300">
                   <option value="">All Years</option>
                   {pqMeta.years.map((y) => <option key={y} value={y}>{y}</option>)}
                 </select>
-                <select value={filters.semester} onChange={(e) => updateFilter('semester', e.target.value)}>
+                <select value={filters.semester} onChange={(e) => updateFilter('semester', e.target.value)} className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 text-slate-300">
                   <option value="">All Semesters</option>
                   {pqMeta.semesters.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <select value={filters.level} onChange={(e) => updateFilter('level', e.target.value)}>
+                <select value={filters.level} onChange={(e) => updateFilter('level', e.target.value)} className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 text-slate-300">
                   <option value="">All Levels</option>
                   {pqMeta.levels.map((l) => <option key={l} value={l}>Level {l}</option>)}
                 </select>
-                <select value={filters.exam_type} onChange={(e) => updateFilter('exam_type', e.target.value)}>
+                <select value={filters.exam_type} onChange={(e) => updateFilter('exam_type', e.target.value)} className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 text-slate-300">
                   <option value="">All Types</option>
                   {pqMeta.examTypes.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
-                <select value={filters.programme} onChange={(e) => updateFilter('programme', e.target.value)}>
+                <select value={filters.programme} onChange={(e) => updateFilter('programme', e.target.value)} className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 text-slate-300">
                   <option value="">All Programmes</option>
                   {pqMeta.programmes.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
-              </div>
-            </div>
-            <div className="pq-results-info">{pqLoading ? 'Loading...' : `${questions.length} past question${questions.length !== 1 ? 's' : ''} found`}</div>
-            <div className="pq-grid">
-              {!pqLoading && questions.map((q) => (
-                <div key={q.id} className="pq-card">
-                  <div className="pq-card-top">
-                    <span className="pq-card-code">{q.course_code}</span>
-                    <span className="pq-card-type">{q.exam_type}</span>
+              </>
+            ) : (
+              <select value={bookCategory} onChange={(e) => setBookCategory(e.target.value)} className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500/50 text-slate-300">
+                <option value="">All Categories</option>
+                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            )}
+            {activeFilterCount > 0 && (
+              <button onClick={clearFilters} className="px-4 py-3 rounded-xl border border-slate-700 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors">
+                Clear ({activeFilterCount})
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Results Info */}
+      <div className="max-w-7xl mx-auto px-6 pb-6">
+        <div className="text-sm text-slate-500">
+          {tab === 'past-questions'
+            ? (pqLoading ? 'Loading...' : `${questions.length} past question${questions.length !== 1 ? 's' : ''} found`)
+            : (booksLoading ? 'Loading...' : `${books.length} book${books.length !== 1 ? 's' : ''} found`)}
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="max-w-7xl mx-auto px-6 pb-6">
+          <div className="bg-red-900/30 border border-red-700/50 text-red-300 px-4 py-3 rounded-xl text-sm">{error}</div>
+        </div>
+      )}
+
+      {/* Grid */}
+      <div className="max-w-7xl mx-auto px-6 pb-24">
+        {tab === 'past-questions' ? (
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {!pqLoading && questions.map((q) => (
+              <div key={q.id} className="group bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-amber-500/30 hover:bg-slate-800/60 transition-all duration-300 hover:-translate-y-1">
+                <div className="h-40 bg-gradient-to-br from-blue-900/50 to-indigo-900/50 flex items-center justify-center relative overflow-hidden">
+                  <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform duration-300">📝</span>
+                  <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-amber-400 border border-amber-500/20">{q.exam_type}</div>
+                </div>
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs font-medium">{q.course_code}</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-700/50 text-slate-400 text-xs">Level {q.level}</span>
                   </div>
-                  <h3 className="pq-card-title">{q.course_title}</h3>
-                  <div className="pq-card-tags">
-                    <span className="pq-tag">{q.year}</span>
-                    <span className="pq-tag">{q.semester}</span>
-                    <span className="pq-tag">Level {q.level}</span>
-                    {q.programme && <span className="pq-tag">{q.programme}</span>}
-                  </div>
-                  <div className="pq-card-footer">
-                    <span className="pq-downloads">{q.downloads || 0} downloads</span>
-                    <button className="pq-download-btn" onClick={() => handleDownload(q)}>
+                  <h3 className="font-bold text-lg mb-1 group-hover:text-amber-400 transition-colors line-clamp-1">{q.course_title}</h3>
+                  <p className="text-slate-500 text-sm mb-3">{q.year} • {q.semester}{q.programme ? ` • ${q.programme}` : ''}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-slate-500 text-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                      {q.downloads || 0}
+                    </div>
+                    <button onClick={() => handleDownload(q)} className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-lg font-semibold text-sm transition-all">
                       {auth.isLoggedIn() ? 'Download' : 'Log in'}
                     </button>
                   </div>
                 </div>
-              ))}
-              {!pqLoading && questions.length === 0 && (
-                <div className="pq-empty"><span className="pq-empty-icon">🔍</span><p>No past questions found. Try adjusting your filters.</p></div>
-              )}
-            </div>
-          </>
+              </div>
+            ))}
+            {!pqLoading && questions.length === 0 && (
+              <div className="col-span-full text-center py-20 text-slate-500">
+                <span className="text-5xl block mb-4">🔍</span>
+                <p>No past questions found. Try adjusting your filters.</p>
+              </div>
+            )}
+          </div>
         ) : (
-          <>
-            <div className="pq-search-section">
-              <div className="pq-search-bar">
-                <input type="text" placeholder="Search by title or author..." value={bookSearch} onChange={(e) => setBookSearch(e.target.value)} />
-                {activeFilterCount > 0 && <button className="pq-clear-btn" onClick={clearFilters}>Clear ({activeFilterCount})</button>}
-              </div>
-              <div className="pq-filters">
-                <select value={bookCategory} onChange={(e) => setBookCategory(e.target.value)}>
-                  <option value="">All Categories</option>
-                  {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="pq-results-info">{booksLoading ? 'Loading...' : `${books.length} book${books.length !== 1 ? 's' : ''} found`}</div>
-            <div className="pq-grid pq-books-grid">
-              {!booksLoading && books.map((book) => (
-                <div key={book.id} className="pq-card pq-book-card">
-                  <div className="pq-book-cover">
-                    {book.cover_image ? (
-                      <img src={book.cover_image} alt={book.title} />
-                    ) : (
-                      <div className="pq-book-cover-placeholder">📖</div>
-                    )}
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {!booksLoading && books.map((book) => (
+              <div key={book.id} className="group bg-slate-800/40 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-amber-500/30 hover:bg-slate-800/60 transition-all duration-300 hover:-translate-y-1">
+                <div className="h-40 bg-gradient-to-br from-emerald-900/50 to-teal-900/50 flex items-center justify-center relative overflow-hidden">
+                  {book.cover_image ? (
+                    <img src={book.cover_image} alt={book.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform duration-300">📖</span>
+                  )}
+                  {book.file_type && (
+                    <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-amber-400 border border-amber-500/20 uppercase">{book.file_type.split('/').pop()}</div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {book.category && <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-xs font-medium">{book.category}</span>}
+                    {book.is_readable && <span className="px-2 py-0.5 rounded bg-slate-700/50 text-slate-400 text-xs">Readable</span>}
                   </div>
-                  <div className="pq-book-info">
-                    <h3 className="pq-card-title">{book.title}</h3>
-                    {book.author && <p className="pq-book-author">by {book.author}</p>}
-                    {book.category && <span className="pq-tag">{book.category}</span>}
-                    {book.description && <p className="pq-book-desc">{book.description.length > 80 ? book.description.slice(0, 80) + '...' : book.description}</p>}
-                    <div className="pq-card-footer">
-                      <span className="pq-downloads">{book.downloads || 0} downloads</span>
-                      <div className="pq-book-actions">
-                        {book.is_readable && (
-                          <button className="pq-read-btn" onClick={() => handleReadBook(book)}>Read</button>
-                        )}
-                        <button className="pq-download-btn" onClick={() => handleBookDownload(book)}>
-                          {auth.isLoggedIn() ? 'Download' : 'Log in'}
-                        </button>
-                      </div>
+                  <h3 className="font-bold text-lg mb-1 group-hover:text-amber-400 transition-colors line-clamp-1">{book.title}</h3>
+                  {book.author && <p className="text-slate-500 text-sm mb-3">by {book.author}</p>}
+                  {book.description && <p className="text-slate-500 text-sm mb-3 line-clamp-2">{book.description}</p>}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-slate-500 text-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                      {book.downloads || 0}
+                    </div>
+                    <div className="flex gap-2">
+                      {book.is_readable && (
+                        <button onClick={() => handleReadBook(book)} className="border border-amber-500/50 text-amber-400 hover:bg-amber-500/10 px-4 py-2 rounded-lg font-semibold text-sm transition-all">Read</button>
+                      )}
+                      <button onClick={() => handleBookDownload(book)} className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-4 py-2 rounded-lg font-semibold text-sm transition-all">
+                        {auth.isLoggedIn() ? 'Download' : 'Log in'}
+                      </button>
                     </div>
                   </div>
                 </div>
-              ))}
-              {!booksLoading && books.length === 0 && (
-                <div className="pq-empty"><span className="pq-empty-icon">🔍</span><p>No books found. Try adjusting your search.</p></div>
-              )}
-            </div>
-          </>
+              </div>
+            ))}
+            {!booksLoading && books.length === 0 && (
+              <div className="col-span-full text-center py-20 text-slate-500">
+                <span className="text-5xl block mb-4">🔍</span>
+                <p>No books found. Try adjusting your search.</p>
+              </div>
+            )}
+          </div>
         )}
-      </main>
+      </div>
 
-      <footer className="pq-footer">
-        <p>PENSA TTU Library — Knowledge Hub</p>
-        <p className="pq-footer-sub">Pentecost Students and Associates, Takoradi Technical University</p>
+      {/* Footer */}
+      <footer className="border-t border-slate-800 bg-slate-900">
+        <div className="max-w-7xl mx-auto px-8 py-8 text-center">
+          <p className="text-slate-500 text-sm">StudyVault — PENSA TTU Library</p>
+          <p className="text-slate-600 text-xs mt-1">Pentecost Students and Associates, Takoradi Technical University</p>
+        </div>
       </footer>
 
+      {/* Login Modal */}
       {showLoginModal && (
-        <div className="pq-modal-overlay" onClick={() => setShowLoginModal(false)}>
-          <div onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-5" onClick={() => setShowLoginModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md">
             <AuthPage onSuccess={handleAuthSuccess} />
-            <button className="pq-modal-close" onClick={() => setShowLoginModal(false)}>×</button>
+            <button className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-amber-500 text-slate-900 font-bold text-xl flex items-center justify-center shadow-lg" onClick={() => setShowLoginModal(false)}>×</button>
           </div>
         </div>
       )}

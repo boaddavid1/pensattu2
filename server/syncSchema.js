@@ -179,6 +179,78 @@ const TABLES = [
   )`,
 ];
 
+// Columns that must exist for the public library view to work correctly.
+// Each entry: { table, column, definition }
+const REQUIRED_COLUMNS = [
+  // past_questions
+  { table: 'past_questions', column: 'course_code', definition: "VARCHAR(50) NOT NULL" },
+  { table: 'past_questions', column: 'course_title', definition: "VARCHAR(200) NOT NULL" },
+  { table: 'past_questions', column: 'year', definition: "INT NOT NULL" },
+  { table: 'past_questions', column: 'semester', definition: "VARCHAR(50) NOT NULL" },
+  { table: 'past_questions', column: 'level', definition: "VARCHAR(50) NOT NULL" },
+  { table: 'past_questions', column: 'programme', definition: "VARCHAR(200)" },
+  { table: 'past_questions', column: 'exam_type', definition: "VARCHAR(100) NOT NULL" },
+  { table: 'past_questions', column: 'file_url', definition: "VARCHAR(500) NOT NULL" },
+  { table: 'past_questions', column: 'file_type', definition: "VARCHAR(50)" },
+  { table: 'past_questions', column: 'file_size', definition: "INT" },
+  { table: 'past_questions', column: 'downloads', definition: "INT DEFAULT 0" },
+  { table: 'past_questions', column: 'is_active', definition: "BOOLEAN DEFAULT TRUE" },
+  { table: 'past_questions', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+  // library_users
+  { table: 'library_users', column: 'full_name', definition: "VARCHAR(150) NOT NULL" },
+  { table: 'library_users', column: 'email', definition: "VARCHAR(150) NOT NULL UNIQUE" },
+  { table: 'library_users', column: 'password', definition: "VARCHAR(255) NOT NULL" },
+  { table: 'library_users', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+  // library_books
+  { table: 'library_books', column: 'title', definition: "VARCHAR(300) NOT NULL" },
+  { table: 'library_books', column: 'author', definition: "VARCHAR(200)" },
+  { table: 'library_books', column: 'category', definition: "VARCHAR(100)" },
+  { table: 'library_books', column: 'description', definition: "TEXT" },
+  { table: 'library_books', column: 'cover_image', definition: "VARCHAR(500)" },
+  { table: 'library_books', column: 'file_url', definition: "VARCHAR(500) NOT NULL" },
+  { table: 'library_books', column: 'file_type', definition: "VARCHAR(50)" },
+  { table: 'library_books', column: 'file_size', definition: "INT" },
+  { table: 'library_books', column: 'pages', definition: "INT" },
+  { table: 'library_books', column: 'is_readable', definition: "BOOLEAN DEFAULT FALSE" },
+  { table: 'library_books', column: 'content', definition: "TEXT" },
+  { table: 'library_books', column: 'downloads', definition: "INT DEFAULT 0" },
+  { table: 'library_books', column: 'is_active', definition: "BOOLEAN DEFAULT TRUE" },
+  { table: 'library_books', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+];
+
+async function syncColumns() {
+  // Group required columns by table
+  const byTable = {};
+  for (const c of REQUIRED_COLUMNS) {
+    if (!byTable[c.table]) byTable[c.table] = [];
+    byTable[c.table].push(c);
+  }
+
+  for (const [table, cols] of Object.entries(byTable)) {
+    let existing;
+    try {
+      [existing] = await pool.query(
+        `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+        [table]
+      );
+    } catch (err) {
+      console.error(`Column sync: could not inspect ${table}:`, err.message);
+      continue;
+    }
+    const existingSet = new Set(existing.map((r) => r.COLUMN_NAME));
+    for (const col of cols) {
+      if (!existingSet.has(col.column)) {
+        try {
+          await pool.query(`ALTER TABLE \`${table}\` ADD COLUMN \`${col.column}\` ${col.definition}`);
+          console.log(`Column sync: added ${table}.${col.column}`);
+        } catch (err) {
+          console.error(`Column sync: failed to add ${table}.${col.column}:`, err.message);
+        }
+      }
+    }
+  }
+}
+
 export default async function syncSchema() {
   for (const sql of TABLES) {
     try {
@@ -187,5 +259,6 @@ export default async function syncSchema() {
       console.error('Schema sync error:', err.message);
     }
   }
+  await syncColumns();
   console.log('Schema sync complete');
 }
