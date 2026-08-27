@@ -690,6 +690,9 @@
     </footer>
 
 <script>
+    // API base — uses Render API in production, localhost in dev
+    const API_BASE = 'https://pensa-ttu-api.onrender.com/api';
+
     document.getElementById('prayerText').addEventListener('input', function() {
         document.getElementById('charCount').textContent = this.value.length;
     });
@@ -718,7 +721,7 @@
         btn.innerHTML = '<span class="spinner"></span> Submitting...';
 
         try {
-            const response = await fetch('/api/prayers', {
+            const response = await fetch(API_BASE + '/prayers', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

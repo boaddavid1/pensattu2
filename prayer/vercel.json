@@ -1,0 +1,7 @@
+{
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/operation-paga", "destination": "/index.html" },
+    { "source": "/student-prayers", "destination": "/students.html" }
+  ]
+}
