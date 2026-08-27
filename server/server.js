@@ -389,14 +389,113 @@ app.post('/api/library/login', async (req, res) => {
   }
 });
 
-app.get('/api/library/me', (req, res) => {
+app.get('/api/library/me', async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   const user = verifyToken(token);
   if (!user || user.role !== 'library_user') {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  res.json({ id: user.id, full_name: user.name, email: user.email });
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, full_name, email, profile_picture, created_at FROM library_users WHERE id = ?',
+      [user.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'User not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update profile (name, email, profile picture)
+app.put('/api/library/me', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const { full_name, email, profile_picture } = req.body;
+    if (!full_name || !email) {
+      return res.status(400).json({ error: 'Name and email are required' });
+    }
+    // Check email uniqueness (excluding current user)
+    const [existing] = await pool.query(
+      'SELECT id FROM library_users WHERE email = ? AND id != ?',
+      [email, user.id]
+    );
+    if (existing[0]) {
+      return res.status(409).json({ error: 'That email is already in use' });
+    }
+    await pool.query(
+      'UPDATE library_users SET full_name = ?, email = ?, profile_picture = ? WHERE id = ?',
+      [full_name, email, profile_picture || null, user.id]
+    );
+    const newToken = generateToken({ id: user.id, email, name: full_name, role: 'library_user' });
+    res.json({
+      token: newToken,
+      user: { id: user.id, full_name, email, profile_picture: profile_picture || null },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Change password
+app.put('/api/library/me/password', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: 'Current and new passwords are required' });
+    }
+    if (new_password.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+    const [rows] = await pool.query('SELECT password FROM library_users WHERE id = ?', [user.id]);
+    if (!rows[0] || !(await comparePassword(current_password, rows[0].password))) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+    const hashed = await hashPassword(new_password);
+    await pool.query('UPDATE library_users SET password = ? WHERE id = ?', [hashed, user.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Download history for the logged-in user
+app.get('/api/library/me/downloads', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const [rows] = await pool.query(
+      `SELECT dh.resource_type, dh.resource_id, dh.downloaded_at,
+              pq.course_code, pq.course_title, pq.year, pq.semester,
+              b.title AS book_title, b.author AS book_author
+       FROM download_history dh
+       LEFT JOIN past_questions pq ON dh.resource_type = 'past_question' AND dh.resource_id = pq.id
+       LEFT JOIN library_books b ON dh.resource_type = 'book' AND dh.resource_id = b.id
+       WHERE dh.user_id = ?
+       ORDER BY dh.downloaded_at DESC
+       LIMIT 100`,
+      [user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Past Questions - public endpoints
@@ -443,6 +542,10 @@ app.post('/api/past-questions/:id/download', (req, res) => {
     return res.status(401).json({ error: 'Please log in to download past questions' });
   }
   pool.query('UPDATE past_questions SET downloads = downloads + 1 WHERE id = ?', [req.params.id])
+    .then(() => pool.query(
+      'INSERT INTO download_history (user_id, resource_type, resource_id) VALUES (?, ?, ?)',
+      [user.id, 'past_question', req.params.id]
+    ))
     .then(() => res.json({ ok: true }))
     .catch((err) => res.status(500).json({ error: err.message }));
 });
@@ -504,6 +607,10 @@ app.post('/api/books/:id/download', (req, res) => {
     return res.status(401).json({ error: 'Please log in to download books' });
   }
   pool.query('UPDATE library_books SET downloads = downloads + 1 WHERE id = ?', [req.params.id])
+    .then(() => pool.query(
+      'INSERT INTO download_history (user_id, resource_type, resource_id) VALUES (?, ?, ?)',
+      [user.id, 'book', req.params.id]
+    ))
     .then(() => res.json({ ok: true }))
     .catch((err) => res.status(500).json({ error: err.message }));
 });

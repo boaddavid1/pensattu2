@@ -2,13 +2,14 @@ import { useEffect, useState, useMemo } from 'react';
 import { fetchPastQuestions, fetchMeta, trackDownload, fetchBooks, fetchBook, fetchBookCategories, trackBookDownload, auth } from './api';
 import Landing from './Landing';
 import AuthPage from './AuthPage';
+import Profile from './Profile';
 
 // Read initial view/tab from the URL hash so refreshes keep the user's place.
-// Hash format: #browse, #browse/past-questions, #browse/books
+// Hash format: #browse/past-questions, #browse/books, #profile
 function readHash() {
   const hash = window.location.hash.replace(/^#/, '');
   const parts = hash.split('/');
-  const view = parts[0] === 'browse' ? 'browse' : 'landing';
+  const view = parts[0] === 'browse' ? 'browse' : parts[0] === 'profile' ? 'profile' : 'landing';
   const tab = parts[1] === 'books' ? 'books' : 'past-questions';
   return { view, tab };
 }
@@ -136,6 +137,10 @@ export default function App() {
     setUser(userData); setShowLoginModal(false); setView('browse');
   }
 
+  function handleUserUpdate(updatedUser) {
+    setUser(updatedUser);
+  }
+
   function handleLogout() {
     auth.removeToken(); setUser(null); setView('landing');
   }
@@ -189,6 +194,22 @@ export default function App() {
     );
   }
 
+  // ===== PROFILE =====
+  if (view === 'profile') {
+    if (!user) {
+      setView('browse');
+      return null;
+    }
+    return (
+      <Profile
+        user={user}
+        onBack={() => setView('browse')}
+        onLogout={handleLogout}
+        onUserUpdate={handleUserUpdate}
+      />
+    );
+  }
+
   // ===== BROWSE (Library + Past Questions) =====
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white font-sans">
@@ -209,9 +230,9 @@ export default function App() {
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-bold text-sm">
+                <button onClick={() => setView('profile')} className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 font-bold text-sm hover:ring-2 hover:ring-amber-400/50 transition-all" title="View profile">
                   {user.full_name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
-                </div>
+                </button>
                 <button onClick={handleLogout} className="text-sm text-slate-400 hover:text-amber-400 transition-colors font-medium">Log out</button>
               </div>
             ) : (

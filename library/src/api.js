@@ -36,6 +36,9 @@ export const auth = {
   register: (body) => request('/library/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body) => request('/library/login', { method: 'POST', body: JSON.stringify(body) }),
   me: () => request('/library/me'),
+  updateProfile: (body) => request('/library/me', { method: 'PUT', body: JSON.stringify(body) }),
+  changePassword: (body) => request('/library/me/password', { method: 'PUT', body: JSON.stringify(body) }),
+  downloadHistory: () => request('/library/me/downloads'),
 };
 
 export async function fetchPastQuestions(filters = {}) {

@@ -157,7 +157,18 @@ const TABLES = [
     full_name VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    profile_picture VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS download_history (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    resource_type VARCHAR(20) NOT NULL,
+    resource_id INT NOT NULL,
+    downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_resource (resource_type, resource_id)
   )`,
 
   `CREATE TABLE IF NOT EXISTS library_books (
@@ -200,6 +211,7 @@ const REQUIRED_COLUMNS = [
   { table: 'library_users', column: 'full_name', definition: "VARCHAR(150) NOT NULL" },
   { table: 'library_users', column: 'email', definition: "VARCHAR(150) NOT NULL UNIQUE" },
   { table: 'library_users', column: 'password', definition: "VARCHAR(255) NOT NULL" },
+  { table: 'library_users', column: 'profile_picture', definition: "VARCHAR(500)" },
   { table: 'library_users', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
   // library_books
   { table: 'library_books', column: 'title', definition: "VARCHAR(300) NOT NULL" },
