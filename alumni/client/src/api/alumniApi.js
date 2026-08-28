@@ -34,7 +34,7 @@ export const alumniApi = {
   // Dashboard
   dashboard: () => request('/dashboard'),
   alumniByYear: (year) => request(`/alumni/by-year/${year}`),
-  yearStats: () => request('/alumni/year-stats'),
+  yearStats: () => request('/dashboard'),
 
   // Alumni CRUD
   listAlumni: (params = '') => request(`/alumni${params ? `?${params}` : ''}`),

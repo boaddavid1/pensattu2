@@ -1,6 +1,47 @@
 // alumniSyncSchema.js — Ensure alumni-related tables exist in the pensattu database
 import secPool from './secDb.js';
 
+// Columns the alumni routes rely on. If the alumni table already exists (e.g.
+// it was created by an older version of secSyncSchema with different columns),
+// we ALTER TABLE to add any that are missing.
+const REQUIRED_ALUMNI_COLUMNS = [
+  { column: 'registration_id', definition: "INT NOT NULL DEFAULT 0" },
+  { column: 'surname', definition: "VARCHAR(100) NOT NULL" },
+  { column: 'othernames', definition: "VARCHAR(200) NOT NULL DEFAULT ''" },
+  { column: 'gender', definition: "ENUM('male','female') NOT NULL DEFAULT 'male'" },
+  { column: 'dob', definition: "DATE NOT NULL DEFAULT '2000-01-01'" },
+  { column: 'contact', definition: "VARCHAR(20) NOT NULL DEFAULT ''" },
+  { column: 'program', definition: "VARCHAR(255) NOT NULL DEFAULT ''" },
+  { column: 'education_level', definition: "VARCHAR(10) NOT NULL DEFAULT ''" },
+  { column: 'graduation_year', definition: "YEAR(4) NOT NULL" },
+  { column: 'graduation_level', definition: "VARCHAR(10) NOT NULL DEFAULT ''" },
+  { column: 'alumni_status', definition: "ENUM('active','inactive') DEFAULT 'active'" },
+  { column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+];
+
+async function syncAlumniColumns() {
+  let existing;
+  try {
+    [existing] = await secPool.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'alumni'`
+    );
+  } catch (err) {
+    console.error('alumni column sync: could not inspect alumni:', err.message);
+    return;
+  }
+  const existingSet = new Set(existing.map((r) => r.COLUMN_NAME));
+  for (const col of REQUIRED_ALUMNI_COLUMNS) {
+    if (!existingSet.has(col.column)) {
+      try {
+        await secPool.query(`ALTER TABLE \`alumni\` ADD COLUMN \`${col.column}\` ${col.definition}`);
+        console.log(`alumni column sync: added alumni.${col.column}`);
+      } catch (err) {
+        console.error(`alumni column sync: failed to add alumni.${col.column}:`, err.message);
+      }
+    }
+  }
+}
+
 export default async function alumniSyncSchema() {
   try {
     // alumni table — only create if it doesn't exist (the actual DB has a stricter schema)
@@ -14,7 +55,7 @@ export default async function alumniSyncSchema() {
           \`othernames\` varchar(200) NOT NULL DEFAULT '',
           \`gender\` enum('male','female') NOT NULL DEFAULT 'male',
           \`dob\` date NOT NULL DEFAULT '2000-01-01',
-          \`contact\` varchar(10) NOT NULL DEFAULT '',
+          \`contact\` varchar(20) NOT NULL DEFAULT '',
           \`program\` varchar(255) NOT NULL DEFAULT '',
           \`education_level\` varchar(10) NOT NULL DEFAULT '',
           \`graduation_year\` year(4) NOT NULL,
@@ -111,6 +152,10 @@ export default async function alumniSyncSchema() {
         KEY \`submitted_at\` (\`submitted_at\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
+    // Patch any missing columns on an existing alumni table (e.g. one created
+    // by an older secSyncSchema with incompatible columns).
+    await syncAlumniColumns();
 
     console.log('alumni schema sync complete');
   } catch (err) {

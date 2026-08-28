@@ -1,31 +1,79 @@
+-- PENSA TTU database schema.
+-- This mirrors server/syncSchema.js (the runtime source of truth) so that a
+-- fresh database created via `mysql -u root -p < database/schema.sql` (or the
+-- docker-compose init mount) matches what the Express API actually queries.
+-- The server also runs syncSchema() on boot to create/patch any missing
+-- tables/columns, so this file stays in sync with the runtime expectations.
+
 CREATE DATABASE IF NOT EXISTS grace_harbor CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE grace_harbor;
 
-CREATE TABLE IF NOT EXISTS ministries (
+-- Admin users (login target for /api/admin/login)
+CREATE TABLE IF NOT EXISTS admin_users (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  title VARCHAR(100) NOT NULL,
-  description TEXT,
-  image VARCHAR(500),
+  username VARCHAR(100) NOT NULL UNIQUE,
+  full_name VARCHAR(150),
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(50) DEFAULT 'admin',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT,
+  action VARCHAR(50) NOT NULL,
+  entity VARCHAR(50) NOT NULL,
+  entity_id INT,
+  details TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  endpoint VARCHAR(500) NOT NULL UNIQUE,
+  p256dh VARCHAR(255) NOT NULL,
+  auth VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Core values (public /api/ministries, admin "ministries" CRUD)
+CREATE TABLE IF NOT EXISTS core_values (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  icon VARCHAR(200),
+  image_url VARCHAR(500),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS sermons (
   id INT PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(200) NOT NULL,
-  speaker VARCHAR(100),
-  category VARCHAR(50),
-  duration VARCHAR(20),
+  speaker VARCHAR(200),
+  category VARCHAR(100),
+  description TEXT,
+  audio_url VARCHAR(500),
   image_url VARCHAR(500),
-  published_at DATE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  date_preached DATE,
+  is_active BOOLEAN DEFAULT TRUE
 );
 
-CREATE TABLE IF NOT EXISTS team (
+-- Leadership (public /api/team, admin "team" CRUD)
+CREATE TABLE IF NOT EXISTS leadership (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL,
-  role VARCHAR(100),
+  name VARCHAR(200) NOT NULL,
+  role VARCHAR(200),
+  category VARCHAR(100),
+  academic_year VARCHAR(20),
+  programme VARCHAR(200),
+  hall VARCHAR(200),
+  previous_portfolio TEXT,
+  description TEXT,
   image_url VARCHAR(500),
-  sort_order INT DEFAULT 0
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS events (
@@ -42,61 +90,15 @@ CREATE TABLE IF NOT EXISTS events (
   status VARCHAR(50) DEFAULT 'upcoming'
 );
 
-CREATE TABLE IF NOT EXISTS visits (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL,
-  phone VARCHAR(20),
-  service VARCHAR(50) NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS push_subscriptions (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  endpoint VARCHAR(500) NOT NULL UNIQUE,
-  p256dh VARCHAR(255) NOT NULL,
-  auth VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS subscribers (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  email VARCHAR(150) NOT NULL UNIQUE,
-  subscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS contacts (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS users (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(150) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  role ENUM('admin', 'superadmin') DEFAULT 'admin',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS announcements (
+-- News feeds both announcements (/api/announcements) and notices
+-- (/api/notices filters category = 'Notice').
+CREATE TABLE IF NOT EXISTS news (
   id INT PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(200) NOT NULL,
-  body TEXT NOT NULL,
-  published_at DATE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS notices (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  title VARCHAR(200) NOT NULL,
-  body TEXT NOT NULL,
-  published_at DATE,
+  content TEXT NOT NULL,
+  excerpt TEXT,
+  image_url VARCHAR(500),
+  category VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -119,15 +121,30 @@ CREATE TABLE IF NOT EXISTS gallery (
   FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS activity_logs (
+CREATE TABLE IF NOT EXISTS visits (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  user_id INT,
-  action VARCHAR(50) NOT NULL,
-  entity VARCHAR(50) NOT NULL,
-  entity_id INT,
-  details TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL,
+  phone VARCHAR(20),
+  service VARCHAR(50) NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS subscribers (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(200) NOT NULL,
+  email VARCHAR(150) NOT NULL,
+  subject VARCHAR(200),
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS past_questions (
@@ -152,7 +169,18 @@ CREATE TABLE IF NOT EXISTS library_users (
   full_name VARCHAR(150) NOT NULL,
   email VARCHAR(150) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
+  profile_picture VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS download_history (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT NOT NULL,
+  resource_type VARCHAR(20) NOT NULL,
+  resource_id INT NOT NULL,
+  downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_user (user_id),
+  INDEX idx_resource (resource_type, resource_id)
 );
 
 CREATE TABLE IF NOT EXISTS library_books (
@@ -171,4 +199,89 @@ CREATE TABLE IF NOT EXISTS library_books (
   downloads INT DEFAULT 0,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Operation Paga prayer requests (migrated from the PHP prayer project)
+CREATE TABLE IF NOT EXISTS prayer_requests (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  category VARCHAR(50) NOT NULL,
+  user_status ENUM('Alumni','Student') NOT NULL DEFAULT 'Alumni',
+  prayer_text TEXT NOT NULL,
+  submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status ENUM('pending','prayed') DEFAULT 'pending',
+  prayed_at DATETIME DEFAULT NULL,
+  ip_address VARCHAR(45) DEFAULT NULL,
+  INDEX idx_category (category),
+  INDEX idx_status (status),
+  INDEX idx_user_status (user_status),
+  INDEX idx_submitted_at (submitted_at)
+);
+
+-- Optional content/settings tables read by the public API. These are not
+-- managed by the admin CRUD UI; the endpoints return {} / [] if they are
+-- empty, so they are safe to leave unseeded.
+CREATE TABLE IF NOT EXISTS home_settings (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  setting_key VARCHAR(100) NOT NULL UNIQUE,
+  setting_value TEXT
+);
+
+CREATE TABLE IF NOT EXISTS about_settings (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  setting_key VARCHAR(100) NOT NULL UNIQUE,
+  setting_value TEXT
+);
+
+CREATE TABLE IF NOT EXISTS contact_settings (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  setting_key VARCHAR(100) NOT NULL UNIQUE,
+  setting_value TEXT
+);
+
+CREATE TABLE IF NOT EXISTS hero_slider (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(200),
+  subtitle TEXT,
+  image_url VARCHAR(500),
+  button_text VARCHAR(100),
+  button_link VARCHAR(300),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS about_gallery (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(200),
+  description TEXT,
+  image_url VARCHAR(500),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS services (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(200),
+  description TEXT,
+  icon VARCHAR(200),
+  image_url VARCHAR(500),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS videos (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(200),
+  url VARCHAR(500),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS timeline_events (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  year VARCHAR(20),
+  title VARCHAR(200),
+  description TEXT,
+  image_url VARCHAR(500),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE
 );

@@ -55,7 +55,7 @@ export default function EditMember() {
       <div className="card">
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', gap: 32, marginBottom: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <PhotoUpload photoData={form.photo_data || ''} onChange={(data) => setForm(f => ({ ...f, photo_data: data }))} />
+            <PhotoUpload photoData={form.profile_image || ''} onChange={(data) => setForm(f => ({ ...f, profile_image: data }))} />
             <div style={{ flex: 1, minWidth: 250 }}>
               <h3 style={{ marginBottom: 8 }}>Profile Photo</h3>
               <p style={{ color: 'var(--dark-grey)', fontSize: 14 }}>Upload or update the profile photo. Click the circle or drag and drop. Max 5MB.</p>
@@ -87,7 +87,7 @@ export default function EditMember() {
             </div>
             <div className="form-group"><label>Campus Residence</label>
               <select name="campus_residence" value={form.campus_residence || ''} onChange={handleChange}>
-                <option value="">--</option><option value="yes">On-Campus</option><option value="no">Off-Campus</option>
+                <option value="">--</option><option value="on-campus">On-Campus</option><option value="off-campus">Off-Campus</option>
               </select>
             </div>
             <div className="form-group"><label>Campus Hall</label><input name="campus_hall" value={form.campus_hall || ''} onChange={handleChange} /></div>

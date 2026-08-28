@@ -1,21 +1,24 @@
 // App.jsx — Main app with routing
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './api/AuthContext.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './pages/Login.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import Members from './pages/Members.jsx';
-import LevelMembers from './pages/LevelMembers.jsx';
-import AddMember from './pages/AddMember.jsx';
-import EditMember from './pages/EditMember.jsx';
-import ViewMember from './pages/ViewMember.jsx';
-import Attendance from './pages/Attendance.jsx';
-import Messages from './pages/Messages.jsx';
-import Halls from './pages/Halls.jsx';
-import Alumni from './pages/Alumni.jsx';
-import Reports from './pages/Reports.jsx';
-import ExportPage from './pages/ExportPage.jsx';
-import Settings from './pages/Settings.jsx';
+
+// Route-level code splitting — each page loads on demand.
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
+const Members = lazy(() => import('./pages/Members.jsx'));
+const LevelMembers = lazy(() => import('./pages/LevelMembers.jsx'));
+const AddMember = lazy(() => import('./pages/AddMember.jsx'));
+const EditMember = lazy(() => import('./pages/EditMember.jsx'));
+const ViewMember = lazy(() => import('./pages/ViewMember.jsx'));
+const Attendance = lazy(() => import('./pages/Attendance.jsx'));
+const Messages = lazy(() => import('./pages/Messages.jsx'));
+const Halls = lazy(() => import('./pages/Halls.jsx'));
+const Alumni = lazy(() => import('./pages/Alumni.jsx'));
+const Reports = lazy(() => import('./pages/Reports.jsx'));
+const ExportPage = lazy(() => import('./pages/ExportPage.jsx'));
+const Settings = lazy(() => import('./pages/Settings.jsx'));
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,23 +27,27 @@ function ProtectedRoute({ children }) {
   return <Layout>{children}</Layout>;
 }
 
+function Lazy({ children }) {
+  return <Suspense fallback={<div className="loading">Loading...</div>}>{children}</Suspense>;
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/members" element={<ProtectedRoute><Members /></ProtectedRoute>} />
-      <Route path="/members/level/:level" element={<ProtectedRoute><LevelMembers /></ProtectedRoute>} />
-      <Route path="/members/add" element={<ProtectedRoute><AddMember /></ProtectedRoute>} />
-      <Route path="/members/:id/edit" element={<ProtectedRoute><EditMember /></ProtectedRoute>} />
-      <Route path="/members/:id" element={<ProtectedRoute><ViewMember /></ProtectedRoute>} />
-      <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
-      <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-      <Route path="/halls" element={<ProtectedRoute><Halls /></ProtectedRoute>} />
-      <Route path="/alumni" element={<ProtectedRoute><Alumni /></ProtectedRoute>} />
-      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-      <Route path="/export" element={<ProtectedRoute><ExportPage /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute><Lazy><Dashboard /></Lazy></ProtectedRoute>} />
+      <Route path="/members" element={<ProtectedRoute><Lazy><Members /></Lazy></ProtectedRoute>} />
+      <Route path="/members/level/:level" element={<ProtectedRoute><Lazy><LevelMembers /></Lazy></ProtectedRoute>} />
+      <Route path="/members/add" element={<ProtectedRoute><Lazy><AddMember /></Lazy></ProtectedRoute>} />
+      <Route path="/members/:id/edit" element={<ProtectedRoute><Lazy><EditMember /></Lazy></ProtectedRoute>} />
+      <Route path="/members/:id" element={<ProtectedRoute><Lazy><ViewMember /></Lazy></ProtectedRoute>} />
+      <Route path="/attendance" element={<ProtectedRoute><Lazy><Attendance /></Lazy></ProtectedRoute>} />
+      <Route path="/messages" element={<ProtectedRoute><Lazy><Messages /></Lazy></ProtectedRoute>} />
+      <Route path="/halls" element={<ProtectedRoute><Lazy><Halls /></Lazy></ProtectedRoute>} />
+      <Route path="/alumni" element={<ProtectedRoute><Lazy><Alumni /></Lazy></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><Lazy><Reports /></Lazy></ProtectedRoute>} />
+      <Route path="/export" element={<ProtectedRoute><Lazy><ExportPage /></Lazy></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Lazy><Settings /></Lazy></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

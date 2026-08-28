@@ -6,10 +6,10 @@ import { comparePassword, generateToken, requireAuth, requireSuperAdmin } from '
 
 const DEMO_USER = {
   id: 1,
-  name: 'Demo Admin',
-  email: 'admin@pensa.com',
+  name: 'Super Admin',
+  email: 'admin@pensattu.org',
   role: 'superadmin',
-  password: 'admin123',
+  password: 'PensaAdmin2026!',
 };
 
 // User's database has admin_users table with username field
@@ -77,7 +77,7 @@ const router = Router();
 const TABLES = {
   ministries: {
     actualTable: 'core_values',
-    columns: ['title', 'description', 'icon'],
+    columns: ['title', 'description', 'icon', 'image_url', 'display_order', 'is_active'],
     required: ['title'],
     orderBy: 'display_order',
   },
@@ -110,6 +110,7 @@ const TABLES = {
     columns: ['title', 'content', 'excerpt', 'image_url', 'category'],
     required: ['title', 'content'],
     orderBy: 'created_at DESC, id DESC',
+    defaults: { category: 'Notice' },
   },
   gallery_albums: {
     actualTable: 'albums',
@@ -271,6 +272,13 @@ for (const [table, config] of Object.entries(TABLES)) {
   // Create
   router.post(`/${table}`, requireAuth, async (req, res) => {
     const data = validateColumns(req.body, config.columns);
+    // Apply server-side defaults (e.g. notices must be category='Notice' to
+    // appear on the public notice board).
+    if (config.defaults) {
+      for (const [k, v] of Object.entries(config.defaults)) {
+        if (data[k] === undefined || data[k] === '' || data[k] === null) data[k] = v;
+      }
+    }
     for (const field of config.required) {
       if (!data[field]) return res.status(400).json({ error: `Missing required field: ${field}` });
     }

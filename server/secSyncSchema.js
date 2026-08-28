@@ -52,27 +52,8 @@ export default async function secSyncSchema() {
       INDEX idx_education (education_level)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
-    // Alumni (graduated members)
-    `CREATE TABLE IF NOT EXISTS alumni (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      surname VARCHAR(100) NOT NULL,
-      othernames VARCHAR(150) NOT NULL,
-      gender ENUM('male','female') NOT NULL,
-      dob DATE NULL,
-      contact VARCHAR(20) NULL,
-      email VARCHAR(100) NULL,
-      program VARCHAR(200) NULL,
-      program_duration VARCHAR(20) NULL,
-      graduation_year INT NULL,
-      district VARCHAR(200) NULL,
-      pastor VARCHAR(100) NULL,
-      current_status VARCHAR(100) NULL,
-      workplace VARCHAR(200) NULL,
-      profile_image VARCHAR(255) NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_surname (surname),
-      INDEX idx_year (graduation_year)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+    // Alumni (graduated members) — owned by alumniSyncSchema.js to avoid
+    // conflicting column definitions. Do NOT create it here.
 
     // Activity logs (audit trail)
     `CREATE TABLE IF NOT EXISTS activity_logs (

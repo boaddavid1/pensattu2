@@ -190,7 +190,7 @@ router.get('/dashboard', requireAlumniAuth, async (req, res) => {
 router.get('/alumni/by-year/:year', requireAlumniAuth, async (req, res) => {
   try {
     const [alumni] = await secPool.query(`
-      SELECT a.*, r.photo_data FROM alumni a
+      SELECT a.*, r.profile_image FROM alumni a
       LEFT JOIN registrations r ON a.registration_id = r.id
       WHERE a.graduation_year = ? ORDER BY a.surname ASC
     `, [req.params.year]);
@@ -204,7 +204,7 @@ router.get('/alumni/by-year/:year', requireAlumniAuth, async (req, res) => {
 router.get('/alumni', requireAlumniAuth, async (req, res) => {
   try {
     const { search, year, status, page = 1, perPage = 50 } = req.query;
-    let sql = 'SELECT a.*, r.photo_data FROM alumni a LEFT JOIN registrations r ON a.registration_id = r.id WHERE 1=1';
+    let sql = 'SELECT a.*, r.profile_image FROM alumni a LEFT JOIN registrations r ON a.registration_id = r.id WHERE 1=1';
     const params = [];
     if (search) {
       sql += ' AND (a.surname LIKE ? OR a.othernames LIKE ? OR a.contact LIKE ?)';

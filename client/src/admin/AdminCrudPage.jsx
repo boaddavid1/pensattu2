@@ -9,15 +9,18 @@ const fieldConfig = {
   ministries: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'icon', label: 'Icon (optional)', type: 'text' },
     { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/ministries' },
+    { name: 'display_order', label: 'Display Order', type: 'number' },
   ],
   sermons: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'speaker', label: 'Speaker', type: 'text' },
     { name: 'category', label: 'Category', type: 'text' },
-    { name: 'duration', label: 'Duration', type: 'text' },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'audio_url', label: 'Audio URL', type: 'text' },
     { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/sermons' },
-    { name: 'published_at', label: 'Published Date', type: 'date' },
+    { name: 'date_preached', label: 'Date Preached', type: 'date' },
   ],
   team: [
     { name: 'name', label: 'Full Name', type: 'text', required: true },
@@ -45,20 +48,21 @@ const fieldConfig = {
   ],
   announcements: [
     { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'body', label: 'Body', type: 'textarea', required: true },
+    { name: 'content', label: 'Body', type: 'textarea', required: true },
+    { name: 'excerpt', label: 'Excerpt', type: 'text' },
+    { name: 'category', label: 'Category', type: 'text' },
     { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/news' },
-    { name: 'published_at', label: 'Published Date', type: 'date' },
   ],
   notices: [
     { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'body', label: 'Body', type: 'textarea', required: true },
+    { name: 'content', label: 'Body', type: 'textarea', required: true },
+    { name: 'excerpt', label: 'Excerpt', type: 'text' },
     { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/news' },
-    { name: 'published_at', label: 'Published Date', type: 'date' },
   ],
   gallery_albums: [
-    { name: 'slug', label: 'Slug', type: 'text', required: true },
-    { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'cover', label: 'Cover Image', type: 'image', folder: 'pensattu/gallery' },
+    { name: 'name', label: 'Album Name', type: 'text', required: true },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'cover_image', label: 'Cover Image', type: 'image', folder: 'pensattu/gallery' },
   ],
 };
 

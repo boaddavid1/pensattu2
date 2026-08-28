@@ -243,7 +243,7 @@ export default function Dashboard() {
                   <tr key={a.id}>
                     <td><input type="checkbox" checked={selectedIds.has(a.id)} onChange={() => toggleSelect(a.id)} /></td>
                     <td>
-                      {a.photo_data && <img src={a.photo_data} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', marginRight: 6 }} />}
+                      {a.profile_image && <img src={a.profile_image} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', marginRight: 6 }} />}
                       {a.surname} {a.othernames}
                     </td>
                     <td>{a.gender}</td>

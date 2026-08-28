@@ -9,7 +9,7 @@ const emptyForm = {
   room: '', program: '', program_duration: '', education_level: '', membership_type: 'member',
   campus_residence: '', campus_hall: '', offcampus_location: '', landmark: '',
   is_officer: false, officer_role: '', district: '', pastor: '', guardian: '',
-  guardian_contact: '', departments: '', photo_data: '',
+  guardian_contact: '', departments: '', profile_image: '',
 };
 
 export default function AddMember() {
@@ -55,7 +55,7 @@ export default function AddMember() {
       <div className="card">
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', gap: 32, marginBottom: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <PhotoUpload photoData={form.photo_data} onChange={(data) => setForm(f => ({ ...f, photo_data: data }))} />
+            <PhotoUpload photoData={form.profile_image} onChange={(data) => setForm(f => ({ ...f, profile_image: data }))} />
             <div style={{ flex: 1, minWidth: 250 }}>
               <h3 style={{ marginBottom: 8 }}>Profile Photo</h3>
               <p style={{ color: 'var(--dark-grey)', fontSize: 14 }}>Upload a profile photo for this member. Click the circle or drag and drop an image. Max 5MB — images are automatically compressed to 400x400.</p>
@@ -87,7 +87,7 @@ export default function AddMember() {
             </div>
             <div className="form-group"><label>Campus Residence</label>
               <select name="campus_residence" value={form.campus_residence} onChange={handleChange}>
-                <option value="">--</option><option value="yes">On-Campus</option><option value="no">Off-Campus</option>
+                <option value="">--</option><option value="on-campus">On-Campus</option><option value="off-campus">Off-Campus</option>
               </select>
             </div>
             <div className="form-group"><label>Campus Hall</label><input name="campus_hall" value={form.campus_hall} onChange={handleChange} /></div>

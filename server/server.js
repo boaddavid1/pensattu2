@@ -160,7 +160,7 @@ app.post('/api/contact', async (req, res) => {
 app.get('/api/announcements', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, content AS body FROM news ORDER BY created_at DESC'
+      'SELECT DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, content AS body FROM news WHERE category IS NULL OR category <> "Notice" ORDER BY created_at DESC'
     );
     res.json(rows);
   } catch (err) {
