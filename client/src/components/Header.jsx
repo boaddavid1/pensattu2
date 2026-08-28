@@ -44,7 +44,7 @@ export default function Header() {
     <header>
       <nav className="nav">
         <Link to="/" className="logo">
-          <img src="/images/pensa.jpg" alt="PENSA TTU" />
+          <img src="/pwa-icon.svg" alt="PENSA TTU" />
         </Link>
         <ul className="nav-links">
           <li><Link to="/" className={pathname === '/' ? 'active' : ''} onClick={closeAll}>Home</Link></li>
