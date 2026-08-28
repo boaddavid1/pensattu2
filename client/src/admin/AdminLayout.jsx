@@ -15,6 +15,7 @@ const navItems = [
   { to: '/admin/past-questions', label: 'Past Questions' },
   { to: '/admin/books', label: 'Books' },
   { to: '/admin/prayers', label: 'Prayers' },
+  { to: '/admin/registrations', label: 'Registrations' },
   { to: '/admin/visits', label: 'Visits' },
   { to: '/admin/subscribers', label: 'Subscribers' },
   { to: '/admin/contacts', label: 'Messages' },

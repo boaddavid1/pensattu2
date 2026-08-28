@@ -102,6 +102,7 @@ export default function Header() {
           </li>
           <li><Link to="/sermons" className={pathname === '/sermons' ? 'active' : ''} onClick={closeAll}>Sermons</Link></li>
           <li><Link to="/gallery" className={pathname === '/gallery' ? 'active' : ''} onClick={closeAll}>Gallery</Link></li>
+          <li><Link to="/register" className={pathname === '/register' ? 'active' : ''} onClick={closeAll}>Register</Link></li>
         </ul>
         <div className="nav-right">
           <div className="nav-phone">

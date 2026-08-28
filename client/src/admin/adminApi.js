@@ -55,4 +55,10 @@ export const adminApi = {
   listUsers: () => request('/admin/users'),
   createUser: (body) => request('/admin/users', { method: 'POST', body: JSON.stringify(body) }),
   removeUser: (id) => request(`/admin/users/${id}`, { method: 'DELETE' }),
+
+  // Member registrations (reg module)
+  regList: (query) => request(`/reg${query ? `?${query}` : ''}`),
+  regStats: () => request('/reg/stats'),
+  regGet: (id) => request(`/reg/${id}`),
+  regRemove: (id) => request(`/reg/${id}`, { method: 'DELETE' }),
 };

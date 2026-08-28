@@ -63,9 +63,6 @@ export default function Feature() {
               </a>
             )}
           </div>
-          <a href="/events" className="btn btn-dark">
-            View all events <span className="btn-arrow" style={{ background: 'var(--moss)', color: 'var(--pine-deep)' }}>→</span>
-          </a>
         </div>
       </div>
     </section>

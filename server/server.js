@@ -9,10 +9,12 @@ import adminRoutes from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
 import alumniRoutes from './alumniRoutes.js';
+import regRoutes from './regRoutes.js';
 import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
 import syncSchema from './syncSchema.js';
 import secSyncSchema from './secSyncSchema.js';
 import alumniSyncSchema from './alumniSyncSchema.js';
+import regSyncSchema from './regSyncSchema.js';
 import cloudinary from './cloudinary.js';
 import {
   ministries, sermons, team, events,
@@ -44,6 +46,7 @@ pool.on('error', () => {});
 syncSchema().catch(() => {});
 secSyncSchema().catch(() => {});
 alumniSyncSchema().catch(() => {});
+regSyncSchema().catch(() => {});
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -173,11 +176,26 @@ app.get('/api/announcements', async (req, res) => {
 app.get('/api/notices', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, content AS body FROM news WHERE category = "Notice" ORDER BY created_at DESC'
+      'SELECT id, DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, excerpt, content AS body, image_url FROM news WHERE category = "Notice" ORDER BY created_at DESC'
     );
     res.json(rows);
   } catch (err) {
     res.json(notices);
+  }
+});
+
+app.get('/api/notices/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, excerpt, content AS body, image_url FROM news WHERE category = "Notice" AND id = ?',
+      [req.params.id]
+    );
+    if (rows.length) res.json(rows[0]);
+    else res.status(404).json({ error: 'Notice not found' });
+  } catch (err) {
+    const item = notices.find((n) => String(n.id) === String(req.params.id));
+    if (item) res.json(item);
+    else res.status(404).json({ error: 'Notice not found' });
   }
 });
 
@@ -361,6 +379,9 @@ app.use('/api/sec', secRoutes);
 
 // Alumni portal routes (converted from the PHP alumni project)
 app.use('/api/alumni', alumniRoutes);
+
+// Member registration routes (converted from the PHP reg project)
+app.use('/api/reg', regRoutes);
 
 // Standalone Operation Paga pages (public form + student admin) — served as
 // static HTML so they stay independent of the React SPA, matching the original.

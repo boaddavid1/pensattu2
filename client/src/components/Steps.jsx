@@ -1,9 +1,9 @@
 export default function Steps() {
   const steps = [
-    { tag: 'mondays', title: 'Plan your visit', text: 'Tell us you are coming so we can save you a seat and a warm welcome.', img: '/images/pensafallback-bw.png' },
-    { tag: 'wednesdays', title: 'Choose a service', text: 'Join us at 9AM or 11AM, in person or streaming from wherever you are.', img: '/images/pensafallback-bw.png' },
-    { tag: 'fridays', title: 'Come as you are', text: 'Our greeters will meet you at the door — no dress code, no pressure.', img: '/images/pensafallback-bw.png' },
-    { tag: 'sundays', title: 'Find your group', text: 'Connect with a community group and start putting down roots.', img: '/images/pensafallback-bw.png' },
+    { tag: 'mondays', title: 'DEPARTMENTAL PRAYERS', text: 'Tell us you are coming so we can save you a seat and a warm welcome.', img: '/images/pensafallback-bw.png' },
+    { tag: 'wednesdays', title: 'MAKERS SERVICE', text: 'Join us at 9AM or 11AM, in person or streaming from wherever you are.', img: '/images/pensafallback-bw.png' },
+    { tag: 'fridays', title: 'INTERCESSORY PRAYERS', text: 'Our greeters will meet you at the door — no dress code, no pressure.', img: '/images/pensafallback-bw.png' },
+    { tag: 'sundays', title: 'SUNDAY SERVICE', text: 'Connect with a community group and start putting down roots.', img: '/images/pensafallback-bw.png' },
   ];
 
   return (

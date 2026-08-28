@@ -17,8 +17,10 @@ const Contact = lazy(() => import('./pages/Contact'));
 const Events = lazy(() => import('./pages/Events'));
 const Announcements = lazy(() => import('./pages/Announcements'));
 const NoticeBoard = lazy(() => import('./pages/NoticeBoard'));
+const NoticeDetail = lazy(() => import('./pages/NoticeDetail'));
 const Gallery = lazy(() => import('./pages/Gallery'));
 const AlbumDetail = lazy(() => import('./pages/AlbumDetail'));
+const Register = lazy(() => import('./pages/Register'));
 
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
 const AdminCrudPage = lazy(() => import('./admin/AdminCrudPage'));
@@ -30,6 +32,7 @@ const AdminPastQuestions = lazy(() => import('./admin/AdminPastQuestions'));
 const AdminBooks = lazy(() => import('./admin/AdminBooks'));
 const AdminUsers = lazy(() => import('./admin/AdminUsers'));
 const AdminPrayers = lazy(() => import('./prayer-admin/AdminPrayers'));
+const AdminRegistrations = lazy(() => import('./admin/AdminRegistrations'));
 
 function PageLoader() {
   return <div className="loading">Loading...</div>;
@@ -71,6 +74,7 @@ function AppShell() {
           <Route path="/events" element={<Events />} />
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/notice-board" element={<NoticeBoard />} />
+          <Route path="/notice-board/:id" element={<NoticeDetail />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/gallery/:albumId" element={<AlbumDetail />} />
         </Routes>
@@ -78,6 +82,14 @@ function AppShell() {
       <Footer />
       <MobileTabBar moreOpen={moreOpen} setMoreOpen={setMoreOpen} />
     </>
+  );
+}
+
+function RegisterShell() {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Register />
+    </Suspense>
   );
 }
 
@@ -105,6 +117,7 @@ function AdminShell() {
           <Route path="past-questions" element={<AdminPastQuestions />} />
           <Route path="books" element={<AdminBooks />} />
           <Route path="prayers" element={<AdminPrayers />} />
+          <Route path="registrations" element={<AdminRegistrations />} />
           <Route path="users" element={<AdminUsers />} />
         </Route>
       </Routes>
@@ -117,6 +130,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/admin/*" element={<AdminShell />} />
+        <Route path="/register/*" element={<RegisterShell />} />
         <Route path="/*" element={<AppShell />} />
       </Routes>
     </BrowserRouter>

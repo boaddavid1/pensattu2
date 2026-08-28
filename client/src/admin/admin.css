@@ -957,3 +957,51 @@
 
   .admin-activity-time { margin-left: 0; width: 100%; }
 }
+
+/* ── Registrations admin: filters, pager, modal ── */
+.admin-input {
+  padding: 10px 12px;
+  border: 1px solid #d0d7e2;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+  color: #1f2937;
+}
+.admin-input:focus {
+  outline: none;
+  border-color: #13357e;
+  box-shadow: 0 0 0 3px rgba(19, 53, 126, 0.12);
+}
+.admin-pager { display: flex; gap: 8px; align-items: center; }
+.admin-pager span { font-size: 0.9rem; color: #555; }
+
+.admin-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.admin-modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 720px; width: 100%;
+  max-height: 90vh; overflow: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+.admin-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px; border-bottom: 1px solid #eee;
+  position: sticky; top: 0; background: #fff; z-index: 1;
+}
+.admin-modal-head h3 { margin: 0; color: #13357e; }
+.admin-modal-close {
+  background: none; border: none; font-size: 1.6rem; line-height: 1;
+  cursor: pointer; color: #888;
+}
+.admin-modal-body { padding: 22px; }
+.admin-modal-foot {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 14px 22px; border-top: 1px solid #eee;
+  position: sticky; bottom: 0; background: #fff;
+}

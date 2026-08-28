@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
+import { Link } from 'react-router-dom';
+import { api, getImageUrl } from '../api';
 
 export default function NoticeBoard() {
   const [items, setItems] = useState([]);
@@ -32,11 +33,15 @@ export default function NoticeBoard() {
           ) : (
             <div className="feed-grid">
               {items.map((item) => (
-                <article className="feed-card" key={item.title + item.date}>
-                  <div className="feed-meta">{item.date}</div>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </article>
+                <Link to={`/notice-board/${item.id}`} className="news-card" key={item.id || item.title + item.date}>
+                  <div className="news-card-img">
+                    <img src={getImageUrl(item.image_url) || '/images/pensafallback-bw.png'} alt={item.title} />
+                  </div>
+                  <div className="news-card-body">
+                    <div className="feed-meta">{item.date}</div>
+                    <h3>{item.title}</h3>
+                  </div>
+                </Link>
               ))}
             </div>
           )}

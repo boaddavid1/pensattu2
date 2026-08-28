@@ -61,6 +61,7 @@ const moreLinks = [
   { to: '/announcements', label: 'Announcements' },
   { to: '/notice-board', label: 'News' },
   { to: '/gallery', label: 'Gallery' },
+  { to: '/register', label: 'Register' },
 ];
 
 export default function MobileTabBar({ moreOpen, setMoreOpen }) {

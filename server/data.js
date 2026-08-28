@@ -60,10 +60,10 @@ export const announcements = [
 ];
 
 export const notices = [
-  { date: 'Aug 12, 2026', title: 'Office hours update', body: 'The church office is open Tuesday through Friday, 9:00 AM to 4:00 PM. Appointments outside these hours are available on request.' },
-  { date: 'Aug 8, 2026', title: 'Serving team recruitment', body: 'We are looking for more volunteers in ushering, hospitality, and media for the next quarter. Speak to a team lead this Sunday.' },
-  { date: 'Aug 1, 2026', title: 'Parking on event days', body: 'For larger events, please use the secondary lot behind the building and arrive a few minutes early.' },
-  { date: 'Jul 25, 2026', title: 'Building maintenance weekend', body: 'The church building will be closed for deep cleaning on the last Saturday of the month. Online prayer will continue as usual.' },
+  { id: 1, date: 'Aug 12, 2026', title: 'Office hours update', excerpt: 'Updated office hours for the church office.', body: 'The church office is open Tuesday through Friday, 9:00 AM to 4:00 PM. Appointments outside these hours are available on request.', image_url: '/images/pensafallback-bw.png' },
+  { id: 2, date: 'Aug 8, 2026', title: 'Serving team recruitment', excerpt: 'Volunteers needed for ushering, hospitality, and media.', body: 'We are looking for more volunteers in ushering, hospitality, and media for the next quarter. Speak to a team lead this Sunday.', image_url: '/images/pensafallback-bw.png' },
+  { id: 3, date: 'Aug 1, 2026', title: 'Parking on event days', excerpt: 'Use the secondary lot for larger events.', body: 'For larger events, please use the secondary lot behind the building and arrive a few minutes early.', image_url: '/images/pensafallback-bw.png' },
+  { id: 4, date: 'Jul 25, 2026', title: 'Building maintenance weekend', excerpt: 'Building closed for deep cleaning.', body: 'The church building will be closed for deep cleaning on the last Saturday of the month. Online prayer will continue as usual.', image_url: '/images/pensafallback-bw.png' },
 ];
 
 export const galleryAlbums = [
