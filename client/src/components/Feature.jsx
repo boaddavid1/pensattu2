@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api.js';
+import { api, getImageUrl } from '../api.js';
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&q=80';
 
 export default function Feature() {
   const [events, setEvents] = useState([]);
@@ -7,10 +9,15 @@ export default function Feature() {
   useEffect(() => {
     api.get('/events')
       .then((data) => {
-        if (Array.isArray(data) && data.length) setEvents(data.slice(0, 3));
+        if (Array.isArray(data)) setEvents(data);
       })
       .catch(() => {});
   }, []);
+
+  const featured = events.slice(0, 2);
+  const remaining = events.length - featured.length;
+  const featureImage = events.find((e) => e.image_url)?.image_url;
+  const imgSrc = featureImage ? getImageUrl(featureImage) : FALLBACK_IMAGE;
 
   const fmtDay = (dateStr) => new Date(dateStr).getDate();
   const fmtDate = (start, end) => {
@@ -28,13 +35,13 @@ export default function Feature() {
     <section className="feature" id="work">
       <div className="wrap feature-grid">
         <div className="feature-media">
-          <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&q=80" alt="Church event crowd" />
+          <img src={imgSrc} alt={events[0]?.title || 'Upcoming event'} />
         </div>
         <div>
           <span className="eyebrow">Upcoming Events</span>
           <h2>What&apos;s happening <span style={{ color: 'var(--moss)' }}>next</span>.</h2>
           <div className="feature-list">
-            {events.map((e) => (
+            {featured.map((e) => (
               <div className="feature-row" key={e.id}>
                 <div className="ic">{fmtDay(e.event_date)}</div>
                 <div>
@@ -46,6 +53,15 @@ export default function Feature() {
                 </div>
               </div>
             ))}
+            {remaining > 0 && (
+              <a href="/events" className="feature-row feature-more" key="more">
+                <div className="ic">+{remaining}</div>
+                <div>
+                  <h4>More upcoming events</h4>
+                  <p>{remaining} more {remaining === 1 ? 'event' : 'events'} on the calendar — see the full schedule.</p>
+                </div>
+              </a>
+            )}
           </div>
           <a href="/events" className="btn btn-dark">
             View all events <span className="btn-arrow" style={{ background: 'var(--moss)', color: 'var(--pine-deep)' }}>→</span>

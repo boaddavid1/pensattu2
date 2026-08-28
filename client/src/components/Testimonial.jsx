@@ -5,7 +5,7 @@ export default function Testimonial() {
         <div className="testi-media">
           <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&q=80" alt="Member of the congregation" />
           <div className="testi-rating">
-            <strong>9AM & 11AM</strong>
+            <strong>6:30 AM - 9:30 AM</strong>
             <div className="stars">Every Sunday</div>
             <span>In person & online</span>
           </div>

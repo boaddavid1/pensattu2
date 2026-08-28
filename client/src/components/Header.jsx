@@ -106,7 +106,7 @@ export default function Header() {
         <div className="nav-right">
           <div className="nav-phone">
             <div className="ic">☎</div>
-            <div><strong>+233 24 000 0000</strong><small>Sun 9AM & 11AM</small></div>
+            <div><strong>+233553070627</strong><small>Sun 6:30am - 9:30am</small></div>
           </div>
           <Link to="/contact" className="btn btn-dark">Contact us</Link>
         </div>

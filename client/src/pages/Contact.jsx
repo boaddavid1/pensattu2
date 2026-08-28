@@ -74,7 +74,7 @@ export default function Contact() {
             <div className="ic">☎</div>
             <h3>Call Us</h3>
             <p>Mon–Fri, 9am–5pm</p>
-            <a href="tel:+233240000000">+233 24 000 0000</a>
+            <a href="tel:+233553070627">+233553070627</a>
           </div>
           <div className="quick-card">
             <div className="ic">✉️</div>

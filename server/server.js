@@ -38,10 +38,12 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Ensure required tables exist
-syncSchema();
-secSyncSchema();
-alumniSyncSchema();
+// Ensure required tables exist (run in background; the server stays up and
+// serves demo/fallback data even if the database is unreachable).
+pool.on('error', () => {});
+syncSchema().catch(() => {});
+secSyncSchema().catch(() => {});
+alumniSyncSchema().catch(() => {});
 
 // Health check
 app.get('/api/health', async (req, res) => {

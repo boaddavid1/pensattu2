@@ -58,8 +58,8 @@ export default function Footer() {
             <ul className="foot-contact">
               <li>📍 12 Cantonments Road, Accra, GH</li>
               <li>✉️ hello@pensattu.example</li>
-              <li>☎ +233 24 000 0000</li>
-              <li>🕊 Sundays, 9:00 AM & 11:00 AM</li>
+              <li>☎ +233553070627</li>
+              <li>🕊 Sundays, 6:30 AM - 9:30 AM</li>
             </ul>
           </div>
         </div>

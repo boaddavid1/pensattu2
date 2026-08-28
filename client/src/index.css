@@ -254,6 +254,9 @@ section { padding: 100px 0; }
 }
 .feature-row h4 { font-family: 'Inter', sans-serif; font-size: 15.5px; font-weight: 700; margin-bottom: 4px; }
 .feature-row p { font-size: 13.6px; color: var(--ink-soft); line-height: 1.55; }
+.feature-more { text-decoration: none; color: inherit; cursor: pointer; transition: border-color .2s, box-shadow .2s, transform .2s; border-style: dashed; }
+.feature-more:hover { border-color: var(--moss); box-shadow: 0 6px 18px rgba(10,42,32,.08); transform: translateY(-2px); }
+.feature-more .ic { background: transparent; border: 1.5px dashed var(--moss); color: var(--moss); }
 
 /* ===== TEAM ===== */
 .team { background: #fff; }
