@@ -59,7 +59,7 @@ export default function Leadership() {
               {seniorLeaders.map((p) => (
                 <div className="featured-card" key={p.id} onClick={() => setModal(p)}>
                   <div className="img">
-                    <img src={getImageUrl(p.image_url) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
+                    <img src={getImageUrl(p.image_url) || '/images/pensafallback-bw.png'} alt={p.name} />
                   </div>
                   <div className="body">
                     <span className="role">{p.role}</span>
@@ -89,7 +89,7 @@ export default function Leadership() {
                 {selectedLeaders.map((p) => (
                   <div className="featured-card" key={p.id} onClick={() => setModal(p)}>
                     <div className="img">
-                      <img src={getImageUrl(p.image_url) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={p.name} />
+                      <img src={getImageUrl(p.image_url) || '/images/pensafallback-bw.png'} alt={p.name} />
                     </div>
                     <div className="body">
                       <span className="role">{p.role}</span>
@@ -146,7 +146,7 @@ export default function Leadership() {
           <div className="lead-modal-card" onClick={(e) => e.stopPropagation()}>
             <button className="lead-modal-close" onClick={() => setModal(null)}>✕</button>
             <div className="lead-modal-img">
-              <img src={getImageUrl(modal.image_url) || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80'} alt={modal.name} />
+              <img src={getImageUrl(modal.image_url) || '/images/pensafallback-bw.png'} alt={modal.name} />
             </div>
             <div className="lead-modal-body">
               <span className="lead-modal-role">{modal.role}</span>

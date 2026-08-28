@@ -4,6 +4,7 @@ const API_ROOT = API_BASE.replace(/\/api\/?$/, '');
 export function getImageUrl(url) {
   if (!url) return '';
   if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/images/')) return url;
   if (url.startsWith('/')) return `${API_ROOT}${url}`;
   return `${API_ROOT}/${url}`;
 }

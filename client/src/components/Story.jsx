@@ -13,7 +13,7 @@ export default function Story() {
             <Link to="/contact" className="btn btn-primary">read more</Link>
           </div>
           <div className="story-media">
-            <video controls autoPlay muted loop playsInline poster="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=800&q=80">
+            <video controls autoPlay muted loop playsInline poster="/images/pensafallback-bw.png">
               <source src="/videos/story.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>

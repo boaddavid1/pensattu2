@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, getImageUrl } from '../api.js';
 
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&q=80';
+const FALLBACK_IMAGE = '/images/pensafallback-bw.png';
 
 export default function Feature() {
   const [events, setEvents] = useState([]);

@@ -11,7 +11,7 @@ const SLIDES = [
     desc: 'PENSA TTU is a community built around honest worship, real friendship, and a Word that meets you where you are — whether this is your first Sunday or your five hundredth.',
   },
   {
-    img: 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=1600&q=80',
+    img: '/images/pensafallback-bw.png',
     alt: 'Community gathering',
     pre: 'A place to belong, grow and ',
     em: 'serve',
@@ -19,7 +19,7 @@ const SLIDES = [
     desc: 'From students to young professionals, everyone finds a seat at the table. Growth happens in circles, not rows.',
   },
   {
-    img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=1600&q=80',
+    img: '/images/pensafallback-bw.png',
     alt: 'Hands raised in worship',
     pre: 'Worship that lifts your whole ',
     em: 'life',
@@ -27,7 +27,7 @@ const SLIDES = [
     desc: 'Honest worship and a Word that meets you right where you are — every single Sunday.',
   },
   {
-    img: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&q=80',
+    img: '/images/pensafallback-bw.png',
     alt: 'Friends laughing together',
     pre: 'Real friendships that last beyond ',
     em: 'Sunday',

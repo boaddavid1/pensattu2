@@ -5,7 +5,7 @@ export default function About() {
     <>
       <section className="page-hero about-page-hero">
         <div className="page-hero-bg">
-          <img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=1600&q=80" alt="Congregation gathered in worship" />
+          <img src="/images/pensafallback-bw.png" alt="Congregation gathered in worship" />
         </div>
         <div className="page-hero-inner">
           <span className="eyebrow">About PENSA TTU</span>
@@ -29,7 +29,7 @@ export default function About() {
             </Link>
           </div>
           <div className="story-media">
-            <img src="https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=800&q=80" alt="Inside the PENSA TTU sanctuary" />
+            <img src="/images/pensafallback-bw.png" alt="Inside the PENSA TTU sanctuary" />
           </div>
         </div>
       </section>

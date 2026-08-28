@@ -16,7 +16,7 @@ export default function Announcements() {
     <main className="feed-page announcements-page">
       <section className="page-hero">
         <div className="page-hero-bg">
-          <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1600&q=80" alt="Church community gathering" />
+          <img src="/images/pensafallback-bw.png" alt="Church community gathering" />
         </div>
         <div className="page-hero-inner">
           <span className="eyebrow">Announcements</span>

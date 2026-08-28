@@ -10,18 +10,18 @@ const filters = [
 ];
 
 const sermons = [
-  { id: 1, tag: 'Sermon', duration: '32 min', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80', meta: 'Aug 10, 2026', title: 'What It Means to Belong Before You Believe', speaker: 'Pastor Mark Johnson' },
-  { id: 2, tag: 'Series', duration: '28 min', img: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=500&q=80', meta: 'Aug 3, 2026', title: 'Faith and Doubt Aren\'t Opposites', speaker: 'Pastor Mark Johnson' },
-  { id: 3, tag: 'Youth', duration: '24 min', img: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80', meta: 'Jul 27, 2026', title: 'Finding Your Identity Before the World Names You', speaker: 'Pastor Alex Mensah' },
-  { id: 4, tag: 'Sermon', duration: '35 min', img: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', meta: 'Jul 20, 2026', title: 'Grace Over Performance', speaker: 'Pastor Mark Johnson' },
-  { id: 5, tag: 'Guest Speaker', duration: '30 min', img: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80', meta: 'Jul 13, 2026', title: 'Worship Isn\'t a Song, It\'s a Lifestyle', speaker: 'Pastor Helen Owusu' },
-  { id: 6, tag: 'Series', duration: '29 min', img: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80', meta: 'Jul 6, 2026', title: 'Loving the Neighborhood You Actually Live In', speaker: 'Pastor Mark Johnson' },
+  { id: 1, tag: 'Sermon', duration: '32 min', img: '/images/pensafallback-bw.png', meta: 'Aug 10, 2026', title: 'What It Means to Belong Before You Believe', speaker: 'Pastor Mark Johnson' },
+  { id: 2, tag: 'Series', duration: '28 min', img: '/images/pensafallback-bw.png', meta: 'Aug 3, 2026', title: 'Faith and Doubt Aren\'t Opposites', speaker: 'Pastor Mark Johnson' },
+  { id: 3, tag: 'Youth', duration: '24 min', img: '/images/pensafallback-bw.png', meta: 'Jul 27, 2026', title: 'Finding Your Identity Before the World Names You', speaker: 'Pastor Alex Mensah' },
+  { id: 4, tag: 'Sermon', duration: '35 min', img: '/images/pensafallback-bw.png', meta: 'Jul 20, 2026', title: 'Grace Over Performance', speaker: 'Pastor Mark Johnson' },
+  { id: 5, tag: 'Guest Speaker', duration: '30 min', img: '/images/pensafallback-bw.png', meta: 'Jul 13, 2026', title: 'Worship Isn\'t a Song, It\'s a Lifestyle', speaker: 'Pastor Helen Owusu' },
+  { id: 6, tag: 'Series', duration: '29 min', img: '/images/pensafallback-bw.png', meta: 'Jul 6, 2026', title: 'Loving the Neighborhood You Actually Live In', speaker: 'Pastor Mark Johnson' },
 ];
 
 const series = [
-  { title: 'Foundations', count: '6 messages', img: 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=500&q=80' },
-  { title: 'Grace in the Ordinary', count: '4 messages', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80' },
-  { title: 'Belonging', count: '5 messages', img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80' },
+  { title: 'Foundations', count: '6 messages', img: '/images/pensafallback-bw.png' },
+  { title: 'Grace in the Ordinary', count: '4 messages', img: '/images/pensafallback-bw.png' },
+  { title: 'Belonging', count: '5 messages', img: '/images/pensafallback-bw.png' },
 ];
 
 export default function Sermons() {
@@ -52,7 +52,7 @@ export default function Sermons() {
         <div className="wrap">
           <div className="featured-card">
             <div className="featured-media">
-              <img src="https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800&q=80" alt="Latest Sunday sermon" />
+              <img src="/images/pensafallback-bw.png" alt="Latest Sunday sermon" />
               <div className="play"><span>▶</span></div>
             </div>
             <div className="featured-body">

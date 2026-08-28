@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { api, getImageUrl } from '../api.js';
 
 const fallback = [
-  { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80' },
-  { id: 2, name: 'Pastor Helen Owusu', role: 'Worship Pastor', image_url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=80' },
-  { id: 3, name: 'Pastor Alex Mensah', role: 'Youth Pastor', image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80' },
-  { id: 4, name: 'Elder Kwame Asante', role: 'Executive Pastor', image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80' },
+  { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: '/images/pensafallback-bw.png' },
+  { id: 2, name: 'Pastor Helen Owusu', role: 'Worship Pastor', image_url: '/images/pensafallback-bw.png' },
+  { id: 3, name: 'Pastor Alex Mensah', role: 'Youth Pastor', image_url: '/images/pensafallback-bw.png' },
+  { id: 4, name: 'Elder Kwame Asante', role: 'Executive Pastor', image_url: '/images/pensafallback-bw.png' },
 ];
 
 function getHomeTeam(data) {

@@ -2,14 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { api, getImageUrl } from '../api.js';
 
 const fallbackPast = [
-  { day: '17', month: 'AUG', year: '2026', title: 'Back to School Sunday', img: 'https://images.unsplash.com/photo-1503676267431-0d268eb132b9?w=600&q=80' },
-  { day: '10', month: 'AUG', year: '2026', title: 'Worship Night', img: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80' },
-  { day: '03', month: 'AUG', year: '2026', title: 'Baptism Sunday', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80' },
-  { day: '27', month: 'JUL', year: '2026', title: 'Family Picnic', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80' },
-  { day: '20', month: 'JUL', year: '2026', title: 'Missions Conference', img: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=600&q=80' },
-  { day: '13', month: 'JUL', year: '2026', title: 'Youth Camp Finale', img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80' },
-  { day: '06', month: 'JUL', year: '2026', title: 'Prayer & Fasting', img: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80' },
-  { day: '29', month: 'JUN', year: '2026', title: 'Sunday Fellowship', img: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80' },
+  { day: '17', month: 'AUG', year: '2026', title: 'Back to School Sunday', img: '/images/pensafallback-bw.png' },
+  { day: '10', month: 'AUG', year: '2026', title: 'Worship Night', img: '/images/pensafallback-bw.png' },
+  { day: '03', month: 'AUG', year: '2026', title: 'Baptism Sunday', img: '/images/pensafallback-bw.png' },
+  { day: '27', month: 'JUL', year: '2026', title: 'Family Picnic', img: '/images/pensafallback-bw.png' },
+  { day: '20', month: 'JUL', year: '2026', title: 'Missions Conference', img: '/images/pensafallback-bw.png' },
+  { day: '13', month: 'JUL', year: '2026', title: 'Youth Camp Finale', img: '/images/pensafallback-bw.png' },
+  { day: '06', month: 'JUL', year: '2026', title: 'Prayer & Fasting', img: '/images/pensafallback-bw.png' },
+  { day: '29', month: 'JUN', year: '2026', title: 'Sunday Fellowship', img: '/images/pensafallback-bw.png' },
 ];
 
 function parseEvent(ev) {
@@ -33,7 +33,7 @@ function parseEvent(ev) {
     startTime,
     endTime,
     body: ev.description || '',
-    img: getImageUrl(ev.image_url) || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&q=80',
+    img: getImageUrl(ev.image_url) || '/images/pensafallback-bw.png',
   };
 }
 
@@ -84,7 +84,7 @@ export default function Events() {
             month: date ? date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '',
             year: date ? String(date.getFullYear()) : '',
             title: ev.title,
-            img: getImageUrl(ev.image_url) || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80',
+            img: getImageUrl(ev.image_url) || '/images/pensafallback-bw.png',
           };
         });
         if (items.length) setPast(items);

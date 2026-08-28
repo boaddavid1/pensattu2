@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { api, getImageUrl } from '../api.js';
 
 const fallback = [
-  { id: 1, title: 'What it means to belong before you believe', category: 'Sermon', duration: '32 min', image_url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80' },
-  { id: 2, title: 'Why we built community groups around neighborhoods', category: 'Community', duration: '4 min read', image_url: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80' },
-  { id: 3, title: 'Inside our latest outreach across Accra', category: 'Outreach', duration: '3 min read', image_url: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80' },
+  { id: 1, title: 'What it means to belong before you believe', category: 'Sermon', duration: '32 min', image_url: '/images/pensafallback-bw.png' },
+  { id: 2, title: 'Why we built community groups around neighborhoods', category: 'Community', duration: '4 min read', image_url: '/images/pensafallback-bw.png' },
+  { id: 3, title: 'Inside our latest outreach across Accra', category: 'Outreach', duration: '3 min read', image_url: '/images/pensafallback-bw.png' },
 ];
 
 export default function Blog() {

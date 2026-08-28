@@ -5,28 +5,28 @@ export const coreValues = [
 ];
 
 export const ministries = [
-  { id: 1, title: 'Worship & Music', description: "Musicians, singers and sound volunteers shaping every Sunday's atmosphere.", image_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&q=80' },
-  { id: 2, title: 'Outreach & Missions', description: 'Serving neighborhoods across Accra with food, care, and practical help.', image_url: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80' },
-  { id: 3, title: 'Counseling & Care', description: "One-on-one time with our pastoral team, in confidence, whenever it's needed.", image_url: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80' },
-  { id: 4, title: 'Bible Study Groups', description: 'Weekday gatherings that go deeper into scripture, together.', image_url: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=500&q=80' },
+  { id: 1, title: 'Worship & Music', description: "Musicians, singers and sound volunteers shaping every Sunday's atmosphere.", image_url: '/images/pensafallback-bw.png' },
+  { id: 2, title: 'Outreach & Missions', description: 'Serving neighborhoods across Accra with food, care, and practical help.', image_url: '/images/pensafallback-bw.png' },
+  { id: 3, title: 'Counseling & Care', description: "One-on-one time with our pastoral team, in confidence, whenever it's needed.", image_url: '/images/pensafallback-bw.png' },
+  { id: 4, title: 'Bible Study Groups', description: 'Weekday gatherings that go deeper into scripture, together.', image_url: '/images/pensafallback-bw.png' },
 ];
 
 export const sermons = [
-  { id: 1, title: 'What it means to belong before you believe', speaker: 'Pastor Mark Johnson', category: 'Sermon', duration: '32 min', image_url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=500&q=80', published_at: '2026-08-09' },
-  { id: 2, title: 'Why we built community groups around neighborhoods', speaker: 'Pastor Helen Owusu', category: 'Community', duration: '4 min read', image_url: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80', published_at: '2026-08-06' },
-  { id: 3, title: 'Inside our latest outreach across Accra', speaker: 'Pastor Alex Mensah', category: 'Outreach', duration: '3 min read', image_url: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80', published_at: '2026-08-02' },
+  { id: 1, title: 'What it means to belong before you believe', speaker: 'Pastor Mark Johnson', category: 'Sermon', duration: '32 min', image_url: '/images/pensafallback-bw.png', published_at: '2026-08-09' },
+  { id: 2, title: 'Why we built community groups around neighborhoods', speaker: 'Pastor Helen Owusu', category: 'Community', duration: '4 min read', image_url: '/images/pensafallback-bw.png', published_at: '2026-08-06' },
+  { id: 3, title: 'Inside our latest outreach across Accra', speaker: 'Pastor Alex Mensah', category: 'Outreach', duration: '3 min read', image_url: '/images/pensafallback-bw.png', published_at: '2026-08-02' },
 ];
 
 export const leadership = [
-  { id: 1, name: 'Pastor John and Mrs. Essah', role: 'Traveling Secretary', category: 'pastor', academic_year: 'N/A', description: 'Traveling Secretary For The Takoradi Sector', image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80', display_order: 0, is_active: 1 },
-  { id: 2, name: 'Elder Ebenezer Omano', role: 'Evangelism Secretary', category: 'ec', academic_year: '2025/2026', description: '', image_url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=80', display_order: 4, is_active: 1 },
+  { id: 1, name: 'Pastor John and Mrs. Essah', role: 'Traveling Secretary', category: 'pastor', academic_year: 'N/A', description: 'Traveling Secretary For The Takoradi Sector', image_url: '/images/pensafallback-bw.png', display_order: 0, is_active: 1 },
+  { id: 2, name: 'Elder Ebenezer Omano', role: 'Evangelism Secretary', category: 'ec', academic_year: '2025/2026', description: '', image_url: '/images/pensafallback-bw.png', display_order: 4, is_active: 1 },
 ];
 
 export const team = [
-  { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80', sort_order: 1 },
-  { id: 2, name: 'Pastor Helen Owusu', role: 'Worship Pastor', image_url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=80', sort_order: 2 },
-  { id: 3, name: 'Pastor Alex Mensah', role: 'Youth Pastor', image_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&q=80', sort_order: 3 },
-  { id: 4, name: 'Elder Kwame Asante', role: 'Executive Pastor', image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80', sort_order: 4 },
+  { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: '/images/pensafallback-bw.png', sort_order: 1 },
+  { id: 2, name: 'Pastor Helen Owusu', role: 'Worship Pastor', image_url: '/images/pensafallback-bw.png', sort_order: 2 },
+  { id: 3, name: 'Pastor Alex Mensah', role: 'Youth Pastor', image_url: '/images/pensafallback-bw.png', sort_order: 3 },
+  { id: 4, name: 'Elder Kwame Asante', role: 'Executive Pastor', image_url: '/images/pensafallback-bw.png', sort_order: 4 },
 ];
 
 export const events = [
@@ -41,15 +41,15 @@ export const contacts = [];
 export const contactMessages = [];
 
 export const news = [
-  { id: 1, display_order: 0, title: 'Welcome to PENSA TTU', content: 'We are excited to have you join our fellowship.', excerpt: 'Join us for weekly services and events.', image_url: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', category: 'General', created_at: '2026-08-23' },
+  { id: 1, display_order: 0, title: 'Welcome to PENSA TTU', content: 'We are excited to have you join our fellowship.', excerpt: 'Join us for weekly services and events.', image_url: '/images/pensafallback-bw.png', category: 'General', created_at: '2026-08-23' },
 ];
 
 export const albums = [
-  { id: 1, name: 'Sunday Worship', description: 'Weekly worship services', cover_image: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', created_at: '2026-08-23' },
+  { id: 1, name: 'Sunday Worship', description: 'Weekly worship services', cover_image: '/images/pensafallback-bw.png', created_at: '2026-08-23' },
 ];
 
 export const gallery = [
-  { id: 1, title: 'Worship Service', category: 'worship', description: 'Sunday worship', image_url: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80', created_at: '2026-08-23', album_id: 1 },
+  { id: 1, title: 'Worship Service', category: 'worship', description: 'Sunday worship', image_url: '/images/pensafallback-bw.png', created_at: '2026-08-23', album_id: 1 },
 ];
 
 export const announcements = [
@@ -70,44 +70,44 @@ export const galleryAlbums = [
   {
     id: 'worship',
     title: 'Sunday Worship',
-    cover: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=500&q=80',
+    cover: '/images/pensafallback-bw.png',
     count: '4 photos',
     items: [
-      { src: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?w=600&q=80', alt: 'Hands raised in worship', category: 'Worship', caption: 'Sunday morning, 11AM' },
-      { src: 'https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=600&q=80', alt: 'Sanctuary interior', category: 'Worship', caption: 'Our sanctuary' },
-      { src: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80', alt: 'Worship band', category: 'Worship', caption: 'Music ministry' },
-      { src: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&q=80', alt: 'Sunday service', category: 'Worship', caption: 'A packed 9AM service' },
+      { src: '/images/pensafallback-bw.png', alt: 'Hands raised in worship', category: 'Worship', caption: 'Sunday morning, 11AM' },
+      { src: '/images/pensafallback-bw.png', alt: 'Sanctuary interior', category: 'Worship', caption: 'Our sanctuary' },
+      { src: '/images/pensafallback-bw.png', alt: 'Worship band', category: 'Worship', caption: 'Music ministry' },
+      { src: '/images/pensafallback-bw.png', alt: 'Sunday service', category: 'Worship', caption: 'A packed 9AM service' },
     ],
   },
   {
     id: 'community',
     title: 'Community Life',
-    cover: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=500&q=80',
+    cover: '/images/pensafallback-bw.png',
     count: '3 photos',
     items: [
-      { src: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80', alt: 'Community group meeting', category: 'Community', caption: 'East Legon group night' },
-      { src: 'https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=600&q=80', alt: 'Bible study group', category: 'Community', caption: 'Midweek Bible study' },
-      { src: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=600&q=80', alt: 'Greeters welcoming visitors', category: 'Community', caption: 'First-Sunday greeters' },
+      { src: '/images/pensafallback-bw.png', alt: 'Community group meeting', category: 'Community', caption: 'East Legon group night' },
+      { src: '/images/pensafallback-bw.png', alt: 'Bible study group', category: 'Community', caption: 'Midweek Bible study' },
+      { src: '/images/pensafallback-bw.png', alt: 'Greeters welcoming visitors', category: 'Community', caption: 'First-Sunday greeters' },
     ],
   },
   {
     id: 'outreach',
     title: 'Outreach',
-    cover: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=500&q=80',
+    cover: '/images/pensafallback-bw.png',
     count: '2 photos',
     items: [
-      { src: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?w=600&q=80', alt: 'Outreach event', category: 'Outreach', caption: 'Serving Osu this spring' },
-      { src: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?w=600&q=80', alt: 'Planning an outreach event', category: 'Outreach', caption: 'Getting ready to serve' },
+      { src: '/images/pensafallback-bw.png', alt: 'Outreach event', category: 'Outreach', caption: 'Serving Osu this spring' },
+      { src: '/images/pensafallback-bw.png', alt: 'Planning an outreach event', category: 'Outreach', caption: 'Getting ready to serve' },
     ],
   },
   {
     id: 'youth',
     title: 'Youth & Kids',
-    cover: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=500&q=80',
+    cover: '/images/pensafallback-bw.png',
     count: '2 photos',
     items: [
-      { src: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=600&q=80', alt: 'Youth ministry gathering', category: 'Youth', caption: 'Friday youth night' },
-      { src: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&q=80', alt: 'Youth small group', category: 'Youth', caption: 'Youth small group' },
+      { src: '/images/pensafallback-bw.png', alt: 'Youth ministry gathering', category: 'Youth', caption: 'Friday youth night' },
+      { src: '/images/pensafallback-bw.png', alt: 'Youth small group', category: 'Youth', caption: 'Youth small group' },
     ],
   },
 ];
