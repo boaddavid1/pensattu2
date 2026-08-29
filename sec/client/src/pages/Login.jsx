@@ -110,9 +110,6 @@ export default function Login() {
                 {loading ? 'Signing in...' : <>Sign In <i className='bx bx-log-in'></i></>}
               </button>
             </div>
-            <div className="switch-form">
-              <span>Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); setMode('register'); }}>Register</a></span>
-            </div>
           </form>
         ) : (
           <form className="register-form" onSubmit={handleRegister} style={{ left: '50%', opacity: 1 }}>
