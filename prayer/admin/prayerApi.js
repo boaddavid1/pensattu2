@@ -3,7 +3,7 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 function getToken() {
-  return localStorage.getItem('pensa_admin_token');
+  return sessionStorage.getItem('pensa_admin_token');
 }
 
 async function request(path, options = {}) {
@@ -15,7 +15,7 @@ async function request(path, options = {}) {
     ...options,
   });
   if (res.status === 401) {
-    localStorage.removeItem('pensa_admin_token');
+    sessionStorage.removeItem('pensa_admin_token');
     if (typeof window !== 'undefined' && !path.startsWith('/admin/login')) {
       window.location.href = '/admin/login';
     }

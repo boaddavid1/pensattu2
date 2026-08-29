@@ -1,0 +1,36 @@
+{
+  "name": "PENSA TTU Registration",
+  "short_name": "PENSA Reg",
+  "description": "PENSA TTU Member Registration Portal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#13357e",
+  "theme_color": "#13357e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/pns.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pns.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pns.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pns.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

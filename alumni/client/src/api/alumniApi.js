@@ -2,7 +2,7 @@
 const API_BASE = import.meta.env.VITE_ALUMNI_API_URL || import.meta.env.VITE_API_URL || '/api/alumni';
 
 function getToken() {
-  return localStorage.getItem('alumni_admin_token');
+  return sessionStorage.getItem('alumni_admin_token');
 }
 
 async function request(path, options = {}) {
@@ -14,8 +14,8 @@ async function request(path, options = {}) {
     ...options,
   });
   if (res.status === 401) {
-    localStorage.removeItem('alumni_admin_token');
-    localStorage.removeItem('alumni_admin_user');
+    sessionStorage.removeItem('alumni_admin_token');
+    sessionStorage.removeItem('alumni_admin_user');
     window.location.href = '/login';
     throw new Error('Session expired');
   }

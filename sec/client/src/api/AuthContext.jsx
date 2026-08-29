@@ -9,8 +9,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('sec_admin_token');
-    const savedUser = localStorage.getItem('sec_admin_user');
+    const token = sessionStorage.getItem('sec_admin_token');
+    const savedUser = sessionStorage.getItem('sec_admin_user');
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -20,8 +20,8 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     const data = await secApi.login({ email, password });
     if (data.success) {
-      localStorage.setItem('sec_admin_token', data.token);
-      localStorage.setItem('sec_admin_user', JSON.stringify(data.user));
+      sessionStorage.setItem('sec_admin_token', data.token);
+      sessionStorage.setItem('sec_admin_user', JSON.stringify(data.user));
       setUser(data.user);
     }
     return data;
@@ -32,8 +32,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('sec_admin_token');
-    localStorage.removeItem('sec_admin_user');
+    sessionStorage.removeItem('sec_admin_token');
+    sessionStorage.removeItem('sec_admin_user');
     setUser(null);
   }, []);
 

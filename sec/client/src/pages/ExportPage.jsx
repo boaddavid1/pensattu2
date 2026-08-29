@@ -22,7 +22,7 @@ export default function ExportPage() {
   const handleExport = () => {
     const url = secApi.exportUrl(buildParams());
     // Open with auth token via fetch
-    const token = localStorage.getItem('sec_admin_token');
+    const token = sessionStorage.getItem('sec_admin_token');
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.blob())
       .then(blob => {

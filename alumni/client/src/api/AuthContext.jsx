@@ -9,13 +9,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('alumni_admin_token');
-    const savedUser = localStorage.getItem('alumni_admin_user');
+    const token = sessionStorage.getItem('alumni_admin_token');
+    const savedUser = sessionStorage.getItem('alumni_admin_user');
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
       alumniApi.me().then(data => setUser(data.user)).catch(() => {
-        localStorage.removeItem('alumni_admin_token');
-        localStorage.removeItem('alumni_admin_user');
+        sessionStorage.removeItem('alumni_admin_token');
+        sessionStorage.removeItem('alumni_admin_user');
         setUser(null);
       }).finally(() => setLoading(false));
     } else {
@@ -25,15 +25,15 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (username, password) => {
     const data = await alumniApi.login(username, password);
-    localStorage.setItem('alumni_admin_token', data.token);
-    localStorage.setItem('alumni_admin_user', JSON.stringify(data.user));
+    sessionStorage.setItem('alumni_admin_token', data.token);
+    sessionStorage.setItem('alumni_admin_user', JSON.stringify(data.user));
     setUser(data.user);
     return data;
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('alumni_admin_token');
-    localStorage.removeItem('alumni_admin_user');
+    sessionStorage.removeItem('alumni_admin_token');
+    sessionStorage.removeItem('alumni_admin_user');
     setUser(null);
   }, []);
 

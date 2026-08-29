@@ -8,7 +8,7 @@ export default function PwaPrompt() {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
-    const alreadyDismissed = localStorage.getItem('pensa-pwa-prompt-dismissed');
+    const alreadyDismissed = sessionStorage.getItem('pensa-pwa-prompt-dismissed');
     setDismissed(alreadyDismissed === '1');
 
     if ('Notification' in window) {
@@ -58,7 +58,7 @@ export default function PwaPrompt() {
   }
 
   function handleDismiss() {
-    localStorage.setItem('pensa-pwa-prompt-dismissed', '1');
+    sessionStorage.setItem('pensa-pwa-prompt-dismissed', '1');
     setDismissed(true);
     setShow(false);
   }

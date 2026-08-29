@@ -2,7 +2,7 @@
 const API_BASE = import.meta.env.VITE_SEC_API_URL || import.meta.env.VITE_API_URL || '/api/sec';
 
 function getToken() {
-  return localStorage.getItem('sec_admin_token');
+  return sessionStorage.getItem('sec_admin_token');
 }
 
 async function request(path, options = {}) {
@@ -14,8 +14,8 @@ async function request(path, options = {}) {
     ...options,
   });
   if (res.status === 401) {
-    localStorage.removeItem('sec_admin_token');
-    localStorage.removeItem('sec_admin_user');
+    sessionStorage.removeItem('sec_admin_token');
+    sessionStorage.removeItem('sec_admin_user');
     if (typeof window !== 'undefined' && !window.location.pathname.endsWith('/login')) {
       window.location.href = '/login';
     }

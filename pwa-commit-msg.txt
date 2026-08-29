@@ -1,0 +1,17 @@
+Add PWA to all modules and replace localStorage with sessionStorage
+
+PWA setup (manifest.json, sw.js, service worker registration, meta tags)
+added to reg-portal, library, sec/client, alumni/client, and prayer/public.
+The main site (client/) already had PWA.
+
+All localStorage usage across the project replaced with sessionStorage so
+no auth tokens or user data persist on the device after the browser closes.
+Affected: adminApi, AdminLayout, PwaPrompt (main site); alumniApi,
+AuthContext, Dashboard (alumni); secApi, AuthContext, ExportPage (sec);
+prayerApi, students.html (prayer); api.js (library).
+
+All 5 builds verified passing.
+
+Generated with [Devin](https://devin.ai)
+
+Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>

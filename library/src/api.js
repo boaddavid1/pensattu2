@@ -1,15 +1,15 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 function getToken() {
-  return localStorage.getItem('pensa_library_token');
+  return sessionStorage.getItem('pensa_library_token');
 }
 
 function setToken(token) {
-  localStorage.setItem('pensa_library_token', token);
+  sessionStorage.setItem('pensa_library_token', token);
 }
 
 function removeToken() {
-  localStorage.removeItem('pensa_library_token');
+  sessionStorage.removeItem('pensa_library_token');
 }
 
 async function request(path, options = {}) {

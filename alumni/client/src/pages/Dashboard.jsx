@@ -80,7 +80,7 @@ export default function Dashboard() {
   };
 
   const handleExport = (year) => {
-    const token = localStorage.getItem('alumni_admin_token');
+    const token = sessionStorage.getItem('alumni_admin_token');
     fetch(alumniApi.exportAlumni(year), { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.blob())
       .then(blob => {

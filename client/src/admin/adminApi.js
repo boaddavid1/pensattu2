@@ -1,11 +1,11 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 function getToken() {
-  return localStorage.getItem('pensa_admin_token');
+  return sessionStorage.getItem('pensa_admin_token');
 }
 
 function removeToken() {
-  localStorage.removeItem('pensa_admin_token');
+  sessionStorage.removeItem('pensa_admin_token');
 }
 
 async function request(path, options = {}) {
@@ -34,7 +34,7 @@ export function isLoggedIn() {
 }
 
 export function setToken(token) {
-  localStorage.setItem('pensa_admin_token', token);
+  sessionStorage.setItem('pensa_admin_token', token);
 }
 
 export const adminApi = {

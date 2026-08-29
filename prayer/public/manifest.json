@@ -1,0 +1,36 @@
+{
+  "name": "PENSA TTU Prayer Portal",
+  "short_name": "PENSA Prayer",
+  "description": "Operation Paga — PENSA TTU Prayer Portal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1a8a",
+  "theme_color": "#0a1a8a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/pns.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pns.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pns.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/ps.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

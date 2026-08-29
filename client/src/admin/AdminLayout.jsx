@@ -39,7 +39,7 @@ export default function AdminLayout({ children }) {
   }, [navigate]);
 
   function handleLogout() {
-    localStorage.removeItem('pensa_admin_token');
+    sessionStorage.removeItem('pensa_admin_token');
     navigate('/admin/login', { replace: true });
   }
 
