@@ -3,6 +3,7 @@ import { fetchPastQuestions, fetchMeta, trackDownload, fetchBooks, fetchBook, fe
 import Landing from './Landing';
 import AuthPage from './AuthPage';
 import Profile from './Profile';
+import PwaPrompt from './PwaPrompt';
 
 // Read initial view/tab from the URL hash so refreshes keep the user's place.
 // Hash format: #browse/past-questions, #browse/books, #profile
@@ -167,6 +168,7 @@ export default function App() {
             </div>
           </div>
         )}
+        <PwaPrompt />
       </>
     );
   }
@@ -449,6 +451,7 @@ export default function App() {
           </div>
         </div>
       )}
+      <PwaPrompt />
     </div>
   );
 }
