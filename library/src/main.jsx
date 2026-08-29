@@ -11,8 +11,21 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+// Remove the loading screen once React has mounted
+function removeLoader() {
+  const loader = document.getElementById('app-loader');
+  if (loader) {
+    loader.classList.add('hide');
+    setTimeout(() => loader.remove(), 600);
+  }
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
+
+// Give React a tick to paint, then fade out the loader
+setTimeout(removeLoader, 300);

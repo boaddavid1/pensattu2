@@ -13,8 +13,231 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <title>StudyVault — PENSA TTU Library & Past Question Hub</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+      :root{
+        --navy-deep:   #0a0f1a;
+        --navy:        #10192b;
+        --navy-panel:  #16233a;
+        --parchment:   #efe6d3;
+        --parchment-dim:#a8a190;
+        --gold:        #c9a35f;
+        --ink-red:     #8f3b2e;
+      }
+
+      #app-loader{
+        position:fixed; inset:0; z-index:99999;
+        background:var(--navy-deep);
+        font-family:'IBM Plex Sans', sans-serif;
+        color:var(--parchment);
+        display:flex; align-items:center; justify-content:center;
+        overflow:hidden;
+        transition: opacity 0.5s ease;
+      }
+      #app-loader.hide{ opacity:0; pointer-events:none; }
+
+      #app-loader .grain{
+        position:fixed; inset:0;
+        background-image:
+          radial-gradient(circle at 20% 20%, rgba(201,163,95,0.06), transparent 45%),
+          radial-gradient(circle at 82% 78%, rgba(201,163,95,0.05), transparent 50%),
+          radial-gradient(ellipse at center, var(--navy) 0%, var(--navy-deep) 75%);
+        pointer-events:none;
+      }
+      #app-loader .grain::after{
+        content:"";
+        position:absolute; inset:0;
+        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+        mix-blend-mode:overlay;
+      }
+
+      #app-loader .stage{
+        position:relative; z-index:1;
+        width:min(560px, 88vw); text-align:center;
+      }
+
+      #app-loader .eyebrow{
+        font-family:'JetBrains Mono', monospace;
+        font-size:11px; letter-spacing:0.32em;
+        color:var(--parchment-dim); text-transform:uppercase;
+        margin-bottom:18px;
+      }
+
+      #app-loader .wordmark{
+        font-family:'Fraunces', serif; font-weight:300;
+        font-size:clamp(40px, 8vw, 64px);
+        letter-spacing:0.01em; margin:0 0 6px;
+      }
+      #app-loader .wordmark em{
+        font-style:italic; font-weight:500; color:var(--gold);
+      }
+
+      #app-loader .tagline{
+        font-size:13px; color:var(--parchment-dim);
+        margin:0 0 46px; letter-spacing:0.02em;
+      }
+
+      #app-loader .shelf-wrap{ position:relative; height:118px; margin:0 auto 22px; }
+
+      #app-loader .shelf-board{
+        position:absolute; left:0; right:0; bottom:16px; height:4px;
+        background:linear-gradient(90deg, transparent, var(--gold) 8%, var(--gold) 92%, transparent);
+        opacity:0.55;
+      }
+      #app-loader .shelf-board::after{
+        content:""; position:absolute; left:0; right:0; top:4px; height:14px;
+        background:linear-gradient(180deg, rgba(0,0,0,0.35), transparent);
+      }
+
+      #app-loader .spines{
+        position:absolute; left:50%; bottom:20px;
+        transform:translateX(-50%);
+        display:flex; align-items:flex-end; gap:5px; height:96px;
+      }
+
+      #app-loader .spine{
+        width:15px; border-radius:2px 2px 0 0;
+        transform-origin:bottom center; opacity:0;
+        animation: drop-in 3.6s ease-in-out infinite;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25), 1px 0 2px rgba(0,0,0,0.3);
+      }
+      #app-loader .spine::before{
+        content:""; position:absolute;
+        top:10px; left:3px; right:3px; height:1.5px;
+        background:rgba(0,0,0,0.25);
+      }
+      #app-loader .spine:nth-child(1){ height:62px; background:#7a3b32; animation-delay:0.0s; }
+      #app-loader .spine:nth-child(2){ height:80px; background:#5a6b4f; animation-delay:0.18s; }
+      #app-loader .spine:nth-child(3){ height:52px; background:#c9a35f; animation-delay:0.36s; }
+      #app-loader .spine:nth-child(4){ height:90px; background:#3f5468; animation-delay:0.54s; }
+      #app-loader .spine:nth-child(5){ height:70px; background:#8f3b2e; animation-delay:0.72s; }
+      #app-loader .spine:nth-child(6){ height:58px; background:#4d4234; animation-delay:0.90s; }
+      #app-loader .spine:nth-child(7){ height:84px; background:#6b7a63; animation-delay:1.08s; }
+      #app-loader .spine:nth-child(8){ height:66px; background:#b08d4f; animation-delay:1.26s; }
+      #app-loader .spine:nth-child(9){ height:76px; background:#3f5468; animation-delay:1.44s; }
+      #app-loader .spine:nth-child(10){ height:56px; background:#7a3b32; animation-delay:1.62s; }
+
+      @keyframes drop-in{
+        0%   { opacity:0; transform: translateY(-26px) rotate(-3deg); }
+        12%  { opacity:1; transform: translateY(0) rotate(0deg); }
+        78%  { opacity:1; transform: translateY(0) rotate(0deg); }
+        92%  { opacity:0; }
+        100% { opacity:0; }
+      }
+
+      #app-loader .progress-row{
+        display:flex; align-items:center; gap:14px;
+        justify-content:center; margin-top:8px;
+      }
+
+      #app-loader .bar-track{
+        width:200px; height:2px;
+        background:rgba(239,230,211,0.15);
+        position:relative; overflow:hidden;
+      }
+      #app-loader .bar-fill{
+        position:absolute; left:0; top:0; bottom:0;
+        width:0%; background:var(--gold);
+        animation: fill 3.6s ease-in-out infinite;
+      }
+      @keyframes fill{
+        0%   { width:0%; }
+        85%  { width:100%; }
+        100% { width:100%; }
+      }
+
+      #app-loader .status{
+        margin-top:26px; position:relative;
+        font-family:'JetBrains Mono', monospace;
+        font-size:11px; letter-spacing:0.06em;
+        color:var(--parchment-dim); height:16px;
+      }
+      #app-loader .status span{
+        display:inline-block; opacity:0; position:absolute;
+        left:50%; transform:translateX(-50%);
+        animation: status-cycle 10.8s steps(1) infinite;
+      }
+      #app-loader .status span:nth-child(1){ animation-delay:0s; }
+      #app-loader .status span:nth-child(2){ animation-delay:3.6s; }
+      #app-loader .status span:nth-child(3){ animation-delay:7.2s; }
+      @keyframes status-cycle{
+        0%{ opacity:0; }
+        2%{ opacity:1; }
+        31%{ opacity:1; }
+        33%{ opacity:0; }
+        100%{ opacity:0; }
+      }
+
+      #app-loader .stamp{
+        position:absolute; top:-64px;
+        right:calc(50% - 210px);
+        width:76px; height:76px;
+        border:1.5px solid var(--ink-red); border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+        color:var(--ink-red);
+        font-family:'JetBrains Mono', monospace;
+        font-size:8.5px; letter-spacing:0.05em;
+        text-align:center; line-height:1.4;
+        transform:rotate(-14deg) scale(0.6);
+        opacity:0; mix-blend-mode:screen;
+        animation: stamp-hit 3.6s ease-in-out infinite;
+      }
+      @keyframes stamp-hit{
+        0%,80%{ opacity:0; transform:rotate(-14deg) scale(1.4); }
+        88%{ opacity:0.85; transform:rotate(-14deg) scale(0.92); }
+        92%{ opacity:0.85; transform:rotate(-14deg) scale(1); }
+        100%{ opacity:0; transform:rotate(-14deg) scale(1); }
+      }
+
+      @media (max-width: 480px){
+        #app-loader .stamp{ display:none; }
+      }
+
+      @media (prefers-reduced-motion: reduce){
+        #app-loader .spine, #app-loader .bar-fill, #app-loader .status span, #app-loader .stamp{
+          animation:none !important;
+        }
+        #app-loader .spine{ opacity:1; }
+        #app-loader .bar-fill{ width:62%; }
+        #app-loader .status span:nth-child(1){ opacity:1; }
+        #app-loader .stamp{ opacity:0.85; transform:rotate(-14deg) scale(1); }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-loader">
+      <div class="grain"></div>
+      <div class="stage">
+        <div class="eyebrow">Takoradi Technical University</div>
+        <h1 class="wordmark">Study<em>Hub</em></h1>
+        <p class="tagline">Shelving your past questions &amp; notes</p>
+        <div class="shelf-wrap">
+          <div class="stamp">TTU<br>READING<br>ROOM</div>
+          <div class="spines">
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+            <div class="spine"></div>
+          </div>
+          <div class="shelf-board"></div>
+        </div>
+        <div class="progress-row">
+          <div class="bar-track"><div class="bar-fill"></div></div>
+        </div>
+        <div class="status">
+          <span>Pulling departments &amp; courses…</span>
+          <span>Indexing past questions…</span>
+          <span>Almost there…</span>
+        </div>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
