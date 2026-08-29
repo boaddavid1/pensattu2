@@ -338,7 +338,7 @@ app.post('/api/push-unsubscribe', async (req, res) => {
   }
 });
 
-app.post('/api/admin/send-notification', requireAuth, async (req, res) => {
+app.post('/api/cp/send-notification', requireAuth, async (req, res) => {
   try {
     const { title, body, url = '/' } = req.body;
     if (!title || !body) return res.status(400).json({ error: 'Title and body required' });
@@ -368,8 +368,8 @@ app.post('/api/admin/send-notification', requireAuth, async (req, res) => {
   }
 });
 
-// Admin routes
-app.use('/api/admin', adminRoutes);
+// Admin routes (mounted at /api/cp for security through obscurity)
+app.use('/api/cp', adminRoutes);
 
 // Operation Paga prayer request routes (converted from the PHP prayer project)
 app.use('/api/prayers', prayerRoutes);

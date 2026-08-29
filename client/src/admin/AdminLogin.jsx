@@ -10,7 +10,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  if (isLoggedIn()) return <Navigate to="/admin/dashboard" replace />;
+  if (isLoggedIn()) return <Navigate to="/control-panel/dashboard" replace />;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -19,7 +19,7 @@ export default function AdminLogin() {
     try {
       const res = await adminApi.login({ email: identifier, password });
       setToken(res.token);
-      navigate('/admin/dashboard', { replace: true });
+      navigate('/control-panel/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {

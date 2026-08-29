@@ -4,22 +4,22 @@ import { adminApi, isLoggedIn } from './adminApi';
 import './admin.css';
 
 const navItems = [
-  { to: '/admin/dashboard', label: 'Dashboard' },
-  { to: '/admin/ministries', label: 'Ministries' },
-  { to: '/admin/sermons', label: 'Sermons' },
-  { to: '/admin/team', label: 'Team' },
-  { to: '/admin/events', label: 'Events' },
-  { to: '/admin/announcements', label: 'Announcements' },
-  { to: '/admin/notices', label: 'Notices' },
-  { to: '/admin/gallery', label: 'Gallery' },
-  { to: '/admin/past-questions', label: 'Past Questions' },
-  { to: '/admin/books', label: 'Books' },
-  { to: '/admin/prayers', label: 'Prayers' },
-  { to: '/admin/registrations', label: 'Registrations' },
-  { to: '/admin/visits', label: 'Visits' },
-  { to: '/admin/subscribers', label: 'Subscribers' },
-  { to: '/admin/contacts', label: 'Messages' },
-  { to: '/admin/users', label: 'Admins' },
+  { to: '/control-panel/dashboard', label: 'Dashboard' },
+  { to: '/control-panel/ministries', label: 'Ministries' },
+  { to: '/control-panel/sermons', label: 'Sermons' },
+  { to: '/control-panel/team', label: 'Team' },
+  { to: '/control-panel/events', label: 'Events' },
+  { to: '/control-panel/announcements', label: 'Announcements' },
+  { to: '/control-panel/notices', label: 'Notices' },
+  { to: '/control-panel/gallery', label: 'Gallery' },
+  { to: '/control-panel/past-questions', label: 'Past Questions' },
+  { to: '/control-panel/books', label: 'Books' },
+  { to: '/control-panel/prayers', label: 'Prayers' },
+  { to: '/control-panel/registrations', label: 'Registrations' },
+  { to: '/control-panel/visits', label: 'Visits' },
+  { to: '/control-panel/subscribers', label: 'Subscribers' },
+  { to: '/control-panel/contacts', label: 'Messages' },
+  { to: '/control-panel/users', label: 'Admins' },
 ];
 
 export default function AdminLayout({ children }) {
@@ -27,27 +27,59 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
 
   useEffect(() => {
     if (!isLoggedIn()) {
-      navigate('/admin/login', { replace: true });
+      navigate('/control-panel/login', { replace: true });
       return;
     }
     adminApi.me().then((res) => setUser(res.user)).catch(() => {
-      navigate('/admin/login', { replace: true });
+      navigate('/control-panel/login', { replace: true });
     });
   }, [navigate]);
 
+  useEffect(() => {
+    // Ensure the admin manifest is active when on /control-panel/*
+    const manifestLink = document.querySelector('link[rel="manifest"]');
+    if (manifestLink) manifestLink.href = '/control-panel-manifest.json';
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.content = '#1a1a2e';
+  }, []);
+
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem('cp-pwa-dismissed');
+    if (dismissed === '1') return;
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  async function handleInstall() {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setInstallPrompt(null);
+  }
+
+  function handleDismissInstall() {
+    sessionStorage.setItem('cp-pwa-dismissed', '1');
+    setInstallPrompt(null);
+  }
+
   function handleLogout() {
     sessionStorage.removeItem('pensa_admin_token');
-    navigate('/admin/login', { replace: true });
+    navigate('/control-panel/login', { replace: true });
   }
 
   return (
     <div className="admin-layout">
       <aside className={`admin-sidebar${menuOpen ? ' open' : ''}`}>
         <div className="admin-sidebar-head">
-          <Link to="/admin/dashboard" className="admin-logo">PENSA <span>Admin</span></Link>
+          <Link to="/control-panel/dashboard" className="admin-logo">PENSA <span>Admin</span></Link>
           <button className="admin-menu-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
         </div>
         <nav className="admin-nav">
@@ -76,6 +108,19 @@ export default function AdminLayout({ children }) {
         </header>
         <div className="admin-content">{children}</div>
       </main>
+      {installPrompt && (
+        <div className="cp-install-prompt">
+          <img src="/cp-icon-192.png" alt="PENSA Admin" />
+          <div>
+            <strong>Install Admin App</strong>
+            <p>Add to your home screen for quick access.</p>
+          </div>
+          <div className="cp-install-actions">
+            <button className="cp-install-btn" onClick={handleInstall}>Install</button>
+            <button className="cp-dismiss-btn" onClick={handleDismissInstall}>✕</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

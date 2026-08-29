@@ -18,8 +18,8 @@ async function request(path, options = {}) {
   });
   if (res.status === 401) {
     removeToken();
-    if (typeof window !== 'undefined' && !path.startsWith('/admin/login')) {
-      window.location.href = '/admin/login';
+    if (typeof window !== 'undefined' && !path.startsWith('/cp/login')) {
+      window.location.href = '/control-panel/login';
     }
   }
   if (!res.ok) {
@@ -38,23 +38,23 @@ export function setToken(token) {
 }
 
 export const adminApi = {
-  login: (body) => request('/admin/login', { method: 'POST', body: JSON.stringify(body) }),
-  me: () => request('/admin/me'),
-  stats: () => request('/admin/stats'),
+  login: (body) => request('/cp/login', { method: 'POST', body: JSON.stringify(body) }),
+  me: () => request('/cp/me'),
+  stats: () => request('/cp/stats'),
 
-  list: (entity) => request(`/admin/${entity}`),
-  get: (entity, id) => request(`/admin/${entity}/${id}`),
-  create: (entity, body) => request(`/admin/${entity}`, { method: 'POST', body: JSON.stringify(body) }),
-  update: (entity, id, body) => request(`/admin/${entity}/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  remove: (entity, id) => request(`/admin/${entity}/${id}`, { method: 'DELETE' }),
+  list: (entity) => request(`/cp/${entity}`),
+  get: (entity, id) => request(`/cp/${entity}/${id}`),
+  create: (entity, body) => request(`/cp/${entity}`, { method: 'POST', body: JSON.stringify(body) }),
+  update: (entity, id, body) => request(`/cp/${entity}/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  remove: (entity, id) => request(`/cp/${entity}/${id}`, { method: 'DELETE' }),
 
-  listPhotos: (albumId) => request(`/admin/gallery_photos${albumId ? `?album_id=${albumId}` : ''}`),
-  addPhoto: (body) => request('/admin/gallery_photos', { method: 'POST', body: JSON.stringify(body) }),
-  removePhoto: (id) => request(`/admin/gallery_photos/${id}`, { method: 'DELETE' }),
+  listPhotos: (albumId) => request(`/cp/gallery_photos${albumId ? `?album_id=${albumId}` : ''}`),
+  addPhoto: (body) => request('/cp/gallery_photos', { method: 'POST', body: JSON.stringify(body) }),
+  removePhoto: (id) => request(`/cp/gallery_photos/${id}`, { method: 'DELETE' }),
 
-  listUsers: () => request('/admin/users'),
-  createUser: (body) => request('/admin/users', { method: 'POST', body: JSON.stringify(body) }),
-  removeUser: (id) => request(`/admin/users/${id}`, { method: 'DELETE' }),
+  listUsers: () => request('/cp/users'),
+  createUser: (body) => request('/cp/users', { method: 'POST', body: JSON.stringify(body) }),
+  removeUser: (id) => request(`/cp/users/${id}`, { method: 'DELETE' }),
 
   // Member registrations (reg module)
   regList: (query) => request(`/reg${query ? `?${query}` : ''}`),

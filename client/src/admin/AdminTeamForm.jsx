@@ -112,7 +112,7 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
       } else {
         await adminApi.update('team', id, payload);
       }
-      navigate('/admin/team');
+      navigate('/control-panel/team');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -126,7 +126,7 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
     <div>
       <div className="admin-page-header">
         <h2>{isNew ? 'Add New Team Member' : 'Edit Team Member'}</h2>
-        <button className="btn btn-ghost" onClick={() => navigate('/admin/team')}>
+        <button className="btn btn-ghost" onClick={() => navigate('/control-panel/team')}>
           ← Back to list
         </button>
       </div>
@@ -159,7 +159,7 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? 'Saving...' : isNew ? 'Add Team Member' : 'Update Team Member'}
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => navigate('/admin/team')}>
+          <button type="button" className="btn btn-ghost" onClick={() => navigate('/control-panel/team')}>
             Cancel
           </button>
         </div>

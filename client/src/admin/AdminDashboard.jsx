@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom';
 import { adminApi } from './adminApi';
 
 const statCards = [
-  { key: 'ministries', label: 'Ministries', to: '/admin/ministries' },
-  { key: 'sermons', label: 'Sermons', to: '/admin/sermons' },
-  { key: 'team', label: 'Team', to: '/admin/team' },
-  { key: 'events', label: 'Events', to: '/admin/events' },
-  { key: 'announcements', label: 'Announcements', to: '/admin/announcements' },
-  { key: 'notices', label: 'Notices', to: '/admin/notices' },
-  { key: 'visits', label: 'Visits', to: '/admin/visits' },
-  { key: 'subscribers', label: 'Subscribers', to: '/admin/subscribers' },
-  { key: 'contacts', label: 'Messages', to: '/admin/contacts' },
-  { key: 'gallery_albums', label: 'Albums', to: '/admin/gallery' },
+  { key: 'ministries', label: 'Ministries', to: '/control-panel/ministries' },
+  { key: 'sermons', label: 'Sermons', to: '/control-panel/sermons' },
+  { key: 'team', label: 'Team', to: '/control-panel/team' },
+  { key: 'events', label: 'Events', to: '/control-panel/events' },
+  { key: 'announcements', label: 'Announcements', to: '/control-panel/announcements' },
+  { key: 'notices', label: 'Notices', to: '/control-panel/notices' },
+  { key: 'visits', label: 'Visits', to: '/control-panel/visits' },
+  { key: 'subscribers', label: 'Subscribers', to: '/control-panel/subscribers' },
+  { key: 'contacts', label: 'Messages', to: '/control-panel/contacts' },
+  { key: 'gallery_albums', label: 'Albums', to: '/control-panel/gallery' },
 ];
 
 export default function AdminDashboard() {

@@ -97,7 +97,7 @@ function AdminShell() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route index element={<Navigate to={isLoggedIn() ? '/admin/dashboard' : '/admin/login'} replace />} />
+        <Route index element={<Navigate to={isLoggedIn() ? '/control-panel/dashboard' : '/control-panel/login'} replace />} />
         <Route path="login" element={<AdminLogin />} />
         <Route element={<AdminLayout><Outlet /></AdminLayout>}>
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -129,7 +129,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/admin/*" element={<AdminShell />} />
+        <Route path="/control-panel/*" element={<AdminShell />} />
         <Route path="/register/*" element={<RegisterShell />} />
         <Route path="/*" element={<AppShell />} />
       </Routes>

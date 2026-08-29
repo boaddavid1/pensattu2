@@ -93,7 +93,7 @@ export default function AdminCrudPage({ entity, title }) {
 
   function startCreate() {
     if (entity === 'team') {
-      navigate('/admin/team/new');
+      navigate('/control-panel/team/new');
       return;
     }
     setEditing('new');
@@ -102,7 +102,7 @@ export default function AdminCrudPage({ entity, title }) {
 
   function startEdit(item) {
     if (entity === 'team') {
-      navigate(`/admin/team/${item.id}/edit`, { state: { item } });
+      navigate(`/control-panel/team/${item.id}/edit`, { state: { item } });
       return;
     }
     setEditing(item.id);
@@ -281,7 +281,7 @@ export default function AdminCrudPage({ entity, title }) {
                   <button
                     type="button"
                     className="admin-team-album-header"
-                    onClick={() => navigate(`/admin/team/year/${encodeURIComponent(year)}`)}
+                    onClick={() => navigate(`/control-panel/team/year/${encodeURIComponent(year)}`)}
                   >
                     <div className="admin-team-album-cover">
                       {cover ? <img src={cover} alt={year} /> : <span className="admin-team-album-placeholder">{year}</span>}

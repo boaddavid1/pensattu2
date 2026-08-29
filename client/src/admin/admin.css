@@ -141,6 +141,29 @@
 
 .admin-back-link:hover { text-decoration: underline; }
 
+/* Admin PWA install prompt */
+.cp-install-prompt {
+  position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+  display: flex; align-items: center; gap: 14px;
+  background: #1a1a2e; color: #fff; border-radius: 14px;
+  padding: 16px 20px; max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  font-family: 'Inter', sans-serif;
+}
+.cp-install-prompt img { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; }
+.cp-install-prompt strong { font-size: 14px; display: block; }
+.cp-install-prompt p { margin: 2px 0 0; font-size: 12px; color: #aaa; }
+.cp-install-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.cp-install-btn {
+  background: #c4f092; color: #1a1a2e; border: none; border-radius: 8px;
+  padding: 8px 18px; font-weight: 700; font-size: 13px; cursor: pointer;
+}
+.cp-install-btn:hover { background: #d4ff9e; }
+.cp-dismiss-btn {
+  background: none; border: none; color: #666; font-size: 16px; cursor: pointer; padding: 4px;
+}
+.cp-dismiss-btn:hover { color: #999; }
+
 .admin-content {
   padding: 32px;
   flex: 1;

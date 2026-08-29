@@ -37,7 +37,7 @@ export default function AdminTeamYear() {
   }, []);
 
   function startEdit(p) {
-    navigate(`/admin/team/${p.id}/edit`, { state: { item: p } });
+    navigate(`/control-panel/team/${p.id}/edit`, { state: { item: p } });
   }
 
   async function remove(id) {
@@ -59,8 +59,8 @@ export default function AdminTeamYear() {
       <div className="admin-page-header">
         <h2>Leadership Team — {decodedYear}</h2>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn btn-primary" onClick={() => navigate('/admin/team/new')}>+ Add Member</button>
-          <button className="btn btn-ghost" onClick={() => navigate('/admin/team')}>← Back to list</button>
+          <button className="btn btn-primary" onClick={() => navigate('/control-panel/team/new')}>+ Add Member</button>
+          <button className="btn btn-ghost" onClick={() => navigate('/control-panel/team')}>← Back to list</button>
         </div>
       </div>
 
