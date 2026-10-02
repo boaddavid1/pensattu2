@@ -273,6 +273,246 @@ router.get('/members/by-level', requireSecAuth, async (req, res) => {
   }
 });
 
+// Helper: calculate progression for a member
+function calculateProgression(member) {
+  const duration = (member.program_duration || '').trim();
+  const durUpper = duration.toUpperCase();
+  const rawLevel = String(member.education_level || '').trim();
+  const levelNum = parseInt(rawLevel, 10);
+
+  if (!levelNum || isNaN(levelNum)) {
+    return { action: 'skip', reason: 'Unspecified or non-numeric level' };
+  }
+
+  // Final year thresholds:
+  // Diploma = 2 years -> Level 200 is final
+  // HND = 3 years -> Level 300 is final
+  // BTECH / Degree = 4 years -> Level 400 is final
+  const isDiploma = durUpper.includes('DIPLOMA') || durUpper === '2' || durUpper === '2 YEARS';
+  const isHND = durUpper.includes('HND') || durUpper === '3' || durUpper === '3 YEARS';
+  const isBTech = durUpper.includes('BTECH') || durUpper.includes('B-TECH') || durUpper.includes('DEGREE') || durUpper === '4' || durUpper === '4 YEARS';
+
+  // Final year graduation checks
+  if (isDiploma && levelNum >= 200) {
+    return { action: 'graduate', category: 'diploma_200', targetLevel: 'Alumni' };
+  }
+  if (isHND && levelNum >= 300) {
+    return { action: 'graduate', category: 'hnd_300', targetLevel: 'Alumni' };
+  }
+  if (isBTech && levelNum >= 400) {
+    return { action: 'graduate', category: 'btech_400', targetLevel: 'Alumni' };
+  }
+  if (levelNum >= 400) {
+    return { action: 'graduate', category: 'btech_400', targetLevel: 'Alumni' };
+  }
+
+  // Academic level advancement
+  if (levelNum === 100) {
+    return { action: 'promote', targetLevel: '200', category: '100_to_200' };
+  }
+  if (levelNum === 200) {
+    return { action: 'promote', targetLevel: '300', category: '200_to_300' };
+  }
+  if (levelNum === 300) {
+    return { action: 'promote', targetLevel: '400', category: '300_to_400' };
+  }
+
+  return { action: 'promote', targetLevel: String(levelNum + 100), category: 'other_promote' };
+}
+
+// Helper: graduate a member and copy into alumni table
+async function graduateMemberRecord(member, conn = secPool) {
+  const gradYear = new Date().getFullYear();
+  const gradLevel = member.education_level || 'Graduated';
+
+  // Format valid date for dob
+  let dobVal = '2000-01-01';
+  if (member.dob && member.dob !== '0000-00-00') {
+    const d = new Date(member.dob);
+    if (!isNaN(d.getTime())) {
+      dobVal = d.toISOString().slice(0, 10);
+    }
+  }
+
+  // Mark in registrations as graduated
+  await conn.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [member.id]);
+
+  // Insert or update in alumni table
+  const [existing] = await conn.query(
+    'SELECT id FROM alumni WHERE registration_id = ? OR (contact = ? AND contact != "" AND surname = ?)',
+    [member.id, member.contact || '', member.surname]
+  );
+
+  if (existing.length === 0) {
+    await conn.query(
+      `INSERT INTO alumni (
+        registration_id, surname, othernames, gender, dob, contact, program,
+        education_level, graduation_year, graduation_level, alumni_status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+      [
+        member.id,
+        member.surname,
+        member.othernames || '',
+        member.gender === 'female' ? 'female' : 'male',
+        dobVal,
+        member.contact || '',
+        member.program || '',
+        member.education_level || '',
+        gradYear,
+        gradLevel,
+      ]
+    );
+  } else {
+    await conn.query(
+      'UPDATE alumni SET alumni_status = "active", graduation_year = ? WHERE id = ?',
+      [gradYear, existing[0].id]
+    );
+  }
+}
+
+// Preview level progression & graduation
+router.get('/members/promotion-preview', requireSecAuth, async (req, res) => {
+  try {
+    const hasGrad = await hasGraduatedCol();
+    const where = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
+    const [members] = await secPool.query(
+      `SELECT id, surname, othernames, gender, dob, contact, program, program_duration, education_level FROM registrations ${where} ORDER BY surname ASC`
+    );
+
+    const summary = {
+      totalActive: members.length,
+      promotions: {
+        total: 0,
+        '100_to_200': 0,
+        '200_to_300': 0,
+        '300_to_400': 0,
+      },
+      graduations: {
+        total: 0,
+        diploma_200: 0,
+        hnd_300: 0,
+        btech_400: 0,
+      },
+      skipped: 0,
+    };
+
+    const previewList = [];
+
+    for (const m of members) {
+      const p = calculateProgression(m);
+      if (p.action === 'promote') {
+        summary.promotions.total++;
+        if (summary.promotions[p.category] !== undefined) {
+          summary.promotions[p.category]++;
+        }
+      } else if (p.action === 'graduate') {
+        summary.graduations.total++;
+        if (summary.graduations[p.category] !== undefined) {
+          summary.graduations[p.category]++;
+        }
+      } else {
+        summary.skipped++;
+      }
+
+      previewList.push({
+        id: m.id,
+        name: `${m.surname} ${m.othernames}`,
+        program: m.program || '-',
+        duration: m.program_duration || '-',
+        currentLevel: m.education_level || '-',
+        action: p.action,
+        targetLevel: p.targetLevel || '-',
+        reason: p.reason || '',
+      });
+    }
+
+    res.json({ summary, previewList });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk advance members to next academic level and graduate final years
+router.post('/members/promote', requireSecAuth, async (req, res) => {
+  try {
+    const hasGrad = await hasGraduatedCol();
+    const where = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
+    const [members] = await secPool.query(`SELECT * FROM registrations ${where}`);
+
+    let promoted = 0;
+    let graduated = 0;
+    let skipped = 0;
+
+    for (const m of members) {
+      const p = calculateProgression(m);
+      if (p.action === 'promote') {
+        await secPool.query('UPDATE registrations SET education_level = ? WHERE id = ?', [p.targetLevel, m.id]);
+        promoted++;
+      } else if (p.action === 'graduate') {
+        await graduateMemberRecord(m);
+        graduated++;
+      } else {
+        skipped++;
+      }
+    }
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'BULK_LEVEL_PROGRESSION',
+      `Promoted ${promoted} members, graduated ${graduated} members, skipped ${skipped}`,
+      req
+    );
+
+    res.json({ success: true, promoted, graduated, skipped });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Advance a single member to next level or graduate if final year
+router.post('/members/:id/promote', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Member not found' });
+    const member = rows[0];
+
+    const p = calculateProgression(member);
+    if (p.action === 'graduate') {
+      await graduateMemberRecord(member);
+      await logActivity(secPool, req.user.id, req.user.username, 'GRADUATE_MEMBER', `Graduated member #${member.id}: ${member.surname} ${member.othernames}`, req);
+      return res.json({ success: true, action: 'graduated', message: 'Graduated to Alumni portal' });
+    }
+
+    if (p.action === 'promote') {
+      await secPool.query('UPDATE registrations SET education_level = ? WHERE id = ?', [p.targetLevel, member.id]);
+      await logActivity(secPool, req.user.id, req.user.username, 'PROMOTE_MEMBER', `Advanced member #${member.id} to Level ${p.targetLevel}`, req);
+      return res.json({ success: true, action: 'promoted', newLevel: p.targetLevel });
+    }
+
+    res.status(400).json({ error: p.reason || 'Cannot advance member' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Explicitly graduate a single member to alumni
+router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Member not found' });
+    const member = rows[0];
+
+    await graduateMemberRecord(member);
+    await logActivity(secPool, req.user.id, req.user.username, 'GRADUATE_MEMBER', `Graduated member #${member.id}: ${member.surname} ${member.othernames}`, req);
+
+    res.json({ success: true, message: 'Member graduated to Alumni portal' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/members/:id', requireSecAuth, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
