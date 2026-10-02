@@ -8,6 +8,7 @@ export default function LevelMembers() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [gender, setGender] = useState('');
   const [membershipType, setMembershipType] = useState('');
@@ -17,6 +18,15 @@ export default function LevelMembers() {
   const [topupTarget, setTopupTarget] = useState(null);
   const [topupProgram, setTopupProgram] = useState('');
   const [topupSaving, setTopupSaving] = useState(false);
+
+  // Debounce search input by 300ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -135,9 +145,9 @@ export default function LevelMembers() {
 
       {/* Search & filters */}
       <div className="card">
-        <form className="filter-bar" onSubmit={(e) => { e.preventDefault(); setPage(1); fetchMembers(); }}>
-          <input type="text" placeholder="Search name, contact, program..." value={search}
-            onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
+        <form className="filter-bar" onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); setPage(1); fetchMembers(); }}>
+          <input type="text" placeholder="Search name, contact, program..." value={searchInput}
+            onChange={e => setSearchInput(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
           <select value={gender} onChange={e => setGender(e.target.value)}>
             <option value="">All Genders</option>
             <option value="male">Male</option>

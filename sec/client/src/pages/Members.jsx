@@ -7,12 +7,21 @@ export default function Members() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [gender, setGender] = useState('');
   const [membershipType, setMembershipType] = useState('');
   const [hall, setHall] = useState('');
   const [officer, setOfficer] = useState(false);
   const [duration, setDuration] = useState('');
+
+  // Debounce search input by 300ms to avoid unnecessary network queries on each character
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // Promotion modal state
   const [showPromoteModal, setShowPromoteModal] = useState(false);
@@ -56,7 +65,11 @@ export default function Members() {
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
-  const handleSearch = (e) => { e.preventDefault(); fetchMembers(); };
+  const handleSearch = (e) => { 
+    e.preventDefault(); 
+    setSearch(searchInput);
+    fetchMembers(); 
+  };
 
   const openPromoteModal = async () => {
     setShowPromoteModal(true);
@@ -232,8 +245,8 @@ export default function Members() {
       {/* Search & filters */}
       <div className="card">
         <form className="filter-bar" onSubmit={handleSearch}>
-          <input type="text" placeholder="Search name, contact, program..." value={search}
-            onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
+          <input type="text" placeholder="Search name, contact, program..." value={searchInput}
+            onChange={e => setSearchInput(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
           <select value={gender} onChange={e => setGender(e.target.value)}>
             <option value="">All Genders</option>
             <option value="male">Male</option>

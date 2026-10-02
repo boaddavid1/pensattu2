@@ -154,12 +154,39 @@ export default async function secSyncSchema() {
   try {
     const [cols] = await conn.query("SHOW COLUMNS FROM registrations LIKE 'graduated'");
     if (!cols || cols.length === 0) {
-      await conn.query("ALTER TABLE registrations ADD COLUMN graduated TINYINT(1) DEFAULT 0");
+      await conn.query("ALTER TABLE registrations ADD COLUMN graduated TINYINT(1) NOT NULL DEFAULT 0");
       console.log("secSyncSchema: added 'graduated' column to registrations");
+    } else {
+      // Standardize NULL values to 0 for index efficiency
+      await conn.query("UPDATE registrations SET graduated = 0 WHERE graduated IS NULL");
     }
   } catch (err) {
     console.warn("secSyncSchema: could not check/add 'graduated' column:", err.message);
   }
+
+  // ─── Index & Performance Optimization for fast member fetching ───────────
+  const ensureIndex = async (table, indexName, cols) => {
+    try {
+      const [rows] = await conn.query(`SHOW INDEX FROM ${table} WHERE Key_name = ?`, [indexName]);
+      if (!rows || rows.length === 0) {
+        await conn.query(`CREATE INDEX ${indexName} ON ${table} (${cols})`);
+        console.log(`secSyncSchema: created index ${indexName} on ${table}`);
+      }
+    } catch (e) {
+      console.warn(`secSyncSchema: index ${indexName} note:`, e.message);
+    }
+  };
+
+  await ensureIndex('registrations', 'idx_reg_grad_level_created', 'graduated, education_level, created_at');
+  await ensureIndex('registrations', 'idx_reg_grad_created', 'graduated, created_at');
+  await ensureIndex('registrations', 'idx_reg_grad_level', 'graduated, education_level');
+  await ensureIndex('registrations', 'idx_reg_contact', 'contact');
+  await ensureIndex('registrations', 'idx_reg_hall', 'campus_hall');
+  await ensureIndex('registrations', 'idx_reg_program', 'program(100)');
+  await ensureIndex('registrations', 'idx_reg_officer', 'is_officer');
+  await ensureIndex('registrations', 'idx_reg_gender', 'gender');
+  await ensureIndex('registrations', 'idx_reg_membership', 'membership_type');
+  await ensureIndex('registrations', 'idx_reg_duration', 'program_duration');
 
   // ─── Auto-recovery of accidental bulk graduation ─────────────────────────
   try {

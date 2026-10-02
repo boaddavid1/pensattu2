@@ -13,7 +13,11 @@ const secPool = mysql.createPool({
   password: process.env.SEC_DB_PASSWORD || process.env.DB_PASSWORD || '',
   database: process.env.SEC_DB_NAME || 'u197926764_pensattu',
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 15,
+  maxIdle: 10,
+  idleTimeout: 60000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
   queueLimit: 0,
   connectTimeout: 30000,
 });

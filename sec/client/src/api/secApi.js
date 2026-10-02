@@ -5,7 +5,30 @@ function getToken() {
   return sessionStorage.getItem('sec_admin_token');
 }
 
+const cache = new Map();
+const CACHE_TTL_MS = 30000; // 30 seconds
+
+export function clearSecCache() {
+  cache.clear();
+}
+
 async function request(path, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const isGet = method === 'GET';
+
+  // Check cache for GET requests
+  if (isGet && !options.noCache) {
+    const cached = cache.get(path);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      return cached.data;
+    }
+  }
+
+  // Mutating requests invalidate cache immediately
+  if (!isGet) {
+    cache.clear();
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -24,10 +47,15 @@ async function request(path, options = {}) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || `Request failed: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  if (isGet) {
+    cache.set(path, { data, timestamp: Date.now() });
+  }
+  return data;
 }
 
 export const secApi = {
+  clearCache: clearSecCache,
   // Auth
   register: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
