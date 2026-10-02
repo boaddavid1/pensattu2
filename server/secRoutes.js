@@ -56,7 +56,7 @@ const router = Router();
 const SEC_JWT_SECRET = process.env.SEC_JWT_SECRET || process.env.JWT_SECRET || 'sec-dev-secret';
 
 // ─── Diagnostic & Quick Maintenance Endpoints ───────────────
-router.get('/diagnostic-level400', async (req, res) => {
+router.get('/diagnostic-level400', requireSecAuth, async (req, res) => {
   try {
     const [level400] = await secPool.query(`
       SELECT id, surname, othernames, gender, contact, program, program_duration, education_level, created_at, graduated
@@ -99,7 +99,7 @@ router.get('/diagnostic-level400', async (req, res) => {
   }
 });
 
-router.post('/maintenance/move-previous-400', async (req, res) => {
+router.post('/maintenance/move-previous-400', requireSecAuth, async (req, res) => {
   try {
     const [previous400] = await secPool.query(`
       SELECT * FROM registrations 
