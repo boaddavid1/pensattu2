@@ -87,7 +87,7 @@ export default function LevelMembers() {
         <div className="left">
           <h1>Level {level}</h1>
           <ul className="breadcrumb">
-            <li><a className="active" href="/members">Members</a></li>
+            <li><Link className="active" to="/members">Members</Link></li>
             <li><i className='bx bx-chevron-right'></i></li>
             <li><a>Level {level}</a></li>
           </ul>

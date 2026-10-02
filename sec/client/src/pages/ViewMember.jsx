@@ -36,7 +36,7 @@ export default function ViewMember() {
         <div className="left">
           <h1>{member.surname} {member.othernames}</h1>
           <ul className="breadcrumb">
-            <li><a className="active" href="/members">Members</a></li>
+            <li><Link className="active" to="/members">Members</Link></li>
             <li><i className='bx bx-chevron-right'></i></li>
             <li><a>{member.surname} {member.othernames}</a></li>
           </ul>

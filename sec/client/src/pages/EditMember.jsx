@@ -1,6 +1,6 @@
 // EditMember.jsx — Edit an existing member (ported from edit_user.php)
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
 import PhotoUpload from '../components/PhotoUpload.jsx';
 
@@ -43,7 +43,7 @@ export default function EditMember() {
         <div className="left">
           <h1>Edit Member</h1>
           <ul className="breadcrumb">
-            <li><a className="active" href="/members">Members</a></li>
+            <li><Link className="active" to="/members">Members</Link></li>
             <li><i className='bx bx-chevron-right'></i></li>
             <li><a>Edit</a></li>
           </ul>

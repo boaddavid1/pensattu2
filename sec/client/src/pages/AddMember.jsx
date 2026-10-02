@@ -1,6 +1,6 @@
 // AddMember.jsx — Add a new member (ported from add_user.php)
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
 import PhotoUpload from '../components/PhotoUpload.jsx';
 
@@ -94,7 +94,7 @@ export default function AddMember() {
         <div className="left">
           <h1>Add Member</h1>
           <ul className="breadcrumb">
-            <li><a className="active" href="/members">Members</a></li>
+            <li><Link className="active" to="/members">Members</Link></li>
             <li><i className='bx bx-chevron-right'></i></li>
             <li><a>Add New</a></li>
           </ul>

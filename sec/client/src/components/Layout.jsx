@@ -1,6 +1,6 @@
 // Layout.jsx — Sidebar + Navbar + main content area
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../api/AuthContext.jsx';
 
 const menuItems = [
@@ -28,10 +28,10 @@ export default function Layout({ children }) {
   return (
     <>
       <section id="sidebar" className={sidebarHidden ? 'hide' : ''}>
-        <a href="/" className="brand">
+        <Link to="/" className="brand">
           <i className='bx bxs-smile'></i>
           <span className="text">PENSA TTU</span>
-        </a>
+        </Link>
         <ul className="side-menu top">
           {menuItems.map(item => (
             <li key={item.to}>
