@@ -1,8 +1,8 @@
 // PENSA TTU Registration Portal — Service Worker
-// Network-first for HTML pages so deployments always load the latest bundle,
-// cache-first for static icons/images.
+// Cache-busting & safe caching strategy:
+// Never cache HTML or JS bundles so new deployments always load immediately.
 
-const CACHE_NAME = 'pensa-reg-v2';
+const CACHE_NAME = 'pensa-reg-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -10,45 +10,40 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
+    caches.keys().then((keys) => {
+      return Promise.all(keys.map((k) => caches.delete(k)));
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Never cache API calls
-  if (request.url.includes('/api/')) {
+  // Never cache API calls, navigation/HTML, or JS/CSS bundles
+  if (
+    request.url.includes('/api/') ||
+    request.mode === 'navigate' ||
+    request.destination === 'document' ||
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    request.url.endsWith('.html') ||
+    request.url.endsWith('.js') ||
+    request.url.endsWith('.css')
+  ) {
     event.respondWith(fetch(request));
     return;
   }
 
-  // Network-first for HTML pages / navigation requests so new bundles load immediately
-  if (request.mode === 'navigate' || request.destination === 'document') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  // Cache-first for images/icons
-  if (request.destination === 'image' || request.url.match(/\.(png|svg|ico|jpg|jpeg|webp)$/)) {
+  // Only cache images / icons / manifest for fast offline icon loading
+  if (
+    request.destination === 'image' ||
+    request.url.match(/\.(png|svg|ico|jpg|jpeg|webp)$/)
+  ) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
-          if (response.ok) {
+          if (response && response.ok) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
@@ -59,8 +54,5 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For JS / CSS: fetch from network first, fall back to cache
-  event.respondWith(
-    fetch(request).catch(() => caches.match(request))
-  );
+  event.respondWith(fetch(request));
 });
