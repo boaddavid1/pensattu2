@@ -12,15 +12,32 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const modeParam = params.get('mode');
     const continueContact = params.get('continue');
+    const nameParam = params.get('name');
+    const progParam = params.get('program');
+    const resParam = params.get('residence');
+    const memParam = params.get('membership');
 
     if (continueContact) {
-      handleContinueWithContact(continueContact);
+      handleContinueWithContact(continueContact, {
+        name: nameParam,
+        program: progParam,
+        residence: resParam,
+        membership: memParam,
+      });
     } else if (modeParam === 'newbie' || modeParam === 'member') {
+      if (nameParam || progParam || resParam) {
+        setPrefillData({
+          name: nameParam || '',
+          program: progParam || '',
+          residence: resParam || '',
+          membership: memParam || 'member',
+        });
+      }
       setMode(modeParam);
     }
   }, []);
 
-  async function handleContinueWithContact(contact) {
+  async function handleContinueWithContact(contact, fallbacks = {}) {
     const cleanPhone = String(contact || '').trim();
     if (!cleanPhone) return;
     try {
@@ -29,10 +46,22 @@ export default function App() {
       if (res.ok && data.found && data.newbie) {
         setPrefillData(data.newbie);
       } else {
-        setPrefillData({ contact: cleanPhone });
+        setPrefillData({
+          contact: cleanPhone,
+          name: fallbacks.name || '',
+          program: fallbacks.program || '',
+          residence: fallbacks.residence || '',
+          membership: fallbacks.membership || 'member',
+        });
       }
     } catch {
-      setPrefillData({ contact: cleanPhone });
+      setPrefillData({
+        contact: cleanPhone,
+        name: fallbacks.name || '',
+        program: fallbacks.program || '',
+        residence: fallbacks.residence || '',
+        membership: fallbacks.membership || 'member',
+      });
     }
     setMode('member');
   }

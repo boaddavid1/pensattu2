@@ -1,6 +1,5 @@
 // Newbies.jsx — Newbie Registration Management for the Secretariat
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
 
 export default function Newbies() {
@@ -243,9 +242,10 @@ export default function Newbies() {
                           </button>
                         )}
 
-                        <Link
-                          to={`/members/add?newbie_id=${r.id}&contact=${encodeURIComponent(r.contact || '')}&name=${encodeURIComponent(r.name || '')}&program=${encodeURIComponent(r.program || '')}&residence=${encodeURIComponent(r.residence || '')}&membership=${encodeURIComponent(r.membership || '')}`}
-                          state={{ newbie: r }}
+                        <a
+                          href={`https://reg.pensattu.com/?mode=member${r.contact ? `&continue=${encodeURIComponent(r.contact)}` : ''}&name=${encodeURIComponent(r.name || '')}&program=${encodeURIComponent(r.program || '')}&residence=${encodeURIComponent(r.residence || '')}&membership=${encodeURIComponent(r.membership || '')}`}
+                          target="_blank"
+                          rel="noreferrer"
                           className="btn"
                           style={{
                             padding: '4px 10px',
@@ -258,10 +258,10 @@ export default function Newbies() {
                             alignItems: 'center',
                             gap: 4,
                           }}
-                          title="Open Add Member form pre-filled with this newbie"
+                          title="Open Member Registration on https://reg.pensattu.com/ pre-filled with newbie data"
                         >
-                          <i className="bx bx-edit"></i> Open Form
-                        </Link>
+                          <i className="bx bx-link-external"></i> Open Form
+                        </a>
 
                         <button
                           type="button"
