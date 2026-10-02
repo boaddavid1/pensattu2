@@ -51,10 +51,43 @@ const EMPTY = {
   district: '', pastor: '', guardian: '', guardian_contact: '',
 };
 
+function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Register() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(EMPTY);
   const [photo, setPhoto] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(null);
@@ -93,11 +126,36 @@ export default function Register() {
     };
 
     if (n === 1) {
-      require('surname', 'surname'); require('othernames', 'other names');
+      require('surname', 'surname');
+      require('othernames', 'other names');
       if (!form.gender) { mark('gender'); showToast('Please select gender', 'error'); }
-      require('dob', 'date of birth');
-      if (form.contact && !/^[0-9]{10}$/.test(form.contact.trim())) { mark('contact'); showToast('Contact must be exactly 10 digits', 'error'); }
-      else require('contact', 'contact');
+      if (!String(form.dob ?? '').trim()) {
+        mark('dob');
+        showToast('Please enter date of birth', 'error');
+      } else {
+        const dob = new Date(form.dob);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        if (isNaN(dob.getTime())) {
+          mark('dob');
+          showToast('Invalid date of birth', 'error');
+        } else if (dob > today) {
+          mark('dob');
+          showToast('Date of birth cannot be in the future', 'error');
+        } else if (age < 15) {
+          mark('dob');
+          showToast('You must be at least 15 years old to register', 'error');
+        }
+      }
+      if (!String(form.contact ?? '').trim()) {
+        mark('contact');
+        showToast('Please enter contact number', 'error');
+      } else if (!/^[0-9]{10}$/.test(form.contact.trim())) {
+        mark('contact');
+        showToast('Contact must be exactly 10 digits', 'error');
+      }
     } else if (n === 2) {
       if (!form.campus_residence) { mark('campus_residence'); showToast('Please select campus residence', 'error'); }
       if (form.campus_residence === 'yes') {
@@ -115,10 +173,16 @@ export default function Register() {
       if (form.is_officer === 'yes' && !form.officer_role) { mark('officer_role'); showToast('Please select your officer role', 'error'); }
       if (form.departments.length === 0) { showToast('Please select at least one department', 'warning'); return false; }
     } else if (n === 4) {
-      require('district', 'district'); require('pastor', 'district pastor');
+      require('district', 'district');
+      require('pastor', 'district pastor');
       require('guardian', 'guardian name');
-      if (form.guardian_contact && !/^[0-9]{10}$/.test(form.guardian_contact.trim())) { mark('guardian_contact'); showToast('Guardian contact must be 10 digits', 'error'); }
-      else require('guardian_contact', 'guardian contact');
+      if (!String(form.guardian_contact ?? '').trim()) {
+        mark('guardian_contact');
+        showToast('Please enter guardian contact', 'error');
+      } else if (!/^[0-9]{10}$/.test(form.guardian_contact.trim())) {
+        mark('guardian_contact');
+        showToast('Guardian contact must be 10 digits', 'error');
+      }
     } else if (n === 5) {
       if (!photo) { showToast('Please upload or capture a photo', 'warning'); return false; }
     }
@@ -129,14 +193,18 @@ export default function Register() {
   function next() { if (validateStep(step)) setStep((s) => Math.min(TOTAL_STEPS, s + 1)); }
   function prev() { setStep((s) => Math.max(1, s - 1)); }
 
-  function onUpload(e) {
+  async function onUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.match(/image.*/)) { showToast('Please select an image file', 'error'); return; }
-    if (file.size > 5 * 1024 * 1024) { showToast('File size must be less than 5MB', 'error'); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => { setPhoto(ev.target.result); showToast('Photo uploaded', 'success'); };
-    reader.readAsDataURL(file);
+    if (file.size > 15 * 1024 * 1024) { showToast('File size must be less than 15MB', 'error'); return; }
+    try {
+      const compressed = await compressImage(file, 800, 800, 0.82);
+      setPhoto(compressed);
+      showToast('Photo uploaded and optimized', 'success');
+    } catch {
+      showToast('Failed to process image. Please try another.', 'error');
+    }
   }
 
   async function openCamera() {
@@ -170,14 +238,26 @@ export default function Register() {
 
   function resetAll() {
     if (!window.confirm('Are you sure you want to start over? All entered data will be lost.')) return;
-    setForm(EMPTY); setPhoto(''); setInvalid({}); setStep(1); setDone(null);
+    setForm(EMPTY); setPhoto(''); setInvalid({}); setConfirmed(false); setStep(1); setDone(null);
     showToast('Form has been reset', 'info');
   }
 
   async function submit(e) {
     e.preventDefault();
     if (submitting) return;
-    if (!validateStep(6)) return;
+
+    // Validate all 5 previous steps
+    for (let s = 1; s <= 5; s++) {
+      if (!validateStep(s)) {
+        setStep(s);
+        return;
+      }
+    }
+
+    if (!confirmed) {
+      showToast('Please confirm that all information provided is accurate', 'warning');
+      return;
+    }
 
     setSubmitting(true);
     const body = { ...form, is_officer: form.is_officer === 'yes' ? 'yes' : 'no', photoData: photo };
@@ -191,7 +271,7 @@ export default function Register() {
       if (res.ok && data.success) {
         showToast('Registration submitted successfully!', 'success');
         setDone({ name: data.data?.name || `${form.surname} ${form.othernames}`.trim() });
-        setForm(EMPTY); setPhoto(''); setInvalid({}); setStep(1);
+        setForm(EMPTY); setPhoto(''); setInvalid({}); setConfirmed(false); setStep(1);
       } else {
         showToast(data.message || 'Registration failed. Please try again.', 'error');
       }
@@ -569,7 +649,13 @@ export default function Register() {
             </div>
 
             <label className="reg-check" style={{ margin: '16px 0' }}>
-              <input type="checkbox" required /> <span>I confirm that all information provided is accurate</span>
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+                required
+              />{' '}
+              <span>I confirm that all information provided is accurate</span>
             </label>
 
             <div className="reg-nav">
