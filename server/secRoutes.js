@@ -1008,44 +1008,100 @@ router.get('/messages/logs', requireSecAuth, async (req, res) => {
   }
 });
 
-// ─── Halls ─────────────────────────────────────────────────
+// ─── Halls & Residences ─────────────────────────────────────
 router.get('/halls', requireSecAuth, async (req, res) => {
   try {
-    const [[onCampusRows], [offcampusRows]] = await Promise.all([
-      secPool.query(`
-        SELECT id, surname, othernames, gender, contact, program, education_level, program_duration, campus_hall 
-        FROM registrations 
-        WHERE (graduated = 0 OR graduated IS NULL)
-          AND campus_hall IS NOT NULL 
-          AND campus_hall != '' 
-          AND campus_hall != 'null'
-        ORDER BY campus_hall, surname
-      `),
-      secPool.query(`
-        SELECT id, surname, othernames, gender, contact, program, education_level, offcampus_location
-        FROM registrations 
-        WHERE (graduated = 0 OR graduated IS NULL) AND campus_residence = 'off-campus' 
-        ORDER BY surname
-      `)
-    ]);
+    const hasGrad = await hasGraduatedCol();
+    const whereGrad = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
 
-    const hallMap = {};
-    for (const m of onCampusRows) {
-      if (!hallMap[m.campus_hall]) {
-        hallMap[m.campus_hall] = [];
+    const [rows] = await secPool.query(`
+      SELECT id, surname, othernames, gender, contact, program, education_level, program_duration,
+             campus_residence, campus_hall, offcampus_location, room_campus, room_offcampus, room, landmark, residence
+      FROM registrations 
+      ${whereGrad}
+      ORDER BY surname
+    `);
+
+    const campusHallsMap = {};
+    const offCampusMap = {};
+
+    for (const m of rows) {
+      const isCampus =
+        String(m.campus_residence || '').toLowerCase() === 'yes' ||
+        (m.campus_hall && m.campus_hall.trim() !== '' && m.campus_hall.trim().toLowerCase() !== 'null');
+
+      if (isCampus && m.campus_hall && m.campus_hall.trim()) {
+        const rawHall = m.campus_hall.trim();
+        const displayHall = rawHall.toLowerCase().endsWith('hall') ? rawHall : `${rawHall} Hall`;
+        if (!campusHallsMap[displayHall]) {
+          campusHallsMap[displayHall] = [];
+        }
+        campusHallsMap[displayHall].push({
+          ...m,
+          roomDisplay: m.room_campus || m.room || '-',
+          landmarkDisplay: '',
+          residenceType: 'campus',
+          residenceName: displayHall,
+        });
+      } else {
+        // Off-campus residence or hostel
+        let loc = (m.offcampus_location || m.residence || '').trim();
+        if (!loc || loc.toLowerCase() === 'null') {
+          loc = 'Other Off-Campus';
+        }
+        // Capitalize words nicely if entered all lowercase
+        if (loc === loc.toLowerCase()) {
+          loc = loc.replace(/\b\w/g, (c) => c.toUpperCase());
+        }
+
+        // Case-insensitive match to existing keys so "crystal hostel" and "Crystal Hostel" group together
+        const matchKey =
+          Object.keys(offCampusMap).find((k) => k.toLowerCase() === loc.toLowerCase()) || loc;
+
+        if (!offCampusMap[matchKey]) {
+          offCampusMap[matchKey] = [];
+        }
+        offCampusMap[matchKey].push({
+          ...m,
+          roomDisplay: m.room_offcampus || m.room || '-',
+          landmarkDisplay: m.landmark || '',
+          residenceType: 'offcampus',
+          residenceName: matchKey,
+        });
       }
-      hallMap[m.campus_hall].push(m);
     }
 
-    const result = Object.entries(hallMap)
-      .map(([hall, members]) => ({ hall, count: members.length, members }))
+    const campusHalls = Object.entries(campusHallsMap)
+      .map(([hall, members]) => ({
+        hall,
+        name: hall,
+        type: 'campus',
+        count: members.length,
+        members,
+      }))
       .sort((a, b) => b.count - a.count);
 
-    if (offcampusRows.length) {
-      result.push({ hall: 'Off-Campus', count: offcampusRows.length, members: offcampusRows });
-    }
+    const offCampusResidences = Object.entries(offCampusMap)
+      .map(([hall, members]) => ({
+        hall,
+        name: hall,
+        type: 'offcampus',
+        count: members.length,
+        members,
+      }))
+      .sort((a, b) => b.count - a.count);
 
-    res.json({ halls: result });
+    // Combine both so that `halls` array has both campus halls AND all other residences
+    const all = [...campusHalls, ...offCampusResidences];
+
+    res.json({
+      halls: all,
+      campusHalls,
+      offCampusResidences,
+      totalCampus: campusHalls.reduce((sum, h) => sum + h.count, 0),
+      totalOffCampus: offCampusResidences.reduce((sum, r) => sum + r.count, 0),
+      totalMembers: rows.length,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

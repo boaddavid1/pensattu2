@@ -9,7 +9,7 @@ const menuItems = [
   { to: '/members', icon: 'bxs-group', label: 'Members' },
   { to: '/attendance', icon: 'bxs-doughnut-chart', label: 'Attendance' },
   { to: '/messages', icon: 'bxs-message-dots', label: 'Messages' },
-  { to: '/halls', icon: 'bx-building', label: 'Halls' },
+  { to: '/halls', icon: 'bx-building', label: 'Halls & Residences' },
   { to: '/alumni', icon: 'bxs-graduation', label: 'Alumni' },
   { to: '/export', icon: 'bx-export', label: 'Export' },
   { to: '/reports', icon: 'bxs-report', label: 'Reports' },
