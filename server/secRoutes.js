@@ -99,6 +99,84 @@ router.get('/diagnostic-level400', async (req, res) => {
   }
 });
 
+router.post('/maintenance/move-previous-400', async (req, res) => {
+  try {
+    const [previous400] = await secPool.query(`
+      SELECT * FROM registrations 
+      WHERE education_level = '400' 
+        AND (graduated = 0 OR graduated IS NULL)
+        AND created_at < '2026-10-01 00:00:00'
+      ORDER BY id ASC
+    `);
+
+    const gradYear = 2026;
+    let graduatedCount = 0;
+
+    for (const m of previous400) {
+      let dobVal = '2000-01-01';
+      if (m.dob && m.dob !== '0000-00-00') {
+        const d = new Date(m.dob);
+        if (!isNaN(d.getTime())) {
+          dobVal = d.toISOString().slice(0, 10);
+        }
+      }
+
+      await secPool.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [m.id]);
+
+      const [existing] = await secPool.query(
+        'SELECT id FROM alumni WHERE registration_id = ? OR (contact = ? AND contact != "" AND surname = ?)',
+        [m.id, m.contact || '', m.surname]
+      );
+
+      if (existing.length === 0) {
+        await secPool.query(
+          `INSERT INTO alumni (
+            registration_id, surname, othernames, gender, dob, contact, program,
+            education_level, graduation_year, graduation_level, alumni_status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+          [
+            m.id,
+            m.surname,
+            m.othernames || '',
+            m.gender === 'female' ? 'female' : 'male',
+            dobVal,
+            m.contact || '',
+            m.program || '',
+            '400',
+            gradYear,
+            '400',
+          ]
+        );
+      } else {
+        await secPool.query(
+          'UPDATE alumni SET alumni_status = "active", graduation_year = ?, graduation_level = "400" WHERE id = ?',
+          [gradYear, existing[0].id]
+        );
+      }
+      graduatedCount++;
+    }
+
+    const [activeRecent400] = await secPool.query(`
+      SELECT id, surname, othernames, contact, program, created_at 
+      FROM registrations 
+      WHERE education_level = '400' AND (graduated = 0 OR graduated IS NULL)
+    `);
+
+    const [[{ totalAlumni }]] = await secPool.query('SELECT COUNT(*) as totalAlumni FROM alumni');
+
+    res.json({
+      success: true,
+      message: `Successfully moved ${graduatedCount} previous Level 400 members to the Alumni portal.`,
+      graduatedCount,
+      protectedRecentCount: activeRecent400.length,
+      protectedRecentMembers: activeRecent400,
+      totalAlumni,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Helpers ───────────────────────────────────────────────
 function getIp(req) {
   return (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim() || '0.0.0.0';

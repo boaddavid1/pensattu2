@@ -199,7 +199,72 @@ export default async function secSyncSchema() {
   await ensureIndex('registrations', 'idx_reg_membership', 'membership_type');
   await ensureIndex('registrations', 'idx_reg_duration', 'program_duration');
 
-  // Auto-recovery has completed; keeping graduated records and alumni intact.
+  // ─── One-time migration: Move previous Level 400 class to Alumni portal ─────
+  try {
+    // Only target Level 400 members registered BEFORE October 2026 who are not yet marked graduated
+    const [previous400] = await conn.query(`
+      SELECT * FROM registrations 
+      WHERE education_level = '400' 
+        AND (graduated = 0 OR graduated IS NULL)
+        AND created_at < '2026-10-01 00:00:00'
+      ORDER BY id ASC
+    `);
+
+    if (previous400.length > 0) {
+      console.log(`secSyncSchema: Moving ${previous400.length} previous Level 400 members to Alumni portal...`);
+      const gradYear = 2026;
+      for (const m of previous400) {
+        let dobVal = '2000-01-01';
+        if (m.dob && m.dob !== '0000-00-00') {
+          const d = new Date(m.dob);
+          if (!isNaN(d.getTime())) {
+            dobVal = d.toISOString().slice(0, 10);
+          }
+        }
+
+        // 1. Mark as graduated in registrations table
+        await conn.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [m.id]);
+
+        // 2. Insert into alumni table if not already present
+        const [existing] = await conn.query(
+          'SELECT id FROM alumni WHERE registration_id = ? OR (contact = ? AND contact != "" AND surname = ?)',
+          [m.id, m.contact || '', m.surname]
+        );
+
+        if (existing.length === 0) {
+          await conn.query(
+            `INSERT INTO alumni (
+              registration_id, surname, othernames, gender, dob, contact, program,
+              education_level, graduation_year, graduation_level, alumni_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+            [
+              m.id,
+              m.surname,
+              m.othernames || '',
+              m.gender === 'female' ? 'female' : 'male',
+              dobVal,
+              m.contact || '',
+              m.program || '',
+              '400',
+              gradYear,
+              '400',
+            ]
+          );
+        } else {
+          await conn.query(
+            'UPDATE alumni SET alumni_status = "active", graduation_year = ?, graduation_level = "400" WHERE id = ?',
+            [gradYear, existing[0].id]
+          );
+        }
+      }
+      console.log(`secSyncSchema: Successfully graduated ${previous400.length} previous Level 400 members to Alumni portal! Recent ones were preserved.`);
+    } else {
+      console.log('secSyncSchema: Previous Level 400 cohort is already graduated.');
+    }
+  } catch (err) {
+    console.warn('secSyncSchema previous Level 400 graduation note:', err.message);
+  }
+
   if (conn.release) conn.release();
   console.log('sec schema sync complete');
 }
