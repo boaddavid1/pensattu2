@@ -14,6 +14,9 @@ export default function LevelMembers() {
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
+  const [topupTarget, setTopupTarget] = useState(null);
+  const [topupProgram, setTopupProgram] = useState('');
+  const [topupSaving, setTopupSaving] = useState(false);
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -76,6 +79,36 @@ export default function LevelMembers() {
       setTimeout(() => setSuccessMsg(''), 4000);
       fetchMembers();
     } catch (err) { setError(err.message); }
+  };
+
+  const openTopupModal = (m) => {
+    setTopupTarget(m);
+    const orig = m.program || '';
+    let autoProg = orig;
+    if (/diploma/i.test(orig)) {
+      autoProg = orig.replace(/diploma\s*(in)?/i, 'BTECH ').trim();
+    } else if (orig && !/btech/i.test(orig)) {
+      autoProg = `BTECH ${orig}`;
+    } else if (!orig) {
+      autoProg = 'BTECH';
+    }
+    setTopupProgram(autoProg);
+  };
+
+  const handleExecuteTopup = async () => {
+    if (!topupTarget) return;
+    setTopupSaving(true);
+    try {
+      await secApi.topupBTech(topupTarget.id, { program: topupProgram, level: '200' });
+      setSuccessMsg(`${topupTarget.surname} ${topupTarget.othernames} transitioned to BTech Top-up (Level 200)!`);
+      setTimeout(() => setSuccessMsg(''), 5000);
+      setTopupTarget(null);
+      fetchMembers();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setTopupSaving(false);
+    }
   };
 
   const members = data?.members || [];
@@ -159,6 +192,16 @@ export default function LevelMembers() {
                     <td style={{ whiteSpace: 'nowrap' }}>
                       <Link to={`/members/${m.id}`} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4 }}>View</Link>
                       <Link to={`/members/${m.id}/edit`} className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }}>Edit</Link>
+                      {((m.program_duration || '').toLowerCase().includes('diploma') || m.education_level === '200') && (
+                        <button
+                          onClick={() => openTopupModal(m)}
+                          className="btn btn-primary"
+                          style={{ padding: '4px 10px', marginRight: 4, background: '#2980b9' }}
+                          title="Diploma student doing BTech Top-up? Click to switch to BTech continuing from Level 200"
+                        >
+                          BTech Top-up
+                        </button>
+                      )}
                       <button onClick={() => handlePromote(m)} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4, background: '#27ae60' }} title="Advance to next level or graduate">Advance</button>
                       <button onClick={() => handleGraduate(m.id)} className="btn btn-success" style={{ padding: '4px 10px', marginRight: 4 }}>Graduate</button>
                       <button onClick={() => setShowDelete(m)} className="btn btn-danger" style={{ padding: '4px 10px' }}>Delete</button>
@@ -189,6 +232,107 @@ export default function LevelMembers() {
             <div className="modal-actions">
               <button className="btn btn-back" onClick={() => setShowDelete(null)}>Cancel</button>
               <button className="btn btn-danger" onClick={() => handleDelete(showDelete.id)}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual BTech Top-up Modal */}
+      {topupTarget && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => !topupSaving && setTopupTarget(null)}>
+          <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, color: 'var(--dark)' }}>
+                <i className='bx bx-transfer' style={{ color: '#2980b9', marginRight: 8 }}></i>
+                Diploma &rarr; BTech Top-up
+              </h2>
+              {!topupSaving && (
+                <button
+                  type="button"
+                  onClick={() => setTopupTarget(null)}
+                  style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--dark-grey)' }}
+                >
+                  <i className='bx bx-x'></i>
+                </button>
+              )}
+            </div>
+
+            <div style={{ background: '#ebf5fb', border: '1px solid #bce1f8', borderRadius: 8, padding: '12px 14px', marginBottom: 16, fontSize: 13, lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 6px', color: '#1b4f72' }}>
+                <strong>{topupTarget.surname} {topupTarget.othernames}</strong> (Diploma Level {topupTarget.education_level || '200'})
+              </p>
+              <p style={{ margin: 0, color: '#2980b9' }}>
+                Transitioning to <strong>BTech Top-up</strong> converts this student to <strong>B-TECH</strong>, continuing from <strong>Level 200</strong> instead of graduating.
+              </p>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                Current Program
+              </label>
+              <input
+                type="text"
+                disabled
+                value={`${topupTarget.program || '-'} (Diploma)`}
+                style={{ width: '100%', padding: '8px 12px', background: '#f5f5f5', borderRadius: 6, border: '1px solid var(--grey)' }}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                New BTech Program Name *
+              </label>
+              <input
+                type="text"
+                value={topupProgram}
+                onChange={e => setTopupProgram(e.target.value)}
+                placeholder="e.g. BTECH Electrical Engineering"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--grey)', fontSize: 13 }}
+                required
+              />
+              <span style={{ fontSize: 11, color: 'var(--dark-grey)', marginTop: 4, display: 'block' }}>
+                The program duration will change to <strong>B-TECH</strong>.
+              </span>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                Continuing Academic Level
+              </label>
+              <input
+                type="text"
+                disabled
+                value="Level 200 (Continues as BTech student)"
+                style={{ width: '100%', padding: '8px 12px', background: '#f5f5f5', borderRadius: 6, border: '1px solid var(--grey)' }}
+              />
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: 0 }}>
+              <button
+                type="button"
+                className="btn btn-back"
+                onClick={() => setTopupTarget(null)}
+                disabled={topupSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleExecuteTopup}
+                disabled={topupSaving || !topupProgram.trim()}
+                style={{ background: '#2980b9', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                {topupSaving ? (
+                  <>
+                    <i className='bx bx-loader-alt bx-spin'></i> Transitioning...
+                  </>
+                ) : (
+                  <>
+                    <i className='bx bx-check'></i> Confirm BTech Top-up
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

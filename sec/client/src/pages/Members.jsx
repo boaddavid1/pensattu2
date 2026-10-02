@@ -24,6 +24,10 @@ export default function Members() {
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [previewSearch, setPreviewSearch] = useState('');
   const [showPreviewList, setShowPreviewList] = useState(false);
+  const [topupTarget, setTopupTarget] = useState(null);
+  const [topupProgram, setTopupProgram] = useState('');
+  const [topupSaving, setTopupSaving] = useState(false);
+  const [topupNotice, setTopupNotice] = useState('');
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -77,6 +81,40 @@ export default function Members() {
       setPromoteError(err.message || 'Failed to advance member levels');
     } finally {
       setPromoting(false);
+    }
+  };
+
+  const openTopupModal = (m) => {
+    setTopupTarget(m);
+    const orig = m.program || '';
+    let autoProg = orig;
+    if (/diploma/i.test(orig)) {
+      autoProg = orig.replace(/diploma\s*(in)?/i, 'BTECH ').trim();
+    } else if (orig && !/btech/i.test(orig)) {
+      autoProg = `BTECH ${orig}`;
+    } else if (!orig) {
+      autoProg = 'BTECH';
+    }
+    setTopupProgram(autoProg);
+  };
+
+  const handleExecuteTopup = async () => {
+    if (!topupTarget) return;
+    setTopupSaving(true);
+    setPromoteError('');
+    try {
+      await secApi.topupBTech(topupTarget.id, { program: topupProgram, level: '200' });
+      setTopupNotice(`${topupTarget.name} converted to BTech Top-up (Level 200)!`);
+      setTimeout(() => setTopupNotice(''), 5000);
+      setTopupTarget(null);
+      // Refresh preview data
+      const res = await secApi.getPromotionPreview();
+      setPreviewData(res);
+      fetchMembers();
+    } catch (err) {
+      setPromoteError(err.message || 'Failed to convert member to BTech Top-up');
+    } finally {
+      setTopupSaving(false);
     }
   };
 
@@ -216,12 +254,18 @@ export default function Members() {
                 Academic Level & Graduation Rules:
               </strong>
               <ul style={{ margin: 0, paddingLeft: 20, color: 'var(--dark-grey)' }}>
-                <li><strong>Diploma (2 Years):</strong> Level 100 &rarr; 200, Level 200 &rarr; <em>Graduates to Alumni Portal</em></li>
+                <li><strong>Diploma (2 Years):</strong> Level 100 &rarr; 200, Level 200 &rarr; <em>Graduates to Alumni Portal</em> (or click <strong>BTech Top-up</strong> below to manually change program to BTECH and continue from Level 200).</li>
                 <li><strong>HND (3 Years):</strong> Level 100 &rarr; 200, Level 200 &rarr; 300, Level 300 &rarr; <em>Graduates to Alumni Portal</em></li>
                 <li><strong>BTECH (4 Years):</strong> Level 100 &rarr; 200, Level 200 &rarr; 300, Level 300 &rarr; 400, Level 400 &rarr; <em>Graduates to Alumni Portal</em></li>
                 <li>Graduated members are automatically recorded in the <strong>Alumni Portal</strong> and archived from undergraduate level lists.</li>
               </ul>
             </div>
+
+            {topupNotice && (
+              <div style={{ background: '#d4f5dd', color: '#1e8449', border: '1px solid #a9dfbf', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <i className='bx bx-check-circle' style={{ fontSize: 18 }}></i> {topupNotice}
+              </div>
+            )}
 
             {promoteError && <div className="error-msg" style={{ marginBottom: 16 }}>{promoteError}</div>}
 
@@ -362,9 +406,33 @@ export default function Members() {
                                 <td style={{ padding: '6px 4px' }}>Level {m.currentLevel}</td>
                                 <td style={{ padding: '6px 4px' }}>
                                   {m.action === 'graduate' ? (
-                                    <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                      <i className='bx bxs-graduation'></i> Graduate &rarr; Alumni
-                                    </span>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                      <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                        <i className='bx bxs-graduation'></i> Graduate &rarr; Alumni
+                                      </span>
+                                      {(m.duration || '').toLowerCase().includes('diploma') && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => { e.stopPropagation(); openTopupModal(m); }}
+                                          style={{
+                                            padding: '2px 8px',
+                                            fontSize: 11,
+                                            borderRadius: 4,
+                                            border: '1px solid #2980b9',
+                                            background: '#ebf5fb',
+                                            color: '#2980b9',
+                                            cursor: 'pointer',
+                                            fontWeight: 600,
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 3,
+                                          }}
+                                          title="Doing BTech Top-up? Click to switch program to BTECH and continue from Level 200"
+                                        >
+                                          <i className='bx bx-transfer'></i> BTech Top-up
+                                        </button>
+                                      )}
+                                    </div>
                                   ) : m.action === 'promote' ? (
                                     <span className="badge badge-yellow">
                                       &rarr; Level {m.targetLevel}
@@ -434,6 +502,107 @@ export default function Members() {
                 </div>
               </>
             ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Manual BTech Top-up Modal */}
+      {topupTarget && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => !topupSaving && setTopupTarget(null)}>
+          <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, color: 'var(--dark)' }}>
+                <i className='bx bx-transfer' style={{ color: '#2980b9', marginRight: 8 }}></i>
+                Diploma &rarr; BTech Top-up
+              </h2>
+              {!topupSaving && (
+                <button
+                  type="button"
+                  onClick={() => setTopupTarget(null)}
+                  style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--dark-grey)' }}
+                >
+                  <i className='bx bx-x'></i>
+                </button>
+              )}
+            </div>
+
+            <div style={{ background: '#ebf5fb', border: '1px solid #bce1f8', borderRadius: 8, padding: '12px 14px', marginBottom: 16, fontSize: 13, lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 6px', color: '#1b4f72' }}>
+                <strong>{topupTarget.name}</strong> has completed Diploma Level 200.
+              </p>
+              <p style={{ margin: 0, color: '#2980b9' }}>
+                Transitioning to <strong>BTech Top-up</strong> keeps this member active in the student directory, continuing from <strong>Level 200</strong> instead of graduating to the Alumni portal.
+              </p>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                Current Program
+              </label>
+              <input
+                type="text"
+                disabled
+                value={`${topupTarget.program || '-'} (Diploma)`}
+                style={{ width: '100%', padding: '8px 12px', background: '#f5f5f5', borderRadius: 6, border: '1px solid var(--grey)' }}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                New BTech Program Name *
+              </label>
+              <input
+                type="text"
+                value={topupProgram}
+                onChange={e => setTopupProgram(e.target.value)}
+                placeholder="e.g. BTECH Electrical Engineering"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid var(--grey)', fontSize: 13 }}
+                required
+              />
+              <span style={{ fontSize: 11, color: 'var(--dark-grey)', marginTop: 4, display: 'block' }}>
+                The program duration will change to <strong>B-TECH</strong>.
+              </span>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                Continuing Academic Level
+              </label>
+              <input
+                type="text"
+                disabled
+                value="Level 200 (Continues as BTech student)"
+                style={{ width: '100%', padding: '8px 12px', background: '#f5f5f5', borderRadius: 6, border: '1px solid var(--grey)' }}
+              />
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: 0 }}>
+              <button
+                type="button"
+                className="btn btn-back"
+                onClick={() => setTopupTarget(null)}
+                disabled={topupSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleExecuteTopup}
+                disabled={topupSaving || !topupProgram.trim()}
+                style={{ background: '#2980b9', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                {topupSaving ? (
+                  <>
+                    <i className='bx bx-loader-alt bx-spin'></i> Transitioning...
+                  </>
+                ) : (
+                  <>
+                    <i className='bx bx-check'></i> Confirm BTech Top-up
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

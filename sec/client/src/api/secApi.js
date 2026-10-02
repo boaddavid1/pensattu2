@@ -48,6 +48,7 @@ export const secApi = {
   getPromotionPreview: () => request('/members/promotion-preview'),
   promoteMembers: () => request('/members/promote', { method: 'POST' }),
   promoteMember: (id) => request(`/members/${id}/promote`, { method: 'POST' }),
+  topupBTech: (id, data) => request(`/members/${id}/topup-btech`, { method: 'POST', body: JSON.stringify(data || {}) }),
 
   // Newbies (Fast registration queue)
   listNewbies: (params = '') => request(`/newbies${params ? `?${params}` : ''}`),

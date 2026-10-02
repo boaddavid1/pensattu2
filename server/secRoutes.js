@@ -513,6 +513,62 @@ router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
   }
 });
 
+// Manually convert Diploma student to BTech Top-up (continues from Level 200)
+router.post('/members/:id/topup-btech', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Member not found' });
+    const member = rows[0];
+
+    // Determine new program name
+    let newProgram = (req.body.program || '').trim();
+    if (!newProgram) {
+      const orig = member.program || '';
+      if (/diploma/i.test(orig)) {
+        newProgram = orig.replace(/diploma\s*(in)?/i, 'BTECH ').trim();
+      } else if (orig) {
+        newProgram = `BTECH ${orig}`;
+      } else {
+        newProgram = 'BTECH';
+      }
+    }
+
+    const newLevel = req.body.level ? String(req.body.level) : '200';
+
+    await secPool.query(
+      `UPDATE registrations SET
+        program_duration = 'B-TECH',
+        program = ?,
+        education_level = ?,
+        graduated = 0
+       WHERE id = ?`,
+      [newProgram, newLevel, member.id]
+    );
+
+    // If an alumni record was previously created for this registration, remove it
+    await secPool.query('DELETE FROM alumni WHERE registration_id = ?', [member.id]);
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'TOPUP_BTECH',
+      `Converted member #${member.id} (${member.surname} ${member.othernames}) to BTech Top-up in ${newProgram} at Level ${newLevel}`,
+      req
+    );
+
+    res.json({
+      success: true,
+      message: `${member.surname} ${member.othernames} successfully transitioned to BTech Top-up (Level ${newLevel})`,
+      program: newProgram,
+      program_duration: 'B-TECH',
+      education_level: newLevel,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/members/:id', requireSecAuth, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
