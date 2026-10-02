@@ -1,7 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './Gallery.css';
 import { api, getImageUrl } from '../api';
+import { albums as fallbackAlbums } from '../data/albums';
+
+// Client-side cache for instant subsequent and initial loads
+let memoryGalleryCache = null;
+try {
+  const stored = sessionStorage.getItem('pensa_gallery_cache');
+  if (stored) memoryGalleryCache = JSON.parse(stored);
+} catch {}
 
 function shuffle(arr) {
   const a = [...arr];
@@ -13,7 +21,7 @@ function shuffle(arr) {
 }
 
 function buildColumns(urls, colCount = 5, perCol = 3) {
-  if (urls.length === 0) return Array.from({ length: colCount }, () => []);
+  if (!urls || urls.length === 0) return Array.from({ length: colCount }, () => []);
   const shuffled = shuffle(urls);
   const cols = [];
   for (let c = 0; c < colCount; c++) {
@@ -26,26 +34,42 @@ function buildColumns(urls, colCount = 5, perCol = 3) {
   return cols;
 }
 
+function extractAllPhotos(albumList) {
+  return (albumList || []).flatMap((album) =>
+    (album.items || []).map((p) =>
+      getImageUrl(p.src, { width: 280, quality: 'auto:low' })
+    ).filter(Boolean)
+  );
+}
+
 export default function Gallery() {
   const heroRef = useRef(null);
   const tracksRef = useRef([]);
-  const [albums, setAlbums] = useState([]);
-  const [heroColumns, setHeroColumns] = useState([[], [], [], [], []]);
+
+  // Instant render from cache or fallback data — 0ms blank screen delay
+  const [albums, setAlbums] = useState(() => memoryGalleryCache || fallbackAlbums);
+
+  const initialPhotos = useMemo(() => extractAllPhotos(memoryGalleryCache || fallbackAlbums), []);
+  const [heroColumns, setHeroColumns] = useState(() => buildColumns(initialPhotos));
 
   useEffect(() => {
+    // Stale-while-revalidate background refresh
     api.get('/gallery')
       .then((data) => {
-        setAlbums(data);
-        const allPhotos = data.flatMap((album) => (album.items || []).map((p) => getImageUrl(p.src)).filter(Boolean));
-        if (allPhotos.length > 0) {
-          setHeroColumns(buildColumns(allPhotos));
-          const interval = setInterval(() => {
-            setHeroColumns(buildColumns(allPhotos));
-          }, 5000);
-          return () => clearInterval(interval);
+        if (Array.isArray(data) && data.length > 0) {
+          setAlbums(data);
+          memoryGalleryCache = data;
+          try {
+            sessionStorage.setItem('pensa_gallery_cache', JSON.stringify(data));
+          } catch {}
+
+          const freshPhotos = extractAllPhotos(data);
+          if (freshPhotos.length > 0) {
+            setHeroColumns(buildColumns(freshPhotos));
+          }
         }
       })
-      .catch(() => setAlbums([]));
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -56,7 +80,7 @@ export default function Gallery() {
     const updateAnimationState = () => {
       if (!hero) return;
       const rect = hero.getBoundingClientRect();
-      const inView = rect.bottom > 0 && window.scrollY < window.innerHeight * 0.6;
+      const inView = rect.bottom > 0 && window.scrollY < window.innerHeight * 0.8;
       tracks.forEach((t) => t?.classList.toggle('paused', !inView));
       ticking = false;
     };
@@ -84,7 +108,16 @@ export default function Gallery() {
                 ref={(el) => { tracksRef.current[c] = el; }}
               >
                 {[...col, ...col].map((src, i) => (
-                  <img key={i} src={src} alt="Gallery moment" />
+                  <img
+                    key={i}
+                    src={src}
+                    alt="Gallery moment"
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                    width="260"
+                    height="260"
+                  />
                 ))}
               </div>
             </div>
@@ -108,7 +141,14 @@ export default function Gallery() {
           <div className="cover-grid">
             {albums.map((album) => (
               <Link className="cover-card" to={`/gallery/${album.id}`} key={album.id}>
-                <div className="cover-img"><img src={getImageUrl(album.cover)} alt={`${album.title} album cover`} /></div>
+                <div className="cover-img">
+                  <img
+                    src={getImageUrl(album.cover, { width: 550, quality: 'auto' })}
+                    alt={`${album.title} album cover`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
                 <div className="cover-body">
                   <h3>{album.title}</h3>
                   <span>{album.count}</span>
@@ -124,11 +164,12 @@ export default function Gallery() {
         <div className="wrap">
           <div className="cta-box">
             <h2>Come be part of the <em>next photo</em>.</h2>
-            <Link to="/contact" className="btn btn-dark">Plan your visit <span className="btn-arrow" style={{ background: 'var(--moss)', color: 'var(--pine-deep)' }}>→</span></Link>
+            <Link to="/contact" className="btn btn-dark">
+              Plan your visit <span className="btn-arrow" style={{ background: 'var(--moss)', color: 'var(--pine-deep)' }}>→</span>
+            </Link>
           </div>
         </div>
       </section>
-
     </main>
   );
 }

@@ -200,6 +200,7 @@ app.get('/api/notices/:id', async (req, res) => {
 });
 
 app.get('/api/gallery', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
   try {
     const [albums] = await pool.query('SELECT id, name AS title, description, cover_image AS cover FROM albums ORDER BY id');
     const [photos] = await pool.query('SELECT album_id, image_url AS src, title AS alt, category, description AS caption FROM gallery ORDER BY id');
