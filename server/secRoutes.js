@@ -252,6 +252,44 @@ router.get('/members', requireSecAuth, async (req, res) => {
   }
 });
 
+// ─── Public/Fast member photo streaming endpoint ──────────
+router.get('/members/:id/photo', async (req, res) => {
+  try {
+    const [rows] = await secPool.query(
+      'SELECT profile_image, photo_data FROM registrations WHERE id = ? LIMIT 1',
+      [req.params.id]
+    );
+    if (!rows || !rows.length) {
+      return res.status(404).send('Photo not found');
+    }
+    const photo = rows[0].profile_image || rows[0].photo_data;
+    if (!photo || !String(photo).trim()) {
+      return res.status(404).send('No photo uploaded');
+    }
+
+    const str = String(photo).trim();
+    if (str.startsWith('http://') || str.startsWith('https://')) {
+      return res.redirect(str);
+    }
+
+    const dataMatch = str.match(/^data:([^;]+);base64,(.+)$/);
+    if (dataMatch) {
+      const mime = dataMatch[1];
+      const buffer = Buffer.from(dataMatch[2], 'base64');
+      res.setHeader('Content-Type', mime);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.send(buffer);
+    }
+
+    const buffer = Buffer.from(str, 'base64');
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(buffer);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // Members grouped by education level — returns only counts in a single fast query
 router.get('/members/by-level', requireSecAuth, async (req, res) => {
   try {
@@ -1141,25 +1179,6 @@ router.get('/messages/logs', requireSecAuth, async (req, res) => {
   }
 });
 
-let regColumnsCache = null;
-async function getHallsSelectFields() {
-  if (regColumnsCache) return regColumnsCache;
-  try {
-    const [cols] = await secPool.query("SHOW COLUMNS FROM registrations");
-    const colNames = new Set(cols.map((c) => c.Field.toLowerCase()));
-    const fields = [
-      'id', 'surname', 'othernames', 'gender', 'contact', 'program', 'education_level',
-      'campus_residence', 'campus_hall', 'offcampus_location', 'room_campus', 'room_offcampus', 'room', 'landmark', 'residence'
-    ];
-    if (colNames.has('profile_image')) fields.push('profile_image');
-    if (colNames.has('photo_data')) fields.push('photo_data');
-    regColumnsCache = fields.join(', ');
-    return regColumnsCache;
-  } catch {
-    return 'id, surname, othernames, gender, contact, program, education_level, campus_residence, campus_hall, offcampus_location, room_campus, room_offcampus, room, landmark, residence';
-  }
-}
-
 // High-performance In-Memory Cache for Halls & Residences
 let hallsCache = null;
 let hallsCacheExpiry = 0;
@@ -1181,11 +1200,19 @@ router.get('/halls', requireSecAuth, async (req, res) => {
 
     const hasGrad = await hasGraduatedCol();
     const whereGrad = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
-    const fields = await getHallsSelectFields();
 
-    // Lean indexed query fetching strictly the required columns
+    // Fast indexed query with NO heavy Base64 BLOBs to keep payload tiny (~25KB) and lightning fast
     const [rows] = await secPool.query(`
-      SELECT ${fields}
+      SELECT id, surname, othernames, gender, contact, program, education_level,
+             campus_residence, campus_hall, offcampus_location, room_campus, room_offcampus, room, landmark, residence,
+             CASE 
+               WHEN profile_image LIKE 'http%' THEN profile_image 
+               ELSE NULL 
+             END as photo_url,
+             CASE 
+               WHEN (photo_data IS NOT NULL AND photo_data != '') OR (profile_image IS NOT NULL AND profile_image != '') 
+               THEN 1 ELSE 0 
+             END as has_photo
       FROM registrations 
       ${whereGrad}
       ORDER BY surname
@@ -1208,7 +1235,8 @@ router.get('/halls', requireSecAuth, async (req, res) => {
         contact: m.contact,
         program: m.program,
         education_level: m.education_level,
-        profile_image: m.profile_image || m.photo_data || null,
+        has_photo: Boolean(m.has_photo),
+        photo_url: m.photo_url || null,
       };
 
       if (isCampus && m.campus_hall && m.campus_hall.trim()) {

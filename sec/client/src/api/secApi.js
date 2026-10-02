@@ -1,5 +1,6 @@
 // secApi.js — API client for the SEC member management module
-const API_BASE = import.meta.env.VITE_SEC_API_URL || import.meta.env.VITE_API_URL || '/api/sec';
+export const SEC_API_BASE = import.meta.env.VITE_SEC_API_URL || import.meta.env.VITE_API_URL || '/api/sec';
+const API_BASE = SEC_API_BASE;
 
 function getToken() {
   return sessionStorage.getItem('sec_admin_token');

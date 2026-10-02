@@ -1,7 +1,7 @@
 // Halls.jsx — Members grouped by Hall & Off-Campus Residence with Right-Hand Side Drawer
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { secApi } from '../api/secApi.js';
+import { secApi, SEC_API_BASE } from '../api/secApi.js';
 
 // Module-level cache for instant zero-wait rendering
 let clientHallsCache = null;
@@ -28,8 +28,11 @@ export default function Halls() {
   const [copiedPhones, setCopiedPhones] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-  useEffect(() => {
-    // If cached data is already present, fetch in background silently
+  const fetchHalls = useCallback((force = false) => {
+    if (!clientHallsCache || force) {
+      setLoading(true);
+    }
+    setError('');
     secApi
       .halls()
       .then((res) => {
@@ -52,6 +55,10 @@ export default function Halls() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    fetchHalls();
+  }, [fetchHalls]);
 
   // Lock body scroll and listen for Escape key when right drawer is open
   useEffect(() => {
@@ -141,7 +148,18 @@ export default function Halls() {
   }
 
   if (loading) return <div className="loading">Loading halls & residences...</div>;
-  if (error) return <div className="error-msg">{error}</div>;
+  if (error) {
+    return (
+      <div className="card" style={{ padding: 40, textAlign: 'center', margin: '40px auto', maxWidth: 480 }}>
+        <i className="bx bx-error-circle" style={{ fontSize: 48, color: '#e74c3c', marginBottom: 12 }}></i>
+        <h3 style={{ marginBottom: 8, color: 'var(--dark)' }}>Unable to load halls</h3>
+        <p style={{ color: '#6c757d', marginBottom: 20 }}>{error}</p>
+        <button className="btn btn-primary" onClick={() => fetchHalls(true)} style={{ margin: '0 auto' }}>
+          <i className="bx bx-refresh"></i> Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -598,7 +616,9 @@ export default function Halls() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {filteredMembers.map((m, idx) => (
+                  {filteredMembers.map((m, idx) => {
+                    const photoSrc = m.photo_url || (m.has_photo ? `${SEC_API_BASE}/members/${m.id}/photo` : null);
+                    return (
                     <div
                       key={m.id || idx}
                       style={{
@@ -615,13 +635,20 @@ export default function Halls() {
                     >
                       {/* Member Photo / Avatar */}
                       <div style={{ position: 'relative', flexShrink: 0 }}>
-                        {m.profile_image ? (
+                        {photoSrc ? (
                           <img
-                            src={m.profile_image}
+                            src={photoSrc}
                             alt={`${m.surname} ${m.othernames}`}
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextElementSibling) {
+                                e.currentTarget.nextElementSibling.style.display = 'flex';
+                              }
+                            }}
                             onClick={() =>
                               setPreviewImage({
-                                url: m.profile_image,
+                                url: photoSrc,
                                 name: `${m.surname} ${m.othernames}`,
                                 program: m.program,
                                 room: m.roomDisplay,
@@ -640,30 +667,29 @@ export default function Halls() {
                             }}
                             title="Click to enlarge photo"
                           />
-                        ) : (
-                          <div
-                            style={{
-                              width: 52,
-                              height: 52,
-                              borderRadius: '50%',
-                              background:
-                                String(m.gender).toLowerCase() === 'female' ? '#fce4ec' : 'var(--light-blue)',
-                              color:
-                                String(m.gender).toLowerCase() === 'female' ? '#c2185b' : 'var(--blue)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontWeight: 700,
-                              fontSize: '0.95rem',
-                              border: '2px solid #e9ecef',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                            }}
-                          >
-                            {`${m.surname?.[0] || ''}${m.othernames?.[0] || ''}`.toUpperCase() || (
-                              <i className="bx bx-user" />
-                            )}
-                          </div>
-                        )}
+                        ) : null}
+                        <div
+                          style={{
+                            width: 52,
+                            height: 52,
+                            borderRadius: '50%',
+                            background:
+                              String(m.gender).toLowerCase() === 'female' ? '#fce4ec' : 'var(--light-blue)',
+                            color:
+                              String(m.gender).toLowerCase() === 'female' ? '#c2185b' : 'var(--blue)',
+                            display: photoSrc ? 'none' : 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '0.95rem',
+                            border: '2px solid #e9ecef',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                          }}
+                        >
+                          {`${m.surname?.[0] || ''}${m.othernames?.[0] || ''}`.toUpperCase() || (
+                            <i className="bx bx-user" />
+                          )}
+                        </div>
                       </div>
 
                       {/* Member Details */}
@@ -817,7 +843,8 @@ export default function Halls() {
                         )}
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               )}
             </div>
