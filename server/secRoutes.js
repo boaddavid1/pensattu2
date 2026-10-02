@@ -519,6 +519,142 @@ router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
   }
 });
 
+// Get Level 400 members with vintage/history analysis to separate previous from recent
+router.get('/members/level400-candidates', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query(`
+      SELECT id, surname, othernames, gender, contact, program, program_duration, education_level, created_at, graduated
+      FROM registrations 
+      WHERE education_level = '400' AND (graduated = 0 OR graduated IS NULL)
+      ORDER BY created_at ASC, id ASC
+    `);
+
+    // Check dates to determine vintage
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const candidates = rows.map((m) => {
+      const regDate = m.created_at ? new Date(m.created_at) : null;
+      // If registered within the last 30 days, considered recent/new
+      const isRecent = regDate && regDate > thirtyDaysAgo;
+
+      return {
+        id: m.id,
+        name: `${m.surname} ${m.othernames}`,
+        surname: m.surname,
+        othernames: m.othernames,
+        gender: m.gender,
+        contact: m.contact || '-',
+        program: m.program || '-',
+        duration: m.program_duration || '-',
+        level: m.education_level,
+        registeredAt: m.created_at,
+        isRecent: Boolean(isRecent),
+        // Previous class members are pre-selected to graduate, recent ones are protected
+        recommendedToGraduate: !isRecent,
+      };
+    });
+
+    const previousCount = candidates.filter(c => c.recommendedToGraduate).length;
+    const recentCount = candidates.filter(c => c.isRecent).length;
+
+    res.json({
+      total: candidates.length,
+      previousCount,
+      recentCount,
+      candidates,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk graduate selected members to Alumni
+router.post('/members/graduate-batch', requireSecAuth, async (req, res) => {
+  try {
+    const { memberIds } = req.body;
+    if (!Array.isArray(memberIds) || !memberIds.length) {
+      return res.status(400).json({ error: 'No member IDs provided' });
+    }
+
+    const [members] = await secPool.query(
+      `SELECT * FROM registrations WHERE id IN (?) AND (graduated = 0 OR graduated IS NULL)`,
+      [memberIds]
+    );
+
+    let graduatedCount = 0;
+    const graduatedNames = [];
+
+    for (const m of members) {
+      await graduateMemberRecord(m);
+      graduatedCount++;
+      graduatedNames.push(`${m.surname} ${m.othernames}`);
+    }
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'GRADUATE_BATCH_LEVEL_400',
+      `Graduated ${graduatedCount} Level 400 members to Alumni: ${graduatedNames.slice(0, 5).join(', ')}${graduatedCount > 5 ? ` and ${graduatedCount - 5} more` : ''}`,
+      req
+    );
+
+    res.json({
+      success: true,
+      message: `Successfully graduated ${graduatedCount} member(s) to the Alumni portal.`,
+      graduatedCount,
+      graduatedNames,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Automatically graduate previous Level 400s (excluding recent registrations)
+router.post('/members/graduate-previous-400-auto', requireSecAuth, async (req, res) => {
+  try {
+    const { daysThreshold = 30 } = req.body || {};
+    const [members] = await secPool.query(`
+      SELECT * FROM registrations 
+      WHERE education_level = '400' 
+        AND (graduated = 0 OR graduated IS NULL)
+        AND created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+    `, [daysThreshold]);
+
+    if (!members.length) {
+      return res.json({
+        success: true,
+        message: 'No previous Level 400 members found matching the criteria (all current Level 400 members appear to be recent).',
+        graduatedCount: 0,
+      });
+    }
+
+    let graduatedCount = 0;
+    for (const m of members) {
+      await graduateMemberRecord(m);
+      graduatedCount++;
+    }
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'AUTO_GRADUATE_PREVIOUS_400',
+      `Auto-graduated ${graduatedCount} previous Level 400 members (excluding past ${daysThreshold} days)`,
+      req
+    );
+
+    res.json({
+      success: true,
+      message: `Successfully graduated ${graduatedCount} previous Level 400 members to the Alumni portal. Recent ones were preserved!`,
+      graduatedCount,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Manually convert Diploma student to BTech Top-up (continues from Level 200)
 router.post('/members/:id/topup-btech', requireSecAuth, async (req, res) => {
   try {

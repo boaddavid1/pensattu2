@@ -42,6 +42,13 @@ export default function Members() {
   const [rollbackLoading, setRollbackLoading] = useState(false);
   const [rollbackSuccess, setRollbackSuccess] = useState('');
   const [rollbackError, setRollbackError] = useState('');
+  const [showGrad400Modal, setShowGrad400Modal] = useState(false);
+  const [gradCandidates, setGradCandidates] = useState([]);
+  const [gradLoading, setGradLoading] = useState(false);
+  const [gradSubmitting, setGradSubmitting] = useState(false);
+  const [gradModalSearch, setGradModalSearch] = useState('');
+  const [gradModalSelected, setGradModalSelected] = useState(new Set());
+  const [gradMsg, setGradMsg] = useState('');
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -193,6 +200,47 @@ export default function Members() {
     }
   };
 
+  const openGraduate400Modal = async () => {
+    setShowGrad400Modal(true);
+    setGradLoading(true);
+    setGradMsg('');
+    try {
+      const res = await secApi.getLevel400Candidates();
+      setGradCandidates(res.candidates || []);
+      const preSelected = new Set(
+        (res.candidates || []).filter(c => c.recommendedToGraduate).map(c => c.id)
+      );
+      setGradModalSelected(preSelected);
+    } catch (err) {
+      setError(err.message || 'Failed to load Level 400 candidates');
+    } finally {
+      setGradLoading(false);
+    }
+  };
+
+  const handleExecuteBatchGraduate = async () => {
+    const ids = Array.from(gradModalSelected);
+    if (!ids.length) {
+      alert('Please select at least one member to graduate.');
+      return;
+    }
+    if (!confirm(`Are you sure you want to graduate ${ids.length} selected member(s) to the Alumni portal?`)) {
+      return;
+    }
+    setGradSubmitting(true);
+    try {
+      const res = await secApi.graduateBatch(ids);
+      setGradMsg(res.message || `Successfully graduated ${ids.length} member(s) to the Alumni portal!`);
+      setTimeout(() => setGradMsg(''), 6000);
+      setShowGrad400Modal(false);
+      fetchMembers();
+    } catch (err) {
+      setError(err.message || 'Failed to graduate members');
+    } finally {
+      setGradSubmitting(false);
+    }
+  };
+
   const levels = data?.levels || [];
   const total = data?.total || 0;
 
@@ -229,6 +277,14 @@ export default function Members() {
           <button
             type="button"
             className="btn-download"
+            onClick={openGraduate400Modal}
+            style={{ background: '#8e44ad', color: '#fff', border: 'none', cursor: 'pointer' }}
+          >
+            <i className='bx bxs-graduation'></i> Graduate Level 400
+          </button>
+          <button
+            type="button"
+            className="btn-download"
             onClick={openPromoteModal}
             style={{ background: '#27ae60', color: '#fff', border: 'none', cursor: 'pointer' }}
           >
@@ -241,6 +297,12 @@ export default function Members() {
       </div>
 
       {error && <div className="error-msg">{error}</div>}
+      {gradMsg && (
+        <div style={{ background: '#d4edda', color: '#155724', padding: '12px 16px', borderRadius: 8, marginBottom: 16, border: '1px solid #c3e6cb', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <i className='bx bx-check-circle' style={{ fontSize: 20 }}></i>
+          <span>{gradMsg}</span>
+        </div>
+      )}
 
       {/* Search & filters */}
       <div className="card">
@@ -820,6 +882,200 @@ export default function Members() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Graduate Level 400 Candidates Modal */}
+      {showGrad400Modal && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-box" style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, fontSize: 18, display: 'flex', alignItems: 'center', color: '#5b2c6f' }}>
+                <i className='bx bxs-graduation' style={{ color: '#8e44ad', marginRight: 8 }}></i>
+                Graduate Previous Level 400 to Alumni
+              </h2>
+              {!gradSubmitting && (
+                <button
+                  type="button"
+                  onClick={() => setShowGrad400Modal(false)}
+                  style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--dark-grey)' }}
+                >
+                  <i className='bx bx-x'></i>
+                </button>
+              )}
+            </div>
+
+            <div style={{ background: '#f5eeff', border: '1px solid #dcd0ff', borderRadius: 8, padding: '12px 14px', marginBottom: 16, fontSize: 13 }}>
+              <p style={{ margin: '0 0 6px', color: '#5b2c6f', fontWeight: 600 }}>
+                Select only the previous graduating class of Level 400 to move to the Alumni portal.
+              </p>
+              <p style={{ margin: 0, color: '#666', fontSize: 12 }}>
+                Recent members and newly promoted students are highlighted in amber and <strong>unchecked by default</strong> to prevent accidental graduation.
+              </p>
+            </div>
+
+            {gradLoading ? (
+              <div style={{ padding: '30px 0', textAlign: 'center', color: 'var(--dark-grey)' }}>
+                <i className='bx bx-loader-alt bx-spin' style={{ fontSize: 28, marginBottom: 8, display: 'block' }}></i>
+                Loading Level 400 candidate analysis...
+              </div>
+            ) : (
+              <>
+                {/* Search & Selection Controls */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+                  <input
+                    type="text"
+                    placeholder="Filter candidates..."
+                    value={gradModalSearch}
+                    onChange={e => setGradModalSearch(e.target.value)}
+                    style={{ flex: 1, minWidth: 180, padding: '6px 12px', border: '1px solid #ddd', borderRadius: 6, fontSize: 12 }}
+                  />
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => {
+                        const pre = new Set(gradCandidates.filter(c => c.recommendedToGraduate).map(c => c.id));
+                        setGradModalSelected(pre);
+                      }}
+                      style={{ fontSize: 11, padding: '4px 10px', background: '#8e44ad', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+                    >
+                      Select Senior Class Only
+                    </button>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => setGradModalSelected(new Set(gradCandidates.map(c => c.id)))}
+                      style={{ fontSize: 11, padding: '4px 8px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer' }}
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => setGradModalSelected(new Set())}
+                      style={{ fontSize: 11, padding: '4px 8px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer' }}
+                    >
+                      Deselect All
+                    </button>
+                  </div>
+                </div>
+
+                {/* Candidate list table */}
+                <div style={{ maxHeight: 320, overflowY: 'auto', border: '1px solid #eee', borderRadius: 6, marginBottom: 16 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ background: '#fafafa', borderBottom: '1px solid #eee', position: 'sticky', top: 0, zIndex: 1 }}>
+                        <th style={{ padding: '8px 10px', width: 36, textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={gradCandidates.length > 0 && gradModalSelected.size === gradCandidates.length}
+                            onChange={() => {
+                              if (gradModalSelected.size === gradCandidates.length) setGradModalSelected(new Set());
+                              else setGradModalSelected(new Set(gradCandidates.map(c => c.id)));
+                            }}
+                          />
+                        </th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>Member Name</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left' }}>Program</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center' }}>Classification</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {gradCandidates
+                        .filter(c => !gradModalSearch || c.name.toLowerCase().includes(gradModalSearch.toLowerCase()) || c.program.toLowerCase().includes(gradModalSearch.toLowerCase()))
+                        .map(c => {
+                          const isChecked = gradModalSelected.has(c.id);
+                          return (
+                            <tr
+                              key={c.id}
+                              style={{
+                                borderBottom: '1px solid #f0f0f0',
+                                background: isChecked ? '#faf5ff' : c.isRecent ? '#fffdf7' : '#fff',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => {
+                                const next = new Set(gradModalSelected);
+                                if (next.has(c.id)) next.delete(c.id);
+                                else next.add(c.id);
+                                setGradModalSelected(next);
+                              }}
+                            >
+                              <td style={{ padding: '8px 10px', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => {
+                                    const next = new Set(gradModalSelected);
+                                    if (next.has(c.id)) next.delete(c.id);
+                                    else next.add(c.id);
+                                    setGradModalSelected(next);
+                                  }}
+                                />
+                              </td>
+                              <td style={{ padding: '8px 10px', fontWeight: 600 }}>
+                                {c.name}
+                              </td>
+                              <td style={{ padding: '8px 10px', color: '#666' }}>
+                                {c.program} ({c.duration})
+                              </td>
+                              <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                {c.isRecent ? (
+                                  <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
+                                    Recent (Protected)
+                                  </span>
+                                ) : (
+                                  <span style={{ background: '#f3e8ff', color: '#6b21a8', padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 600 }}>
+                                    Senior / Previous
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontSize: 12, color: '#555' }}>
+                  <span>
+                    Selected to graduate: <strong style={{ color: '#8e44ad' }}>{gradModalSelected.size}</strong> member(s)
+                  </span>
+                  <span>
+                    Total Level 400: <strong>{gradCandidates.length}</strong>
+                  </span>
+                </div>
+
+                <div className="modal-actions" style={{ marginTop: 0 }}>
+                  <button
+                    type="button"
+                    className="btn btn-back"
+                    onClick={() => setShowGrad400Modal(false)}
+                    disabled={gradSubmitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleExecuteBatchGraduate}
+                    disabled={gradSubmitting || gradModalSelected.size === 0}
+                    style={{ background: '#8e44ad', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {gradSubmitting ? (
+                      <>
+                        <i className='bx bx-loader-alt bx-spin'></i> Moving to Alumni...
+                      </>
+                    ) : (
+                      <>
+                        <i className='bx bxs-graduation'></i> Graduate {gradModalSelected.size} to Alumni Portal
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

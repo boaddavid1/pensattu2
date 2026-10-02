@@ -80,6 +80,9 @@ export const secApi = {
   getRollbackInfo: () => request('/members/rollback-info'),
   rollbackMoves: (data = {}) => request('/members/rollback', { method: 'POST', body: JSON.stringify(data) }),
   stepDownLevels: () => request('/members/step-down-levels', { method: 'POST' }),
+  getLevel400Candidates: () => request('/members/level400-candidates'),
+  graduateBatch: (memberIds) => request('/members/graduate-batch', { method: 'POST', body: JSON.stringify({ memberIds }) }),
+  autoGraduatePrevious400: (daysThreshold = 30) => request('/members/graduate-previous-400-auto', { method: 'POST', body: JSON.stringify({ daysThreshold }) }),
 
   // Newbies (Fast registration queue)
   listNewbies: (params = '') => request(`/newbies${params ? `?${params}` : ''}`),
