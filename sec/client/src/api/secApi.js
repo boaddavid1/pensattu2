@@ -24,6 +24,18 @@ const CACHE_TTL_MS = 30000; // 30 seconds
 
 export function clearSecCache() {
   cache.clear();
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const toRemove = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const k = sessionStorage.key(i);
+        if (k && (k.startsWith('sec_members_') || k.startsWith('sec_level_'))) {
+          toRemove.push(k);
+        }
+      }
+      toRemove.forEach((k) => sessionStorage.removeItem(k));
+    }
+  } catch {}
 }
 
 async function request(path, options = {}, retries = 1) {
@@ -40,7 +52,7 @@ async function request(path, options = {}, retries = 1) {
 
   // Mutating requests invalidate cache immediately
   if (!isGet) {
-    cache.clear();
+    clearSecCache();
   }
 
   let res;

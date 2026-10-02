@@ -4,8 +4,17 @@ import { Link } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
 
 export default function Members() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('sec_members_by_level_default');
+      return cached ? JSON.parse(cached) : null;
+    } catch { return null; }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !sessionStorage.getItem('sec_members_by_level_default');
+    } catch { return true; }
+  });
   const [error, setError] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -50,25 +59,45 @@ export default function Members() {
   const [gradModalSelected, setGradModalSelected] = useState(new Set());
   const [gradMsg, setGradMsg] = useState('');
 
-  const fetchMembers = useCallback(async () => {
-    setLoading(true);
+  const fetchMembers = useCallback(async (isSilent = false) => {
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (gender) params.set('gender', gender);
+    if (membershipType) params.set('membership_type', membershipType);
+    if (hall) params.set('hall', hall);
+    if (officer) params.set('officer', 'true');
+    if (duration) params.set('duration', duration);
+    const queryString = params.toString();
+    const cacheKey = queryString ? `sec_members_by_level_${queryString}` : 'sec_members_by_level_default';
+
+    if (!isSilent) {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          setData(JSON.parse(cached));
+          setLoading(false);
+          isSilent = true;
+        } else {
+          setLoading(true);
+        }
+      } catch {
+        setLoading(true);
+      }
+    }
     setError('');
+
     try {
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
-      if (gender) params.set('gender', gender);
-      if (membershipType) params.set('membership_type', membershipType);
-      if (hall) params.set('hall', hall);
-      if (officer) params.set('officer', 'true');
-      if (duration) params.set('duration', duration);
-      const result = await secApi.membersByLevel(params.toString());
+      const result = await secApi.membersByLevel(queryString);
       setData(result);
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify(result));
+      } catch {}
     } catch (err) {
-      setError(err.message);
+      if (!data) setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [search, gender, membershipType, hall, officer, duration]);
+  }, [search, gender, membershipType, hall, officer, duration, data]);
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 

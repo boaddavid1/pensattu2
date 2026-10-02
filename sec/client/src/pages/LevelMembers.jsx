@@ -5,8 +5,17 @@ import { secApi } from '../api/secApi.js';
 
 export default function LevelMembers() {
   const { level } = useParams();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem(`sec_level_members_${level}_p1`);
+      return cached ? JSON.parse(cached) : null;
+    } catch { return null; }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !sessionStorage.getItem(`sec_level_members_${level}_p1`);
+    } catch { return true; }
+  });
   const [error, setError] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -35,25 +44,45 @@ export default function LevelMembers() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const fetchMembers = useCallback(async () => {
-    setLoading(true);
+  const fetchMembers = useCallback(async (isSilent = false) => {
+    const params = new URLSearchParams();
+    params.set('level', level);
+    if (search) params.set('search', search);
+    if (gender) params.set('gender', gender);
+    if (membershipType) params.set('membership_type', membershipType);
+    params.set('page', page);
+    params.set('perPage', 25);
+    const queryString = params.toString();
+    const cacheKey = `sec_level_members_${level}_p${page}_${search}_${gender}_${membershipType}`;
+
+    if (!isSilent) {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          setData(JSON.parse(cached));
+          setLoading(false);
+          isSilent = true;
+        } else {
+          setLoading(true);
+        }
+      } catch {
+        setLoading(true);
+      }
+    }
     setError('');
+
     try {
-      const params = new URLSearchParams();
-      params.set('level', level);
-      if (search) params.set('search', search);
-      if (gender) params.set('gender', gender);
-      if (membershipType) params.set('membership_type', membershipType);
-      params.set('page', page);
-      params.set('perPage', 25);
-      const result = await secApi.listMembers(params.toString());
+      const result = await secApi.listMembers(queryString);
       setData(result);
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify(result));
+      } catch {}
     } catch (err) {
-      setError(err.message);
+      if (!data) setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [level, search, gender, membershipType, page]);
+  }, [level, search, gender, membershipType, page, data]);
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 

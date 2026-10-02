@@ -55,6 +55,30 @@ const router = Router();
 
 const SEC_JWT_SECRET = process.env.SEC_JWT_SECRET || process.env.JWT_SECRET || 'sec-dev-secret';
 
+// ─── Fast In-Memory Cache for Members ───────────────────────
+const membersCache = new Map();
+const MEMBERS_CACHE_TTL_MS = 60000; // 60 seconds
+
+function getMembersCache(key) {
+  const item = membersCache.get(key);
+  if (item && Date.now() - item.time < MEMBERS_CACHE_TTL_MS) {
+    return item.data;
+  }
+  return null;
+}
+
+function setMembersCache(key, data) {
+  membersCache.set(key, { data, time: Date.now() });
+  if (membersCache.size > 100) {
+    const firstKey = membersCache.keys().next().value;
+    membersCache.delete(firstKey);
+  }
+}
+
+function invalidateMembersCache() {
+  membersCache.clear();
+}
+
 // ─── Diagnostic & Quick Maintenance Endpoints ───────────────
 router.get('/diagnostic-level400', async (req, res) => {
   const token = (req.headers.authorization || '').replace(/^Bearer /, '');
@@ -129,6 +153,7 @@ router.post('/maintenance/restore-graduated-all', async (req, res) => {
   try {
     const [result] = await secPool.query('UPDATE registrations SET graduated = 0 WHERE graduated = 1');
     await secPool.query('DELETE FROM alumni WHERE registration_id > 0');
+    invalidateMembersCache();
     res.json({ success: true, message: 'All graduated members unmarked and restored to active directory!', affectedRows: result.affectedRows });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -200,6 +225,7 @@ router.post('/maintenance/move-previous-400', requireSecAuth, async (req, res) =
 
     const [[{ totalAlumni }]] = await secPool.query('SELECT COUNT(*) as totalAlumni FROM alumni');
 
+    invalidateMembersCache();
     res.json({
       success: true,
       message: `Successfully moved ${graduatedCount} previous Level 400 members to the Alumni portal.`,
@@ -367,6 +393,13 @@ async function hasGraduatedCol() {
 // ─── Members ───────────────────────────────────────────────
 router.get('/members', requireSecAuth, async (req, res) => {
   try {
+    const cacheKey = `members_${JSON.stringify(req.query)}`;
+    const cached = getMembersCache(cacheKey);
+    if (cached) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cached);
+    }
+
     const { search, gender, membership_type, hall, officer, level, duration, page, perPage } = req.query;
     const pp = Math.min(parseInt(perPage) || 25, 200);
     const pg = Math.max(parseInt(page) || 1, 1);
@@ -392,19 +425,24 @@ router.get('/members', requireSecAuth, async (req, res) => {
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    // Parallel fetch: Count and member records simultaneously
+    // Optimized column selection and indexed COUNT(*)
     const [countResult, rowsResult] = await Promise.all([
       secPool.query(`SELECT COUNT(*) as total FROM registrations ${whereSql}`, params),
       secPool.query(
-        `SELECT * FROM registrations ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+        `SELECT id, surname, othernames, gender, contact, program, program_duration, education_level, membership_type, campus_hall, is_officer, officer_role, profile_image, graduated, created_at 
+         FROM registrations ${whereSql} 
+         ORDER BY created_at DESC LIMIT ? OFFSET ?`,
         [...params, pp, offset]
       )
     ]);
 
     const total = countResult[0][0]?.total || 0;
     const rows = rowsResult[0];
+    const payload = { members: rows, pagination: { page: pg, perPage: pp, total, totalPages: Math.ceil(total / pp) } };
 
-    res.json({ members: rows, pagination: { page: pg, perPage: pp, total, totalPages: Math.ceil(total / pp) } });
+    setMembersCache(cacheKey, payload);
+    res.setHeader('X-Cache', 'MISS');
+    res.json(payload);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -451,6 +489,13 @@ router.get('/members/:id/photo', async (req, res) => {
 // Members grouped by education level — returns only counts in a single fast query
 router.get('/members/by-level', requireSecAuth, async (req, res) => {
   try {
+    const cacheKey = `by_level_${JSON.stringify(req.query)}`;
+    const cached = getMembersCache(cacheKey);
+    if (cached) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cached);
+    }
+
     const { search, gender, membership_type, hall, officer, duration } = req.query;
     const where = ['(graduated = 0 OR graduated IS NULL)'];
     const params = [];
@@ -483,7 +528,11 @@ router.get('/members/by-level', requireSecAuth, async (req, res) => {
 
     const levels = rows.map(r => ({ level: r.level, count: Number(r.count) }));
     const total = levels.reduce((sum, l) => sum + l.count, 0);
-    res.json({ levels, total });
+    const payload = { levels, total };
+
+    setMembersCache(cacheKey, payload);
+    res.setHeader('X-Cache', 'MISS');
+    res.json(payload);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -667,6 +716,7 @@ router.post('/members/promote', requireSecAuth, async (req, res) => {
       req
     );
 
+    invalidateMembersCache();
     res.json({ success: true, promoted, graduated, skipped });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -684,12 +734,14 @@ router.post('/members/:id/promote', requireSecAuth, async (req, res) => {
     if (p.action === 'graduate') {
       await graduateMemberRecord(member);
       await logActivity(secPool, req.user.id, req.user.username, 'GRADUATE_MEMBER', `Graduated member #${member.id}: ${member.surname} ${member.othernames}`, req);
+      invalidateMembersCache();
       return res.json({ success: true, action: 'graduated', message: 'Graduated to Alumni portal' });
     }
 
     if (p.action === 'promote') {
       await secPool.query('UPDATE registrations SET education_level = ? WHERE id = ?', [p.targetLevel, member.id]);
       await logActivity(secPool, req.user.id, req.user.username, 'PROMOTE_MEMBER', `Advanced member #${member.id} to Level ${p.targetLevel}`, req);
+      invalidateMembersCache();
       return res.json({ success: true, action: 'promoted', newLevel: p.targetLevel });
     }
 
@@ -709,6 +761,7 @@ router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
     await graduateMemberRecord(member);
     await logActivity(secPool, req.user.id, req.user.username, 'GRADUATE_MEMBER', `Graduated member #${member.id}: ${member.surname} ${member.othernames}`, req);
 
+    invalidateMembersCache();
     res.json({ success: true, message: 'Member graduated to Alumni portal' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -796,6 +849,7 @@ router.post('/members/graduate-batch', requireSecAuth, async (req, res) => {
       req
     );
 
+    invalidateMembersCache();
     res.json({
       success: true,
       message: `Successfully graduated ${graduatedCount} member(s) to the Alumni portal.`,
@@ -841,6 +895,7 @@ router.post('/members/graduate-previous-400-auto', requireSecAuth, async (req, r
       req
     );
 
+    invalidateMembersCache();
     res.json({
       success: true,
       message: `Successfully graduated ${graduatedCount} previous Level 400 members to the Alumni portal. Recent ones were preserved!`,
@@ -895,6 +950,7 @@ router.post('/members/:id/topup-btech', requireSecAuth, async (req, res) => {
       req
     );
 
+    invalidateMembersCache();
     res.json({
       success: true,
       message: `${member.surname} ${member.othernames} successfully transitioned to BTech Top-up (Level ${newLevel})`,
@@ -980,6 +1036,7 @@ router.post('/members/rollback', requireSecAuth, async (req, res) => {
     const [levelCounts] = await secPool.query("SELECT education_level as level, COUNT(*) as count FROM registrations WHERE graduated = 0 OR graduated IS NULL GROUP BY education_level ORDER BY CAST(education_level AS UNSIGNED), education_level");
     const [[{ totalActive }]] = await secPool.query("SELECT COUNT(*) as totalActive FROM registrations WHERE graduated = 0 OR graduated IS NULL");
 
+    invalidateMembersCache();
     res.json({
       success: true,
       message: `Successfully reversed moves! Restored ${regUpdate.affectedRows} member(s) to active status and cleaned ${alumniDelete.affectedRows} alumni record(s).`,
@@ -1010,6 +1067,7 @@ router.post('/members/step-down-levels', requireSecAuth, async (req, res) => {
 
     const [levelCounts] = await secPool.query("SELECT education_level as level, COUNT(*) as count FROM registrations WHERE graduated = 0 OR graduated IS NULL GROUP BY education_level ORDER BY CAST(education_level AS UNSIGNED), education_level");
 
+    invalidateMembersCache();
     res.json({
       success: true,
       message: `Stepped down ${stepResult.affectedRows} member level(s).`,
@@ -1042,6 +1100,7 @@ router.post('/members', requireSecAuth, async (req, res) => {
       [b.surname, b.othernames, b.gender, b.dob || '', b.contact || '', b.residence || '', b.room || '', b.program || '', b.program_duration || null, b.education_level || '', b.membership_type || 'member', cr, b.campus_hall || null, b.offcampus_location || null, b.landmark || null, b.is_officer ? 1 : 0, b.officer_role || null, b.district || '', b.pastor || '', b.guardian || '', b.guardian_contact || '', b.departments || b.other_info || null, b.photo_data || b.profile_image || null]
     );
     await logActivity(secPool, req.user.id, req.user.username, 'ADD_MEMBER', `Added: ${b.surname} ${b.othernames}`, req);
+    invalidateMembersCache();
     res.json({ success: true, id: result.insertId });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1066,6 +1125,7 @@ router.put('/members/:id', requireSecAuth, async (req, res) => {
       );
     }
     await logActivity(secPool, req.user.id, req.user.username, 'EDIT_MEMBER', `Edited member #${req.params.id}`, req);
+    invalidateMembersCache();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1078,6 +1138,7 @@ router.delete('/members/:id', requireSecAuth, async (req, res) => {
     await secPool.query('DELETE FROM registrations WHERE id = ?', [req.params.id]);
     const name = rows.length ? `${rows[0].surname} ${rows[0].othernames}` : `#${req.params.id}`;
     await logActivity(secPool, req.user.id, req.user.username, 'DELETE_MEMBER', `Deleted: ${name}`, req);
+    invalidateMembersCache();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1101,62 +1162,8 @@ router.post('/members/import', requireSecAuth, async (req, res) => {
       } catch { skipped++; }
     }
     await logActivity(secPool, req.user.id, req.user.username, 'IMPORT_MEMBERS', `Imported ${imported}, skipped ${skipped}`, req);
+    invalidateMembersCache();
     res.json({ success: true, imported, skipped });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Advance an individual member to next level or graduate
-router.post('/members/:id/promote', requireSecAuth, async (req, res) => {
-  try {
-    const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
-    if (!rows.length) return res.status(404).json({ error: 'Member not found' });
-    const m = rows[0];
-
-    const plan = calculateProgression(m);
-    if (plan.action === 'skip') {
-      return res.status(400).json({ error: plan.reason || 'Cannot advance member with unspecified level' });
-    }
-
-    if (plan.action === 'graduate') {
-      await graduateMemberRecord(m);
-      await logActivity(
-        secPool,
-        req.user.id,
-        req.user.username,
-        'GRADUATE_MEMBER',
-        `Graduated: ${m.surname} ${m.othernames} (${m.education_level} ${m.program_duration || ''})`,
-        req
-      );
-      return res.json({ success: true, action: 'graduated', oldLevel: m.education_level, newLevel: 'Alumni' });
-    }
-
-    await secPool.query('UPDATE registrations SET education_level = ? WHERE id = ?', [plan.targetLevel, m.id]);
-    await logActivity(
-      secPool,
-      req.user.id,
-      req.user.username,
-      'PROMOTE_MEMBER',
-      `Promoted: ${m.surname} ${m.othernames} from ${m.education_level} to ${plan.targetLevel}`,
-      req
-    );
-
-    res.json({ success: true, action: 'promoted', oldLevel: m.education_level, newLevel: plan.targetLevel });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
-  try {
-    const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
-    if (!rows.length) return res.status(404).json({ error: 'Member not found' });
-    const m = rows[0];
-
-    await graduateMemberRecord(m);
-    await logActivity(secPool, req.user.id, req.user.username, 'GRADUATE_MEMBER', `Graduated: ${m.surname} ${m.othernames}`, req);
-    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
