@@ -1,5 +1,6 @@
 // Newbies.jsx — Newbie Registration Management for the Secretariat
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
 
 export default function Newbies() {
@@ -242,10 +243,9 @@ export default function Newbies() {
                           </button>
                         )}
 
-                        <a
-                          href={`https://pensa-ttu-registration-portal.vercel.app/?continue=${r.contact}`}
-                          target="_blank"
-                          rel="noreferrer"
+                        <Link
+                          to={`/members/add?newbie_id=${r.id}&contact=${encodeURIComponent(r.contact || '')}&name=${encodeURIComponent(r.name || '')}&program=${encodeURIComponent(r.program || '')}&residence=${encodeURIComponent(r.residence || '')}&membership=${encodeURIComponent(r.membership || '')}`}
+                          state={{ newbie: r }}
                           className="btn"
                           style={{
                             padding: '4px 10px',
@@ -258,10 +258,10 @@ export default function Newbies() {
                             alignItems: 'center',
                             gap: 4,
                           }}
-                          title="Open pre-filled registration form in new tab"
+                          title="Open Add Member form pre-filled with this newbie"
                         >
-                          <i className="bx bx-link-external"></i> Open Form
-                        </a>
+                          <i className="bx bx-edit"></i> Open Form
+                        </Link>
 
                         <button
                           type="button"

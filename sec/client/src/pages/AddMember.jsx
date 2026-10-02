@@ -1,6 +1,6 @@
 // AddMember.jsx — Add a new member (ported from add_user.php)
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
 import PhotoUpload from '../components/PhotoUpload.jsx';
 
@@ -16,7 +16,55 @@ export default function AddMember() {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [newbieSource, setNewbieSource] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const newbie = location.state?.newbie;
+    const newbieId = newbie?.id || searchParams.get('newbie_id');
+    const name = (newbie?.name || searchParams.get('name') || '').trim();
+    const contact = (newbie?.contact || searchParams.get('contact') || '').trim();
+    const residence = (newbie?.residence || searchParams.get('residence') || '').trim();
+    const program = (newbie?.program || searchParams.get('program') || '').trim();
+    const membership = (newbie?.membership || searchParams.get('membership') || '').trim();
+    const campus_residence = (newbie?.campus_residence || searchParams.get('campus_residence') || '').trim();
+    const campus_hall = (newbie?.campus_hall || searchParams.get('campus_hall') || '').trim();
+    const offcampus_location = (newbie?.offcampus_location || searchParams.get('offcampus_location') || '').trim();
+    const landmark = (newbie?.landmark || searchParams.get('landmark') || '').trim();
+    const room = (newbie?.room || searchParams.get('room') || '').trim();
+
+    if (name || contact || residence || program) {
+      let surname = '';
+      let othernames = '';
+      if (name) {
+        const parts = name.split(/\s+/);
+        if (parts.length === 1) {
+          surname = parts[0];
+        } else {
+          surname = parts[0];
+          othernames = parts.slice(1).join(' ');
+        }
+      }
+
+      setNewbieSource({ id: newbieId, name, contact });
+      setForm(f => ({
+        ...f,
+        surname: f.surname || surname,
+        othernames: f.othernames || othernames,
+        contact: f.contact || contact,
+        residence: f.residence || residence,
+        program: f.program || program,
+        membership_type: membership === 'associate' ? 'associate' : (f.membership_type || 'member'),
+        campus_residence: f.campus_residence || campus_residence,
+        campus_hall: f.campus_hall || campus_hall,
+        offcampus_location: f.offcampus_location || offcampus_location,
+        landmark: f.landmark || landmark,
+        room: f.room || room,
+      }));
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -29,6 +77,9 @@ export default function AddMember() {
     setError('');
     try {
       await secApi.createMember(form);
+      if (newbieSource?.id) {
+        await secApi.pushNewbie(newbieSource.id).catch(() => {});
+      }
       navigate('/members');
     } catch (err) {
       setError(err.message);
@@ -51,6 +102,15 @@ export default function AddMember() {
       </div>
 
       {error && <div className="error-msg">{error}</div>}
+
+      {newbieSource && (
+        <div style={{ background: '#e8f4fd', color: 'var(--blue)', padding: '12px 18px', borderRadius: 10, marginBottom: 16, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #bfe3fc' }}>
+          <i className='bx bx-user-check' style={{ fontSize: 20 }}></i>
+          <span>
+            Pre-filling from Newbie Registration: <strong>{newbieSource.name}</strong> {newbieSource.contact && `(${newbieSource.contact})`}
+          </span>
+        </div>
+      )}
 
       <div className="card">
         <form onSubmit={handleSubmit}>
