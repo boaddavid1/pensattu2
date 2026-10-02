@@ -49,6 +49,9 @@ export const secApi = {
   promoteMembers: () => request('/members/promote', { method: 'POST' }),
   promoteMember: (id) => request(`/members/${id}/promote`, { method: 'POST' }),
   topupBTech: (id, data) => request(`/members/${id}/topup-btech`, { method: 'POST', body: JSON.stringify(data || {}) }),
+  getRollbackInfo: () => request('/members/rollback-info'),
+  rollbackMoves: (data = {}) => request('/members/rollback', { method: 'POST', body: JSON.stringify(data) }),
+  stepDownLevels: () => request('/members/step-down-levels', { method: 'POST' }),
 
   // Newbies (Fast registration queue)
   listNewbies: (params = '') => request(`/newbies${params ? `?${params}` : ''}`),

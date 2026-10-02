@@ -274,9 +274,8 @@ router.get('/members/by-level', requireSecAuth, async (req, res) => {
 });
 
 // Helper: calculate progression for a member
+// 100 -> 200, 200 -> 300, 300 -> 400 ("same applies to all"), and 400+ graduates to Alumni
 function calculateProgression(member) {
-  const duration = (member.program_duration || '').trim();
-  const durUpper = duration.toUpperCase();
   const rawLevel = String(member.education_level || '').trim();
   const levelNum = parseInt(rawLevel, 10);
 
@@ -284,37 +283,24 @@ function calculateProgression(member) {
     return { action: 'skip', reason: 'Unspecified or non-numeric level' };
   }
 
-  // Final year thresholds:
-  // Diploma = 2 years -> Level 200 is final
-  // HND = 3 years -> Level 300 is final
-  // BTECH / Degree = 4 years -> Level 400 is final
-  const isDiploma = durUpper.includes('DIPLOMA') || durUpper === '2' || durUpper === '2 YEARS';
-  const isHND = durUpper.includes('HND') || durUpper === '3' || durUpper === '3 YEARS';
-  const isBTech = durUpper.includes('BTECH') || durUpper.includes('B-TECH') || durUpper.includes('DEGREE') || durUpper === '4' || durUpper === '4 YEARS';
-
-  // Final year graduation checks
-  if (isDiploma && levelNum >= 200) {
-    return { action: 'graduate', category: 'diploma_200', targetLevel: 'Alumni' };
-  }
-  if (isHND && levelNum >= 300) {
-    return { action: 'graduate', category: 'hnd_300', targetLevel: 'Alumni' };
-  }
-  if (isBTech && levelNum >= 400) {
-    return { action: 'graduate', category: 'btech_400', targetLevel: 'Alumni' };
-  }
-  if (levelNum >= 400) {
-    return { action: 'graduate', category: 'btech_400', targetLevel: 'Alumni' };
-  }
-
-  // Academic level advancement
+  // 100 moves to 200
   if (levelNum === 100) {
     return { action: 'promote', targetLevel: '200', category: '100_to_200' };
   }
+
+  // 200 moves to 300 ("same applies to all")
   if (levelNum === 200) {
     return { action: 'promote', targetLevel: '300', category: '200_to_300' };
   }
+
+  // 300 moves to 400 ("same applies to all")
   if (levelNum === 300) {
     return { action: 'promote', targetLevel: '400', category: '300_to_400' };
+  }
+
+  // 400 and above -> Final Year -> Graduates to Alumni Portal
+  if (levelNum >= 400) {
+    return { action: 'graduate', category: 'btech_400', targetLevel: 'Alumni' };
   }
 
   return { action: 'promote', targetLevel: String(levelNum + 100), category: 'other_promote' };
@@ -563,6 +549,120 @@ router.post('/members/:id/topup-btech', requireSecAuth, async (req, res) => {
       program: newProgram,
       program_duration: 'B-TECH',
       education_level: newLevel,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get rollback diagnostic info
+router.get('/members/rollback-info', requireSecAuth, async (req, res) => {
+  try {
+    const [[{ gradCount }]] = await secPool.query("SELECT COUNT(*) as gradCount FROM registrations WHERE graduated = 1");
+    const [[{ activeCount }]] = await secPool.query("SELECT COUNT(*) as activeCount FROM registrations WHERE graduated = 0 OR graduated IS NULL");
+    const [[{ alumniCount }]] = await secPool.query("SELECT COUNT(*) as alumniCount FROM alumni WHERE registration_id > 0");
+    const [levelCounts] = await secPool.query("SELECT education_level as level, COUNT(*) as count FROM registrations GROUP BY education_level ORDER BY CAST(education_level AS UNSIGNED), education_level");
+
+    res.json({
+      gradCount,
+      activeCount,
+      alumniCount,
+      levelCounts,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Revert all moves: restore graduated members from alumni, reset graduated=0, delete transferred alumni records
+router.post('/members/rollback', requireSecAuth, async (req, res) => {
+  try {
+    const { stepDown } = req.body || {};
+
+    // 1. Restore education_level from alumni where saved
+    try {
+      await secPool.query(`
+        UPDATE registrations r
+        JOIN alumni a ON r.id = a.registration_id
+        SET r.education_level = a.graduation_level
+        WHERE a.registration_id > 0 
+          AND a.graduation_level IS NOT NULL 
+          AND a.graduation_level != '' 
+          AND a.graduation_level != 'Graduated'
+      `);
+    } catch (e) {
+      console.warn("Could not restore education_level from alumni:", e.message);
+    }
+
+    // 2. Unmark all graduated members
+    const [regUpdate] = await secPool.query("UPDATE registrations SET graduated = 0 WHERE graduated = 1");
+
+    // 3. Remove transferred alumni records (only those transferred from registrations)
+    const [alumniDelete] = await secPool.query("DELETE FROM alumni WHERE registration_id > 0");
+
+    // 4. Optionally step levels back down atomically (200->100, 300->200, 400->300)
+    let steppedDown = 0;
+    if (stepDown) {
+      const [stepResult] = await secPool.query(`
+        UPDATE registrations 
+        SET education_level = CASE 
+          WHEN education_level = '400' THEN '300'
+          WHEN education_level = '300' THEN '200'
+          WHEN education_level = '200' THEN '100'
+          ELSE education_level
+        END
+        WHERE education_level IN ('200', '300', '400')
+      `);
+      steppedDown = stepResult.affectedRows;
+    }
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'ROLLBACK_LEVEL_PROGRESSION',
+      `Restored ${regUpdate.affectedRows} graduated registrations, cleaned ${alumniDelete.affectedRows} alumni records${stepDown ? `, stepped down ${steppedDown} levels` : ''}`,
+      req
+    );
+
+    const [levelCounts] = await secPool.query("SELECT education_level as level, COUNT(*) as count FROM registrations WHERE graduated = 0 OR graduated IS NULL GROUP BY education_level ORDER BY CAST(education_level AS UNSIGNED), education_level");
+    const [[{ totalActive }]] = await secPool.query("SELECT COUNT(*) as totalActive FROM registrations WHERE graduated = 0 OR graduated IS NULL");
+
+    res.json({
+      success: true,
+      message: `Successfully reversed moves! Restored ${regUpdate.affectedRows} member(s) to active status and cleaned ${alumniDelete.affectedRows} alumni record(s).`,
+      restoredCount: regUpdate.affectedRows,
+      alumniCleaned: alumniDelete.affectedRows,
+      steppedDown,
+      totalActive,
+      levelCounts,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Step active levels back down by 100 atomically
+router.post('/members/step-down-levels', requireSecAuth, async (req, res) => {
+  try {
+    const [stepResult] = await secPool.query(`
+      UPDATE registrations 
+      SET education_level = CASE 
+        WHEN education_level = '400' THEN '300'
+        WHEN education_level = '300' THEN '200'
+        WHEN education_level = '200' THEN '100'
+        ELSE education_level
+      END
+      WHERE education_level IN ('200', '300', '400')
+    `);
+
+    const [levelCounts] = await secPool.query("SELECT education_level as level, COUNT(*) as count FROM registrations WHERE graduated = 0 OR graduated IS NULL GROUP BY education_level ORDER BY CAST(education_level AS UNSIGNED), education_level");
+
+    res.json({
+      success: true,
+      message: `Stepped down ${stepResult.affectedRows} member level(s).`,
+      affectedRows: stepResult.affectedRows,
+      levelCounts,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

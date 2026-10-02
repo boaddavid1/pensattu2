@@ -28,6 +28,11 @@ export default function Members() {
   const [topupProgram, setTopupProgram] = useState('');
   const [topupSaving, setTopupSaving] = useState(false);
   const [topupNotice, setTopupNotice] = useState('');
+  const [showRollbackModal, setShowRollbackModal] = useState(false);
+  const [rollbackInfo, setRollbackInfo] = useState(null);
+  const [rollbackLoading, setRollbackLoading] = useState(false);
+  const [rollbackSuccess, setRollbackSuccess] = useState('');
+  const [rollbackError, setRollbackError] = useState('');
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -118,6 +123,63 @@ export default function Members() {
     }
   };
 
+  const openRollbackModal = async () => {
+    setShowRollbackModal(true);
+    setRollbackSuccess('');
+    setRollbackError('');
+    setRollbackLoading(true);
+    try {
+      const info = await secApi.getRollbackInfo();
+      setRollbackInfo(info);
+    } catch (err) {
+      setRollbackError(err.message || 'Failed to fetch rollback info');
+    } finally {
+      setRollbackLoading(false);
+    }
+  };
+
+  const handleExecuteRollback = async (stepDown = false) => {
+    if (!window.confirm(stepDown 
+      ? 'Are you sure you want to restore graduated members AND step all levels back (400->300, 300->200, 200->100)?'
+      : 'Are you sure you want to restore all graduated members back to their active levels?')) {
+      return;
+    }
+    setRollbackLoading(true);
+    setRollbackError('');
+    setRollbackSuccess('');
+    try {
+      const res = await secApi.rollbackMoves({ stepDownLevels: stepDown });
+      setRollbackSuccess(res.message || 'Restoration complete!');
+      const info = await secApi.getRollbackInfo();
+      setRollbackInfo(info);
+      fetchMembers();
+    } catch (err) {
+      setRollbackError(err.message || 'Rollback failed');
+    } finally {
+      setRollbackLoading(false);
+    }
+  };
+
+  const handleStepDownOnly = async () => {
+    if (!window.confirm('Are you sure you want to step down all member levels by one step (400->300, 300->200, 200->100)?')) {
+      return;
+    }
+    setRollbackLoading(true);
+    setRollbackError('');
+    setRollbackSuccess('');
+    try {
+      const res = await secApi.stepDownLevels();
+      setRollbackSuccess(res.message || 'Step down complete!');
+      const info = await secApi.getRollbackInfo();
+      setRollbackInfo(info);
+      fetchMembers();
+    } catch (err) {
+      setRollbackError(err.message || 'Step down failed');
+    } finally {
+      setRollbackLoading(false);
+    }
+  };
+
   const levels = data?.levels || [];
   const total = data?.total || 0;
 
@@ -143,6 +205,14 @@ export default function Members() {
           </ul>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-download"
+            onClick={openRollbackModal}
+            style={{ background: '#e74c3c', color: '#fff', border: 'none', cursor: 'pointer' }}
+          >
+            <i className='bx bx-undo'></i> Revert / Restore
+          </button>
           <button
             type="button"
             className="btn-download"
@@ -601,6 +671,140 @@ export default function Members() {
                     <i className='bx bx-check'></i> Confirm BTech Top-up
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rollback / Restore Modal */}
+      {showRollbackModal && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-box" style={{ maxWidth: 560, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, fontSize: 18, display: 'flex', alignItems: 'center' }}>
+                <i className='bx bx-undo' style={{ color: '#e74c3c', marginRight: 8 }}></i>
+                Revert / Restore Member Moves
+              </h2>
+              {!rollbackLoading && (
+                <button
+                  type="button"
+                  onClick={() => setShowRollbackModal(false)}
+                  style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--dark-grey)' }}
+                >
+                  <i className='bx bx-x'></i>
+                </button>
+              )}
+            </div>
+
+            {rollbackSuccess && (
+              <div style={{ background: '#d4edda', color: '#155724', border: '1px solid #c3e6cb', padding: '10px 14px', borderRadius: 8, marginBottom: 14, fontSize: 13 }}>
+                <i className='bx bx-check-circle' style={{ marginRight: 6 }}></i>
+                {rollbackSuccess}
+              </div>
+            )}
+
+            {rollbackError && (
+              <div style={{ background: '#f8d7da', color: '#721c24', border: '1px solid #f5c6cb', padding: '10px 14px', borderRadius: 8, marginBottom: 14, fontSize: 13 }}>
+                <i className='bx bx-error-circle' style={{ marginRight: 6 }}></i>
+                {rollbackError}
+              </div>
+            )}
+
+            <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: 8, padding: '12px 14px', marginBottom: 16, fontSize: 13 }}>
+              <div style={{ fontWeight: 600, color: '#333', marginBottom: 8 }}>Database Status Summary:</div>
+              {rollbackLoading && !rollbackInfo ? (
+                <div style={{ color: 'var(--dark-grey)' }}><i className='bx bx-loader-alt bx-spin'></i> Loading database status...</div>
+              ) : rollbackInfo ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, textAlign: 'center' }}>
+                  <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 6, padding: '8px 4px' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#27ae60' }}>{rollbackInfo.activeCount ?? 0}</div>
+                    <div style={{ fontSize: 11, color: '#666' }}>Active Members</div>
+                  </div>
+                  <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 6, padding: '8px 4px' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#e74c3c' }}>{rollbackInfo.gradCount ?? 0}</div>
+                    <div style={{ fontSize: 11, color: '#666' }}>Graduated Status</div>
+                  </div>
+                  <div style={{ background: '#fff', border: '1px solid #ddd', borderRadius: 6, padding: '8px 4px' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#2980b9' }}>{rollbackInfo.alumniCount ?? 0}</div>
+                    <div style={{ fontSize: 11, color: '#666' }}>Transferred Alumni</div>
+                  </div>
+                </div>
+              ) : (
+                <div>No info available</div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+              {/* Option 1: Restore Graduated Members */}
+              <div style={{ border: '1px solid #cce5ff', background: '#f0f7ff', borderRadius: 8, padding: 12 }}>
+                <div style={{ fontWeight: 600, color: '#004085', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className='bx bx-user-check' style={{ fontSize: 16 }}></i>
+                  Option 1: Restore Graduated Members
+                </div>
+                <p style={{ margin: '0 0 10px', fontSize: 12, color: '#004085' }}>
+                  Restores all members marked as graduated back to the active student directory, re-applies their original level from Alumni, and removes transferred alumni records.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleExecuteRollback(false)}
+                  disabled={rollbackLoading}
+                  style={{ background: '#2980b9', fontSize: 13, padding: '7px 14px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  <i className='bx bx-undo'></i> Restore All to Active Directory
+                </button>
+              </div>
+
+              {/* Option 2: Restore + Step Down Levels */}
+              <div style={{ border: '1px solid #fed7aa', background: '#fffbeb', borderRadius: 8, padding: 12 }}>
+                <div style={{ fontWeight: 600, color: '#9a3412', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className='bx bx-history' style={{ fontSize: 16 }}></i>
+                  Option 2: Restore & Step Down (Complete Undo)
+                </div>
+                <p style={{ margin: '0 0 10px', fontSize: 12, color: '#9a3412' }}>
+                  Restores graduated members <strong>AND</strong> steps all levels back by one step (400&rarr;300, 300&rarr;200, 200&rarr;100). Use this to completely undo the previous &quot;Move to Next Level&quot;.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => handleExecuteRollback(true)}
+                  disabled={rollbackLoading}
+                  style={{ background: '#d97706', fontSize: 13, padding: '7px 14px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  <i className='bx bx-reset'></i> Restore & Step Down Levels
+                </button>
+              </div>
+
+              {/* Option 3: Step Down Active Levels Only */}
+              <div style={{ border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: 8, padding: 12 }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <i className='bx bx-down-arrow-alt' style={{ fontSize: 16 }}></i>
+                  Option 3: Step Down Active Levels Only
+                </div>
+                <p style={{ margin: '0 0 10px', fontSize: 12, color: '#475569' }}>
+                  Steps all current active members back by 100 (400&rarr;300, 300&rarr;200, 200&rarr;100) without touching alumni records.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-back"
+                  onClick={handleStepDownOnly}
+                  disabled={rollbackLoading}
+                  style={{ fontSize: 13, padding: '7px 14px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  <i className='bx bx-down-arrow-circle'></i> Step Down Levels Only
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: 0 }}>
+              <button
+                type="button"
+                className="btn btn-back"
+                onClick={() => setShowRollbackModal(false)}
+                disabled={rollbackLoading}
+              >
+                Close
               </button>
             </div>
           </div>
