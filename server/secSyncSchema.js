@@ -199,41 +199,7 @@ export default async function secSyncSchema() {
   await ensureIndex('registrations', 'idx_reg_membership', 'membership_type');
   await ensureIndex('registrations', 'idx_reg_duration', 'program_duration');
 
-  // ─── Auto-recovery of accidental bulk graduation ─────────────────────────
-  try {
-    const [[alumniCount]] = await conn.query("SELECT COUNT(*) as cnt FROM alumni WHERE registration_id > 0");
-    const [[gradCount]] = await conn.query("SELECT COUNT(*) as cnt FROM registrations WHERE graduated = 1");
-
-    if (alumniCount.cnt > 0 || gradCount.cnt > 0) {
-      console.log(`secSyncSchema: Reversing moves — found ${gradCount.cnt} graduated registrations, ${alumniCount.cnt} alumni records...`);
-
-      // 1. Restore education_level from alumni table where graduation_level was saved
-      try {
-        await conn.query(`
-          UPDATE registrations r
-          JOIN alumni a ON r.id = a.registration_id
-          SET r.education_level = a.graduation_level
-          WHERE a.registration_id > 0 
-            AND a.graduation_level IS NOT NULL 
-            AND a.graduation_level != '' 
-            AND a.graduation_level != 'Graduated'
-        `);
-      } catch (e) {
-        console.warn("Could not restore education_level from alumni:", e.message);
-      }
-
-      // 2. Unmark all graduated members in registrations
-      await conn.query("UPDATE registrations SET graduated = 0 WHERE graduated = 1");
-
-      // 3. Remove the moved records from alumni table (only those created from registrations)
-      await conn.query("DELETE FROM alumni WHERE registration_id > 0");
-
-      console.log("secSyncSchema: Successfully reversed all moves! All members are active.");
-    }
-  } catch (err) {
-    console.warn("secSyncSchema auto-recovery error:", err.message);
-  }
-
+  // Auto-recovery has completed; keeping graduated records and alumni intact.
   if (conn.release) conn.release();
   console.log('sec schema sync complete');
 }

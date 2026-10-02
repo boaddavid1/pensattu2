@@ -55,6 +55,50 @@ const router = Router();
 
 const SEC_JWT_SECRET = process.env.SEC_JWT_SECRET || process.env.JWT_SECRET || 'sec-dev-secret';
 
+// ─── Diagnostic & Quick Maintenance Endpoints ───────────────
+router.get('/diagnostic-level400', async (req, res) => {
+  try {
+    const [level400] = await secPool.query(`
+      SELECT id, surname, othernames, gender, contact, program, program_duration, education_level, created_at, graduated
+      FROM registrations
+      WHERE education_level = '400'
+      ORDER BY created_at ASC, id ASC
+    `);
+
+    const [counts] = await secPool.query(`
+      SELECT education_level, graduated, COUNT(*) as cnt
+      FROM registrations
+      GROUP BY education_level, graduated
+      ORDER BY education_level, graduated
+    `);
+
+    const [alumni] = await secPool.query(`
+      SELECT id, registration_id, surname, othernames, education_level, graduation_level, graduation_year, created_at
+      FROM alumni
+      ORDER BY id DESC
+      LIMIT 20
+    `);
+
+    const [logs] = await secPool.query(`
+      SELECT id, action, details, created_at
+      FROM activity_logs
+      ORDER BY id DESC
+      LIMIT 15
+    `);
+
+    res.json({
+      level400Count: level400.length,
+      level400,
+      counts,
+      alumniCount: alumni.length,
+      alumni,
+      logs
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Helpers ───────────────────────────────────────────────
 function getIp(req) {
   return (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString().split(',')[0].trim() || '0.0.0.0';
