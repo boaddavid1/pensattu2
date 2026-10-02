@@ -237,17 +237,29 @@ router.post('/newbie', async (req, res) => {
       });
     }
 
-    const [result] = await secPool.query(
-      `INSERT INTO newbie_registrations (name, contact, residence, program, membership, status)
-       VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [clean(b.name), contact, clean(b.residence), clean(b.program), clean(b.membership)]
-    );
-
-    res.status(201).json({
-      success: true,
-      message: 'Newbie registration submitted successfully!',
-      data: { id: result.insertId, name: clean(b.name) },
-    });
+    try {
+      const [result] = await secPool.query(
+        `INSERT INTO newbie_registrations (name, contact, residence, campus_residence, campus_hall, room_campus, offcampus_location, room_offcampus, landmark, program, membership, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        [clean(b.name), contact, clean(b.residence), clean(b.campus_residence), clean(b.campus_hall), clean(b.room_campus), clean(b.offcampus_location), clean(b.room_offcampus), clean(b.landmark), clean(b.program), clean(b.membership)]
+      );
+      return res.status(201).json({
+        success: true,
+        message: 'Newbie registration submitted successfully!',
+        data: { id: result.insertId, name: clean(b.name) },
+      });
+    } catch (insertErr) {
+      const [result] = await secPool.query(
+        `INSERT INTO newbie_registrations (name, contact, residence, program, membership, status)
+         VALUES (?, ?, ?, ?, ?, 'pending')`,
+        [clean(b.name), contact, clean(b.residence), clean(b.program), clean(b.membership)]
+      );
+      return res.status(201).json({
+        success: true,
+        message: 'Newbie registration submitted successfully!',
+        data: { id: result.insertId, name: clean(b.name) },
+      });
+    }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -258,7 +270,7 @@ router.get('/newbie/check/:contact', async (req, res) => {
   try {
     const contact = String(req.params.contact).trim();
     const [rows] = await secPool.query(
-      'SELECT id, name, contact, residence, program, membership, status FROM newbie_registrations WHERE contact = ? ORDER BY id DESC LIMIT 1',
+      'SELECT * FROM newbie_registrations WHERE contact = ? ORDER BY id DESC LIMIT 1',
       [contact]
     );
     if (!rows.length) {

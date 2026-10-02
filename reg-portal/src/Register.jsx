@@ -124,9 +124,12 @@ export default function Register({ initialData, onBack }) {
       contact: data.contact || f.contact,
       program: data.program || f.program,
       membership: data.membership || f.membership || 'member',
-      campus_residence: hallMatch ? 'yes' : (f.campus_residence || 'no'),
-      campus_hall: hallMatch || f.campus_hall,
-      offcampus_location: !hallMatch ? (data.residence || f.offcampus_location) : f.offcampus_location,
+      campus_residence: data.campus_residence || (hallMatch ? 'yes' : (data.residence ? 'no' : f.campus_residence)),
+      campus_hall: data.campus_hall || hallMatch || f.campus_hall,
+      room_campus: data.room_campus || f.room_campus,
+      offcampus_location: data.offcampus_location || (!hallMatch ? data.residence : '') || f.offcampus_location,
+      room_offcampus: data.room_offcampus || f.room_offcampus,
+      landmark: data.landmark || f.landmark,
     }));
     showToast('Details loaded from Newbie registration!', 'success');
   }

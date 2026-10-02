@@ -150,6 +150,17 @@ export default async function secSyncSchema() {
     }
   }
 
+  // Ensure 'graduated' column exists on registrations table
+  try {
+    const [cols] = await conn.query("SHOW COLUMNS FROM registrations LIKE 'graduated'");
+    if (!cols || cols.length === 0) {
+      await conn.query("ALTER TABLE registrations ADD COLUMN graduated TINYINT(1) DEFAULT 0");
+      console.log("secSyncSchema: added 'graduated' column to registrations");
+    }
+  } catch (err) {
+    console.warn("secSyncSchema: could not check/add 'graduated' column:", err.message);
+  }
+
   if (conn.release) conn.release();
   console.log('sec schema sync complete');
 }

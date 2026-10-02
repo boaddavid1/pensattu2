@@ -166,6 +166,27 @@ router.get('/dashboard', requireSecAuth, async (req, res) => {
   }
 });
 
+// Cache for graduated column presence in registrations table
+let hasGraduatedColumnCache = null;
+async function hasGraduatedCol() {
+  if (hasGraduatedColumnCache === true) return true;
+  try {
+    const [cols] = await secPool.query("SHOW COLUMNS FROM registrations LIKE 'graduated'");
+    if (cols && cols.length > 0) {
+      hasGraduatedColumnCache = true;
+      return true;
+    }
+    // Attempt to add it if missing
+    await secPool.query("ALTER TABLE registrations ADD COLUMN graduated TINYINT(1) DEFAULT 0");
+    hasGraduatedColumnCache = true;
+    return true;
+  } catch (err) {
+    console.warn("hasGraduatedCol check:", err.message);
+    hasGraduatedColumnCache = false;
+    return false;
+  }
+}
+
 // ─── Members ───────────────────────────────────────────────
 router.get('/members', requireSecAuth, async (req, res) => {
   try {
@@ -187,7 +208,9 @@ router.get('/members', requireSecAuth, async (req, res) => {
     if (officer === 'true') { where.push('is_officer = 1'); }
     if (level) { where.push('education_level = ?'); params.push(level); }
     if (duration) { where.push('program_duration = ?'); params.push(duration); }
-    if (req.query.include_graduated !== 'true') {
+    
+    const hasGrad = await hasGraduatedCol();
+    if (hasGrad && req.query.include_graduated !== 'true') {
       where.push('(graduated = 0 OR graduated IS NULL)');
     }
 
@@ -208,7 +231,8 @@ router.get('/members', requireSecAuth, async (req, res) => {
 router.get('/members/by-level', requireSecAuth, async (req, res) => {
   try {
     const { search, gender, membership_type, hall, officer, duration } = req.query;
-    const where = ['(graduated = 0 OR graduated IS NULL)'];
+    const hasGrad = await hasGraduatedCol();
+    const where = hasGrad ? ['(graduated = 0 OR graduated IS NULL)'] : [];
     const params = [];
     if (search) {
       where.push('(surname LIKE ? OR othernames LIKE ? OR contact LIKE ? OR program LIKE ?)');
@@ -416,13 +440,18 @@ async function graduateSingleMember(m) {
       ]
     );
   }
-  await secPool.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [m.id]);
+  const hasGrad = await hasGraduatedCol();
+  if (hasGrad) {
+    await secPool.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [m.id]);
+  }
 }
 
 router.get('/members/promotion-preview', requireSecAuth, async (req, res) => {
   try {
+    const hasGrad = await hasGraduatedCol();
+    const whereClause = hasGrad ? 'WHERE graduated = 0 OR graduated IS NULL' : '';
     const [rows] = await secPool.query(
-      'SELECT id, surname, othernames, gender, contact, program, program_duration, education_level FROM registrations WHERE graduated = 0 OR graduated IS NULL ORDER BY surname'
+      `SELECT id, surname, othernames, gender, contact, program, program_duration, education_level FROM registrations ${whereClause} ORDER BY surname`
     );
 
     const summary = {
@@ -515,8 +544,10 @@ router.get('/members/promotion-preview', requireSecAuth, async (req, res) => {
 
 router.post('/members/promote', requireSecAuth, async (req, res) => {
   try {
+    const hasGrad = await hasGraduatedCol();
+    const whereClause = hasGrad ? 'WHERE graduated = 0 OR graduated IS NULL' : '';
     const [rows] = await secPool.query(
-      'SELECT * FROM registrations WHERE graduated = 0 OR graduated IS NULL'
+      `SELECT * FROM registrations ${whereClause}`
     );
 
     let promoted = 0;
@@ -693,7 +724,9 @@ router.post('/attendance/ai', requireSecAuth, async (req, res) => {
     const { query } = req.body;
     const q = (query || '').toLowerCase().trim();
 
-    const [[{ totalMembers }]] = await secPool.query('SELECT COUNT(*) as totalMembers FROM registrations WHERE graduated = 0 OR graduated IS NULL');
+    const hasGrad = await hasGraduatedCol();
+    const whereGrad = hasGrad ? 'WHERE graduated = 0 OR graduated IS NULL' : '';
+    const [[{ totalMembers }]] = await secPool.query(`SELECT COUNT(*) as totalMembers FROM registrations ${whereGrad}`);
     const [[{ activeSessions }]] = await secPool.query("SELECT COUNT(*) as activeSessions FROM attendance_sessions WHERE status IN ('upcoming','ongoing')");
     const [[{ completedSessions }]] = await secPool.query("SELECT COUNT(*) as completedSessions FROM attendance_sessions WHERE status = 'completed'");
     const [[{ totalVisitors }]] = await secPool.query('SELECT COUNT(*) as totalVisitors FROM attendance_visitors');

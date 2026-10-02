@@ -369,20 +369,36 @@ async function createNewbie(body) {
       };
     }
 
-    const [result] = await p.query(
-      `INSERT INTO newbie_registrations (name, contact, residence, program, membership, status)
-       VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [clean(b.name), contact, clean(b.residence), clean(b.program), clean(b.membership)]
-    );
-
-    return {
-      statusCode: 201,
-      body: {
-        success: true,
-        message: 'Newbie registration submitted successfully!',
-        data: { id: result.insertId, name: clean(b.name) },
-      },
-    };
+    try {
+      const [result] = await p.query(
+        `INSERT INTO newbie_registrations (name, contact, residence, campus_residence, campus_hall, room_campus, offcampus_location, room_offcampus, landmark, program, membership, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+        [clean(b.name), contact, clean(b.residence), clean(b.campus_residence), clean(b.campus_hall), clean(b.room_campus), clean(b.offcampus_location), clean(b.room_offcampus), clean(b.landmark), clean(b.program), clean(b.membership)]
+      );
+      return {
+        statusCode: 201,
+        body: {
+          success: true,
+          message: 'Newbie registration submitted successfully!',
+          data: { id: result.insertId, name: clean(b.name) },
+        },
+      };
+    } catch (insertErr) {
+      // Fallback in case optional columns don't exist yet on production DB table
+      const [result] = await p.query(
+        `INSERT INTO newbie_registrations (name, contact, residence, program, membership, status)
+         VALUES (?, ?, ?, ?, ?, 'pending')`,
+        [clean(b.name), contact, clean(b.residence), clean(b.program), clean(b.membership)]
+      );
+      return {
+        statusCode: 201,
+        body: {
+          success: true,
+          message: 'Newbie registration submitted successfully!',
+          data: { id: result.insertId, name: clean(b.name) },
+        },
+      };
+    }
   } catch (err) {
     return { statusCode: 500, body: { success: false, message: err.message } };
   }
@@ -394,7 +410,7 @@ async function checkNewbie(contact) {
   try {
     const phone = String(contact || '').trim();
     const [rows] = await p.query(
-      'SELECT id, name, contact, residence, program, membership, status FROM newbie_registrations WHERE contact = ? ORDER BY id DESC LIMIT 1',
+      'SELECT * FROM newbie_registrations WHERE contact = ? ORDER BY id DESC LIMIT 1',
       [phone]
     );
     if (!rows.length) {

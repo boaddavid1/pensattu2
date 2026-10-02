@@ -33,6 +33,7 @@ const REQUIRED_REG_COLUMNS = [
   { column: 'is_officer', definition: "TINYINT(1) NOT NULL DEFAULT 0" },
   { column: 'officer_role', definition: "VARCHAR(50) DEFAULT NULL" },
   { column: 'landmark', definition: "VARCHAR(255) DEFAULT NULL" },
+  { column: 'graduated', definition: "TINYINT(1) DEFAULT 0" },
   { column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
 ];
 
