@@ -4,7 +4,7 @@ import { api } from '../api.js';
 
 const faqs = [
   { q: 'What should I wear?', a: 'Whatever you\'re comfortable in. You\'ll see everything from suits to jeans — there\'s no dress code here.' },
-  { q: 'Is there something for my kids?', a: 'Yes — our Kids Ministry runs age-appropriate programming during both Sunday services, with trained volunteers and a secure check-in system.' },
+  { q: 'Is there something for my kids?', a: 'Yes — our Kids Department runs age-appropriate programming during both Sunday services, with trained volunteers and a secure check-in system.' },
   { q: 'Where do I park?', a: 'Free on-site parking is available, with overflow parking and directions posted on Sunday mornings.' },
   { q: 'Can I watch online if I can\'t make it in person?', a: 'Absolutely — both services stream live, and every message is archived on our Sermons page afterward.' },
   { q: 'How do I join a community group?', a: 'Fill out the form above and select "Joining a community group" — our Community Groups Lead will reach out to match you with one nearby.' },
@@ -58,7 +58,7 @@ export default function Contact() {
         <div className="page-hero-inner">
           <span className="eyebrow">Get in touch</span>
           <h1>We'd genuinely love to <em>hear from you</em>.</h1>
-          <p>Questions about a service, a ministry, or just want to say hello — reach out and someone from our team will get back to you within a day.</p>
+          <p>Questions about a service, a department or team, or just want to say hello — reach out and someone from our team will get back to you within a day.</p>
         </div>
       </section>
 

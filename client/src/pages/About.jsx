@@ -113,7 +113,7 @@ export default function About() {
               <div className="timeline-year">2026</div>
               <div>
                 <h3>500+ gather with us weekly</h3>
-                <p>Thirty community groups, four ministries, and one church family still growing.</p>
+                <p>Thirty community groups, vibrant departments and teams, and one church family still growing.</p>
               </div>
             </div>
           </div>

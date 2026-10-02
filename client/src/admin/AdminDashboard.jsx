@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { adminApi } from './adminApi';
 
 const statCards = [
-  { key: 'ministries', label: 'Ministries', to: '/control-panel/ministries' },
+  { key: 'ministries', label: 'Departments & Teams', to: '/control-panel/ministries' },
   { key: 'sermons', label: 'Sermons', to: '/control-panel/sermons' },
   { key: 'team', label: 'Team', to: '/control-panel/team' },
   { key: 'events', label: 'Events', to: '/control-panel/events' },

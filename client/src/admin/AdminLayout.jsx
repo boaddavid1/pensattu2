@@ -5,7 +5,7 @@ import './admin.css';
 
 const navItems = [
   { to: '/control-panel/dashboard', label: 'Dashboard' },
-  { to: '/control-panel/ministries', label: 'Ministries' },
+  { to: '/control-panel/ministries', label: 'Departments & Teams' },
   { to: '/control-panel/sermons', label: 'Sermons' },
   { to: '/control-panel/team', label: 'Team' },
   { to: '/control-panel/events', label: 'Events' },

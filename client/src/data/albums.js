@@ -7,7 +7,7 @@ export const albums = [
     items: [
       { src: '/images/pensafallback-bw.png', alt: 'Hands raised in worship', category: 'Worship', caption: 'Sunday morning, 11AM' },
       { src: '/images/pensafallback-bw.png', alt: 'Sanctuary interior', category: 'Worship', caption: 'Our sanctuary' },
-      { src: '/images/pensafallback-bw.png', alt: 'Worship band', category: 'Worship', caption: 'Music ministry' },
+      { src: '/images/pensafallback-bw.png', alt: 'Worship band', category: 'Worship', caption: 'Music department' },
       { src: '/images/pensafallback-bw.png', alt: 'Sunday service', category: 'Worship', caption: 'A packed 9AM service' },
     ],
   },
@@ -38,7 +38,7 @@ export const albums = [
     cover: '/images/pensafallback-bw.png',
     count: '2 photos',
     items: [
-      { src: '/images/pensafallback-bw.png', alt: 'Youth ministry gathering', category: 'Youth', caption: 'Friday youth night' },
+      { src: '/images/pensafallback-bw.png', alt: 'Youth gathering', category: 'Youth', caption: 'Friday youth night' },
       { src: '/images/pensafallback-bw.png', alt: 'Youth small group', category: 'Youth', caption: 'Youth small group' },
     ],
   },

@@ -66,7 +66,7 @@ export default function Header() {
               </button>
             </div>
             <ul className="dropdown">
-              <li><Link to="/#services" onClick={closeAll}>Ministries</Link></li>
+              <li><Link to="/departments-and-teams" onClick={closeAll}>Departments &amp; Teams</Link></li>
               <li><Link to="/leadership" onClick={closeAll}>Leadership</Link></li>
             </ul>
           </li>

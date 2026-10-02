@@ -16,8 +16,8 @@ async function request(path, options = {}) {
   });
   if (res.status === 401) {
     sessionStorage.removeItem('pensa_admin_token');
-    if (typeof window !== 'undefined' && !path.startsWith('/cp/login')) {
-      window.location.href = '/control-panel/login';
+    if (typeof window !== 'undefined' && !path.startsWith('/admin/login')) {
+      window.location.href = '/admin/login';
     }
   }
   if (!res.ok) {

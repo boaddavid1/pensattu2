@@ -21,6 +21,7 @@ const NoticeDetail = lazy(() => import('./pages/NoticeDetail'));
 const Gallery = lazy(() => import('./pages/Gallery'));
 const AlbumDetail = lazy(() => import('./pages/AlbumDetail'));
 const Register = lazy(() => import('./pages/Register'));
+const DepartmentsTeams = lazy(() => import('./pages/DepartmentsTeams'));
 
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
 const AdminCrudPage = lazy(() => import('./admin/AdminCrudPage'));
@@ -69,6 +70,9 @@ function AppShell() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/leadership" element={<Leadership />} />
+          <Route path="/departments-and-teams" element={<DepartmentsTeams />} />
+          <Route path="/departments" element={<Navigate to="/departments-and-teams" replace />} />
+          <Route path="/ministries" element={<Navigate to="/departments-and-teams" replace />} />
           <Route path="/sermons" element={<Sermons />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/events" element={<Events />} />
@@ -101,7 +105,9 @@ function AdminShell() {
         <Route path="login" element={<AdminLogin />} />
         <Route element={<AdminLayout><Outlet /></AdminLayout>}>
           <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Ministries" />} />
+          <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Departments & Teams" />} />
+          <Route path="departments" element={<Navigate to="/control-panel/ministries" replace />} />
+          <Route path="departments-teams" element={<Navigate to="/control-panel/ministries" replace />} />
           <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
           <Route path="team" element={<AdminCrudPage entity="team" title="Leadership Team" />} />
           <Route path="team/new" element={<AdminTeamForm isNew={true} />} />

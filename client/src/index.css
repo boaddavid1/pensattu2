@@ -594,21 +594,25 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 
 .events-page .page-hero,
 .leadership-page .page-hero,
+.departments-page .page-hero,
 .sermons-page .page-hero,
 .announcements-page .page-hero,
 .notice-board-page .page-hero { min-height: 1.5in; }
 .events-page .page-hero-inner,
 .leadership-page .page-hero-inner,
+.departments-page .page-hero-inner,
 .sermons-page .page-hero-inner,
 .announcements-page .page-hero-inner,
 .notice-board-page .page-hero-inner { padding: 20px 32px 18px; }
 .events-page .page-hero h1,
 .leadership-page .page-hero h1,
+.departments-page .page-hero h1,
 .sermons-page .page-hero h1,
 .announcements-page .page-hero h1,
 .notice-board-page .page-hero h1 { font-size: clamp(22px, 3vw, 34px); }
 .events-page .page-hero p,
 .leadership-page .page-hero p,
+.departments-page .page-hero p,
 .sermons-page .page-hero p,
 .announcements-page .page-hero p,
 .notice-board-page .page-hero p { font-size: 12.5px; margin-top: 6px; max-width: 440px; line-height: 1.55; }

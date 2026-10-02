@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api, getImageUrl } from '../api.js';
 
 const fallback = [
@@ -9,11 +10,11 @@ const fallback = [
 ];
 
 export default function Services() {
-  const [ministries, setMinistries] = useState(fallback);
+  const [departments, setDepartments] = useState(fallback);
 
   useEffect(() => {
     api.get('/ministries')
-      .then((data) => { if (Array.isArray(data) && data.length) setMinistries(data); })
+      .then((data) => { if (Array.isArray(data) && data.length) setDepartments(data); })
       .catch(() => {});
   }, []);
 
@@ -23,12 +24,12 @@ export default function Services() {
         <div className="services-top">
           <div className="section-head" style={{ marginBottom: 0 }}>
             <span className="eyebrow">Get involved</span>
-            <h2>Ministries built around <em>how you are wired</em>.</h2>
+            <h2>Departments &amp; Teams built around <em>how you are wired</em>.</h2>
           </div>
-          <a href="#book" className="btn btn-ghost">See all ministries</a>
+          <Link to="/departments-and-teams" className="btn btn-ghost">See all departments &amp; teams</Link>
         </div>
         <div className="service-grid">
-          {ministries.map((m) => (
+          {departments.map((m) => (
             <div className="service-card" key={m.id}>
               <div className="img"><img src={getImageUrl(m.image_url)} alt={m.title} /></div>
               <div className="body"><h3>{m.title}</h3><p>{m.description}</p></div>

@@ -1,5 +1,5 @@
 export default function Trail() {
-  const items = ['Sunday Worship', 'Community Groups', 'Youth Ministry', 'Prayer Nights', 'Outreach', 'Bible Study'];
+  const items = ['Sunday Worship', 'Community Groups', 'Departments & Teams', 'Prayer Nights', 'Outreach', 'Bible Study'];
   const track = [...items, ...items];
   return (
     <div className="trail-strip">

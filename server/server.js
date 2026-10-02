@@ -58,8 +58,8 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Core Values (mapped from ministries)
-app.get('/api/ministries', async (req, res) => {
+// Departments & Teams / Core Values (mapped from ministries)
+app.get(['/api/ministries', '/api/departments', '/api/departments-teams'], async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM core_values WHERE is_active = 1 ORDER BY display_order');
     res.json(rows);

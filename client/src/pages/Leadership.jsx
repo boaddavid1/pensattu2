@@ -43,7 +43,7 @@ export default function Leadership() {
         <div className="page-hero-inner">
           <span className="eyebrow">Our leadership</span>
           <h1>People who carry this church <em>with care</em>.</h1>
-          <p>Pastors, elders and ministry leads who take the responsibility of shepherding this community seriously — and take themselves lightly.</p>
+          <p>Pastors, elders, and department and team leads who take the responsibility of shepherding this community seriously — and take themselves lightly.</p>
         </div>
       </section>
 
@@ -123,7 +123,7 @@ export default function Leadership() {
               </div>
               <div className="philosophy-item">
                 <h4>Raising the next leaders</h4>
-                <p>Every ministry lead is actively mentoring someone to eventually take their place.</p>
+                <p>Every department and team lead is actively mentoring someone to eventually take their place.</p>
               </div>
             </div>
           </div>

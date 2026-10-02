@@ -2,7 +2,7 @@ export default function Why() {
   const reasons = [
     { num: '01', title: 'Sunday Worship', text: 'Two services, 9AM and 11AM, with live music and teaching that is straight from scripture.' },
     { num: '02', title: 'Community Groups', text: 'Small groups meeting weekly across Accra — real conversation, real accountability.' },
-    { num: '03', title: 'Youth & Kids Ministry', text: 'Age-appropriate teaching and a safe, joyful space for the next generation.' },
+    { num: '03', title: 'Youth & Kids Department', text: 'Age-appropriate teaching and a safe, joyful space for the next generation.' },
   ];
 
   return (
