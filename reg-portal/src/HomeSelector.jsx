@@ -1,8 +1,8 @@
-import React from 'react';
+import { useState } from 'react';
 
 export default function HomeSelector({ onSelectMode, onContinueWithContact }) {
-  const [contactInput, setContactInput] = React.useState('');
-  const [showContinueInput, setShowContinueInput] = React.useState(false);
+  const [contactInput, setContactInput] = useState('');
+  const [showContinueInput, setShowContinueInput] = useState(false);
 
   function handleContinueSubmit(e) {
     e.preventDefault();
@@ -99,7 +99,7 @@ export default function HomeSelector({ onSelectMode, onContinueWithContact }) {
                   borderLeft: '3px solid var(--reg-yellow)',
                 }}
               >
-                ✓ Name &bull; Contact &bull; Residence &bull; Program &bull; Membership
+                ✓ Name • Contact • Residence • Program • Membership
               </div>
             </div>
             <button
@@ -119,7 +119,7 @@ export default function HomeSelector({ onSelectMode, onContinueWithContact }) {
                 boxShadow: '0 4px 12px rgba(255, 204, 0, 0.35)',
               }}
             >
-              Start Newbie Form &rarr;
+              Start Newbie Form →
             </button>
           </div>
 
@@ -170,7 +170,7 @@ export default function HomeSelector({ onSelectMode, onContinueWithContact }) {
                   borderLeft: '3px solid var(--reg-blue)',
                 }}
               >
-                ✓ 6-Step Wizard &bull; Departments &bull; Photo &bull; Hall/Hostel
+                ✓ 6-Step Wizard • Departments • Photo • Hall/Hostel
               </div>
             </div>
             <button
@@ -185,7 +185,7 @@ export default function HomeSelector({ onSelectMode, onContinueWithContact }) {
                 fontWeight: 700,
               }}
             >
-              Start Member Form &rarr;
+              Start Member Form →
             </button>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function HomeSelector({ onSelectMode, onContinueWithContact }) {
               onClick={() => setShowContinueInput(true)}
               style={{ padding: '8px 20px', fontSize: '0.9rem' }}
             >
-              Continue with my Phone Number &rarr;
+              Continue with my Phone Number →
             </button>
           ) : (
             <form
@@ -237,14 +237,14 @@ export default function HomeSelector({ onSelectMode, onContinueWithContact }) {
                 className="reg-btn reg-btn-primary"
                 style={{ padding: '10px 20px', whiteSpace: 'nowrap' }}
               >
-                Continue &rarr;
+                Continue →
               </button>
             </form>
           )}
         </div>
 
         <div className="reg-signature" style={{ marginTop: 32 }}>
-          PENSA TTU &bull; Pentecost Students and Associates
+          PENSA TTU • Pentecost Students and Associates
         </div>
       </div>
     </main>
