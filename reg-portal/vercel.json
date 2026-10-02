@@ -2,6 +2,7 @@
   "buildCommand": "npm install && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/api/reg/(.*)", "destination": "/api/reg" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {

@@ -185,6 +185,13 @@ router.post('/', async (req, res) => {
 
     await conn.commit();
 
+    // If this contact was registered as a newbie, mark it completed
+    try {
+      await secPool.query("UPDATE newbie_registrations SET status = 'completed' WHERE contact = ?", [row.contact]);
+    } catch {
+      /* ignore */
+    }
+
     res.status(201).json({
       success: true,
       message: 'Registration successful!',
@@ -200,6 +207,66 @@ router.post('/', async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   } finally {
     conn.release();
+  }
+});
+
+// ─── Public: submit Newbie registration ────────────────────
+router.post('/newbie', async (req, res) => {
+  const b = req.body || {};
+  const required = ['name', 'contact', 'residence', 'program', 'membership'];
+  const missing = required.filter((f) => !b[f] || !String(b[f]).trim());
+  if (missing.length) {
+    return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
+  }
+
+  const phoneRe = /^[0-9]{10}$/;
+  if (!phoneRe.test(String(b.contact).trim())) {
+    return res.status(400).json({ success: false, message: 'Contact number must be exactly 10 digits' });
+  }
+
+  try {
+    const contact = String(b.contact).trim();
+    const [dup] = await secPool.query(
+      "SELECT id FROM newbie_registrations WHERE contact = ? AND status != 'completed' LIMIT 1",
+      [contact]
+    );
+    if (dup.length) {
+      return res.status(409).json({
+        success: false,
+        message: 'A newbie registration with this contact number already exists.',
+      });
+    }
+
+    const [result] = await secPool.query(
+      `INSERT INTO newbie_registrations (name, contact, residence, program, membership, status)
+       VALUES (?, ?, ?, ?, ?, 'pending')`,
+      [clean(b.name), contact, clean(b.residence), clean(b.program), clean(b.membership)]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Newbie registration submitted successfully!',
+      data: { id: result.insertId, name: clean(b.name) },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ─── Public: check Newbie registration by contact ──────────
+router.get('/newbie/check/:contact', async (req, res) => {
+  try {
+    const contact = String(req.params.contact).trim();
+    const [rows] = await secPool.query(
+      'SELECT id, name, contact, residence, program, membership, status FROM newbie_registrations WHERE contact = ? ORDER BY id DESC LIMIT 1',
+      [contact]
+    );
+    if (!rows.length) {
+      return res.json({ found: false });
+    }
+    res.json({ found: true, newbie: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

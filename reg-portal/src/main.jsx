@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import Register from './Register.jsx';
+import App from './App.jsx';
 import './Register.css';
 
 if ('serviceWorker' in navigator) {
@@ -13,6 +13,6 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Register />
+    <App />
   </React.StrictMode>
 );

@@ -5,6 +5,7 @@ import { useAuth } from '../api/AuthContext.jsx';
 
 const menuItems = [
   { to: '/', icon: 'bxs-dashboard', label: 'Dashboard', end: true },
+  { to: '/newbies', icon: 'bxs-user-pin', label: 'Newbies' },
   { to: '/members', icon: 'bxs-group', label: 'Members' },
   { to: '/attendance', icon: 'bxs-doughnut-chart', label: 'Attendance' },
   { to: '/messages', icon: 'bxs-message-dots', label: 'Messages' },

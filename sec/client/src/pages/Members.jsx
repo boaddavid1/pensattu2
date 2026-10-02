@@ -14,6 +14,17 @@ export default function Members() {
   const [officer, setOfficer] = useState(false);
   const [duration, setDuration] = useState('');
 
+  // Promotion modal state
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
+  const [promoting, setPromoting] = useState(false);
+  const [promoteResult, setPromoteResult] = useState(null);
+  const [promoteError, setPromoteError] = useState('');
+  const [confirmChecked, setConfirmChecked] = useState(false);
+  const [previewSearch, setPreviewSearch] = useState('');
+  const [showPreviewList, setShowPreviewList] = useState(false);
+
   const fetchMembers = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -37,6 +48,37 @@ export default function Members() {
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
   const handleSearch = (e) => { e.preventDefault(); fetchMembers(); };
+
+  const openPromoteModal = async () => {
+    setShowPromoteModal(true);
+    setPromoteResult(null);
+    setPromoteError('');
+    setConfirmChecked(false);
+    setPreviewLoading(true);
+    try {
+      const res = await secApi.getPromotionPreview();
+      setPreviewData(res);
+    } catch (err) {
+      setPromoteError(err.message || 'Failed to load promotion preview');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleExecutePromote = async () => {
+    if (!confirmChecked) return;
+    setPromoting(true);
+    setPromoteError('');
+    try {
+      const res = await secApi.promoteMembers();
+      setPromoteResult(res);
+      fetchMembers(); // refresh level counts
+    } catch (err) {
+      setPromoteError(err.message || 'Failed to advance member levels');
+    } finally {
+      setPromoting(false);
+    }
+  };
 
   const levels = data?.levels || [];
   const total = data?.total || 0;
@@ -62,9 +104,19 @@ export default function Members() {
             <li><a>Members</a></li>
           </ul>
         </div>
-        <Link to="/members/add" className="btn-download">
-          <i className='bx bxs-user-plus'></i> Add Member
-        </Link>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-download"
+            onClick={openPromoteModal}
+            style={{ background: '#27ae60', color: '#fff', border: 'none', cursor: 'pointer' }}
+          >
+            <i className='bx bx-trending-up'></i> Move to Next Level
+          </button>
+          <Link to="/members/add" className="btn-download">
+            <i className='bx bxs-user-plus'></i> Add Member
+          </Link>
+        </div>
       </div>
 
       {error && <div className="error-msg">{error}</div>}
@@ -133,6 +185,258 @@ export default function Members() {
         </>
       )}
 
+      {/* Promotion Modal */}
+      {showPromoteModal && (
+        <div className="modal-overlay" onClick={() => !promoting && setShowPromoteModal(false)}>
+          <div
+            className="modal"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 800, width: '95%', maxHeight: '90vh', overflowY: 'auto' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <i className='bx bx-trending-up' style={{ color: '#27ae60' }}></i>
+                Advance Members to Next Level
+              </h2>
+              {!promoting && (
+                <button
+                  type="button"
+                  onClick={() => setShowPromoteModal(false)}
+                  style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--dark-grey)' }}
+                >
+                  <i className='bx bx-x'></i>
+                </button>
+              )}
+            </div>
+
+            {/* Progression Rules Card */}
+            <div style={{ background: 'var(--grey)', borderRadius: 10, padding: '14px 18px', marginBottom: 20, fontSize: 13, lineHeight: 1.6 }}>
+              <strong style={{ display: 'block', marginBottom: 6, color: 'var(--dark)' }}>
+                <i className='bx bx-info-circle' style={{ marginRight: 6, color: 'var(--blue)' }}></i>
+                Academic Level & Graduation Rules:
+              </strong>
+              <ul style={{ margin: 0, paddingLeft: 20, color: 'var(--dark-grey)' }}>
+                <li><strong>Diploma (2 Years):</strong> Level 100 &rarr; 200, Level 200 &rarr; <em>Graduates to Alumni Portal</em></li>
+                <li><strong>HND (3 Years):</strong> Level 100 &rarr; 200, Level 200 &rarr; 300, Level 300 &rarr; <em>Graduates to Alumni Portal</em></li>
+                <li><strong>BTECH (4 Years):</strong> Level 100 &rarr; 200, Level 200 &rarr; 300, Level 300 &rarr; 400, Level 400 &rarr; <em>Graduates to Alumni Portal</em></li>
+                <li>Graduated members are automatically recorded in the <strong>Alumni Portal</strong> and archived from undergraduate level lists.</li>
+              </ul>
+            </div>
+
+            {promoteError && <div className="error-msg" style={{ marginBottom: 16 }}>{promoteError}</div>}
+
+            {promoteResult ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <i className='bx bxs-check-circle' style={{ fontSize: 56, color: '#27ae60', marginBottom: 12, display: 'inline-block' }}></i>
+                <h3 style={{ marginBottom: 8, color: 'var(--dark)' }}>Level Progression Complete!</h3>
+                <p style={{ color: 'var(--dark-grey)', marginBottom: 20, fontSize: 14 }}>
+                  Successfully advanced <strong>{promoteResult.promoted}</strong> member(s) to the next level, and moved <strong>{promoteResult.graduated}</strong> final-year member(s) to the Alumni portal.
+                </p>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => { setShowPromoteModal(false); setPromoteResult(null); }}
+                  >
+                    Done
+                  </button>
+                  <Link
+                    to="/alumni"
+                    className="btn btn-download"
+                    style={{ background: '#27ae60', color: '#fff' }}
+                  >
+                    <i className='bx bxs-graduation'></i> View Alumni Portal
+                  </Link>
+                </div>
+              </div>
+            ) : previewLoading ? (
+              <div className="loading" style={{ padding: '30px 0', textAlign: 'center' }}>
+                <i className='bx bx-loader-alt bx-spin' style={{ fontSize: 32, display: 'block', marginBottom: 8 }}></i>
+                Analyzing member records & program durations...
+              </div>
+            ) : previewData ? (
+              <>
+                {/* Summary Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
+                  <div style={{ background: '#e8f4fd', borderRadius: 10, padding: 14, textAlign: 'center' }}>
+                    <div style={{ fontSize: 24, fontWeight: 'bold', color: 'var(--blue)' }}>
+                      {previewData.summary?.promotions?.total || 0}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--dark-grey)', marginTop: 4 }}>
+                      Total Advancing Levels
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--dark-grey)', marginTop: 6 }}>
+                      100&rarr;200: <strong>{previewData.summary?.promotions?.['100_to_200'] || 0}</strong> | 
+                      200&rarr;300: <strong>{previewData.summary?.promotions?.['200_to_300'] || 0}</strong> | 
+                      300&rarr;400: <strong>{previewData.summary?.promotions?.['300_to_400'] || 0}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#d4f5dd', borderRadius: 10, padding: 14, textAlign: 'center' }}>
+                    <div style={{ fontSize: 24, fontWeight: 'bold', color: '#27ae60' }}>
+                      {previewData.summary?.graduations?.total || 0}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#1e8449', marginTop: 4 }}>
+                      Graduating to Alumni
+                    </div>
+                    <div style={{ fontSize: 11, color: '#1e8449', marginTop: 6 }}>
+                      Diploma 200: <strong>{previewData.summary?.graduations?.diploma_200 || 0}</strong> | 
+                      HND 300: <strong>{previewData.summary?.graduations?.hnd_300 || 0}</strong> | 
+                      BTECH 400: <strong>{previewData.summary?.graduations?.btech_400 || 0}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'var(--grey)', borderRadius: 10, padding: 14, textAlign: 'center' }}>
+                    <div style={{ fontSize: 24, fontWeight: 'bold', color: 'var(--dark)' }}>
+                      {previewData.summary?.totalActive || 0}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--dark-grey)', marginTop: 4 }}>
+                      Total Active Members
+                    </div>
+                    {previewData.summary?.skipped > 0 && (
+                      <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 6 }}>
+                        {previewData.summary.skipped} skipped (unspecified level)
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Collapsible Member Preview List */}
+                <div style={{ border: '1px solid var(--grey)', borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
+                  <div
+                    onClick={() => setShowPreviewList(!showPreviewList)}
+                    style={{
+                      background: 'var(--light)',
+                      padding: '12px 16px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      borderBottom: showPreviewList ? '1px solid var(--grey)' : 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)' }}>
+                      <i className='bx bx-list-ul' style={{ marginRight: 6 }}></i>
+                      Preview Affected Members ({previewData.previewList?.length || 0})
+                    </span>
+                    <i className={`bx bx-chevron-${showPreviewList ? 'up' : 'down'}`} style={{ fontSize: 20 }}></i>
+                  </div>
+
+                  {showPreviewList && (
+                    <div style={{ padding: 12, maxHeight: 220, overflowY: 'auto' }}>
+                      <input
+                        type="text"
+                        placeholder="Filter preview by name, program, level..."
+                        value={previewSearch}
+                        onChange={e => setPreviewSearch(e.target.value)}
+                        style={{ width: '100%', padding: '6px 12px', fontSize: 12, borderRadius: 6, border: '1px solid var(--grey)', marginBottom: 8 }}
+                      />
+                      <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--grey)', color: 'var(--dark-grey)' }}>
+                            <th style={{ padding: '6px 4px' }}>Name</th>
+                            <th style={{ padding: '6px 4px' }}>Program</th>
+                            <th style={{ padding: '6px 4px' }}>Duration</th>
+                            <th style={{ padding: '6px 4px' }}>Current</th>
+                            <th style={{ padding: '6px 4px' }}>Action & Target</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(previewData.previewList || [])
+                            .filter(m => {
+                              if (!previewSearch) return true;
+                              const q = previewSearch.toLowerCase();
+                              return (
+                                m.name.toLowerCase().includes(q) ||
+                                m.program.toLowerCase().includes(q) ||
+                                m.duration.toLowerCase().includes(q) ||
+                                m.currentLevel.toLowerCase().includes(q)
+                              );
+                            })
+                            .slice(0, 100)
+                            .map(m => (
+                              <tr key={m.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                <td style={{ padding: '6px 4px', fontWeight: 500 }}>{m.name}</td>
+                                <td style={{ padding: '6px 4px', color: 'var(--dark-grey)' }}>{m.program}</td>
+                                <td style={{ padding: '6px 4px' }}>{m.duration}</td>
+                                <td style={{ padding: '6px 4px' }}>Level {m.currentLevel}</td>
+                                <td style={{ padding: '6px 4px' }}>
+                                  {m.action === 'graduate' ? (
+                                    <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                      <i className='bx bxs-graduation'></i> Graduate &rarr; Alumni
+                                    </span>
+                                  ) : m.action === 'promote' ? (
+                                    <span className="badge badge-yellow">
+                                      &rarr; Level {m.targetLevel}
+                                    </span>
+                                  ) : (
+                                    <span className="badge" style={{ background: '#eee', color: '#666' }}>
+                                      Skipped ({m.reason || 'unspecified'})
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirmation Checkbox */}
+                <div style={{ background: '#fff9e6', border: '1px solid #ffeaa7', borderRadius: 8, padding: '12px 16px', marginBottom: 20 }}>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontSize: 13, color: '#855700' }}>
+                    <input
+                      type="checkbox"
+                      checked={confirmChecked}
+                      onChange={e => setConfirmChecked(e.target.checked)}
+                      style={{ marginTop: 2 }}
+                    />
+                    <span>
+                      I confirm that I want to advance all eligible members to their next academic level. Final-year students (Diploma 200, HND 300, BTECH 400) will be automatically graduated and moved to the Alumni portal.
+                    </span>
+                  </label>
+                </div>
+
+                {/* Modal Actions */}
+                <div className="modal-actions" style={{ marginTop: 0 }}>
+                  <button
+                    type="button"
+                    className="btn btn-back"
+                    onClick={() => setShowPromoteModal(false)}
+                    disabled={promoting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleExecutePromote}
+                    disabled={!confirmChecked || promoting}
+                    style={{
+                      background: confirmChecked ? '#27ae60' : 'var(--grey)',
+                      color: confirmChecked ? '#fff' : 'var(--dark-grey)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    {promoting ? (
+                      <>
+                        <i className='bx bx-loader-alt bx-spin'></i> Advancing Levels...
+                      </>
+                    ) : (
+                      <>
+                        <i className='bx bx-check-circle'></i> Confirm & Move Levels
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
     </>
   );
 }

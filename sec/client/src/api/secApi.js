@@ -45,6 +45,14 @@ export const secApi = {
   deleteMember: (id) => request(`/members/${id}`, { method: 'DELETE' }),
   importMembers: (data) => request('/members/import', { method: 'POST', body: JSON.stringify(data) }),
   graduateMember: (id) => request(`/members/${id}/graduate`, { method: 'POST' }),
+  getPromotionPreview: () => request('/members/promotion-preview'),
+  promoteMembers: () => request('/members/promote', { method: 'POST' }),
+  promoteMember: (id) => request(`/members/${id}/promote`, { method: 'POST' }),
+
+  // Newbies (Fast registration queue)
+  listNewbies: (params = '') => request(`/newbies${params ? `?${params}` : ''}`),
+  pushNewbie: (id) => request(`/newbies/${id}/push`, { method: 'POST' }),
+  deleteNewbie: (id) => request(`/newbies/${id}`, { method: 'DELETE' }),
 
   // Attendance
   listSessions: () => request('/attendance/sessions'),

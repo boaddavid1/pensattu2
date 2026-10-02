@@ -123,6 +123,23 @@ export default async function secSyncSchema() {
       check_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       INDEX idx_session (session_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
+    // Newbie registrations (simplified fast form before full membership)
+    `CREATE TABLE IF NOT EXISTS newbie_registrations (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      contact VARCHAR(20) NOT NULL,
+      residence VARCHAR(255) NOT NULL,
+      program VARCHAR(255) NOT NULL,
+      membership VARCHAR(50) NOT NULL,
+      status ENUM('pending','pushed','completed') DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      pushed_at TIMESTAMP NULL DEFAULT NULL,
+      pushed_by VARCHAR(100) NULL DEFAULT NULL,
+      INDEX idx_newbie_contact (contact),
+      INDEX idx_newbie_status (status),
+      INDEX idx_newbie_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
   ];
 
   for (const sql of statements) {

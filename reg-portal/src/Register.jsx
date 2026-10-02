@@ -83,7 +83,7 @@ function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.82) {
   });
 }
 
-export default function Register() {
+export default function Register({ initialData, onBack }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(EMPTY);
   const [photo, setPhoto] = useState('');
@@ -92,12 +92,65 @@ export default function Register() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(null);
   const [invalid, setInvalid] = useState({});
+  const [lookupPhone, setLookupPhone] = useState('');
+  const [lookingUp, setLookingUp] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [cameraOpen, setCameraOpen] = useState(false);
 
   useEffect(() => () => stopCamera(), []);
   useEffect(() => { stopCamera(); }, [step]);
+
+  useEffect(() => {
+    if (initialData) {
+      applyNewbieData(initialData);
+    }
+  }, [initialData]);
+
+  function applyNewbieData(data) {
+    if (!data) return;
+    const parts = (data.name || '').trim().split(/\s+/);
+    const surname = parts.length > 1 ? parts[parts.length - 1] : parts[0] || '';
+    const othernames = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
+
+    const hallMatch = CAMPUS_HALLS.find(
+      (h) => (data.residence || '').toLowerCase().includes(h.toLowerCase())
+    );
+
+    setForm((f) => ({
+      ...f,
+      surname: surname || f.surname,
+      othernames: othernames || f.othernames,
+      contact: data.contact || f.contact,
+      program: data.program || f.program,
+      membership: data.membership || f.membership || 'member',
+      campus_residence: hallMatch ? 'yes' : (f.campus_residence || 'no'),
+      campus_hall: hallMatch || f.campus_hall,
+      offcampus_location: !hallMatch ? (data.residence || f.offcampus_location) : f.offcampus_location,
+    }));
+    showToast('Details loaded from Newbie registration!', 'success');
+  }
+
+  async function handleLookupNewbie() {
+    if (!/^[0-9]{10}$/.test(lookupPhone.trim())) {
+      showToast('Please enter a valid 10-digit phone number', 'warning');
+      return;
+    }
+    setLookingUp(true);
+    try {
+      const res = await fetch(`/api/reg/newbie/check/${lookupPhone.trim()}`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.found && data.newbie) {
+        applyNewbieData(data.newbie);
+      } else {
+        showToast('No Newbie registration found for this phone number', 'info');
+      }
+    } catch {
+      showToast('Unable to check number. Please try again.', 'error');
+    } finally {
+      setLookingUp(false);
+    }
+  }
 
   function showToast(message, type = 'info') {
     const id = Date.now() + Math.random();
@@ -318,7 +371,29 @@ export default function Register() {
       </div>
 
       <div className="reg-container">
-        <div className="reg-header">
+        <div className="reg-header" style={{ position: 'relative' }}>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              style={{
+                position: 'absolute',
+                top: 20,
+                left: 20,
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
+                borderRadius: 6,
+                padding: '6px 14px',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                fontWeight: 600,
+                zIndex: 2,
+              }}
+            >
+              &larr; Back to Selection
+            </button>
+          )}
           <div className="reg-logo-container">
             <img src="/pns.png" alt="PENSA Logo" />
             <div className="reg-logo-text">
@@ -347,6 +422,50 @@ export default function Register() {
         <form className="reg-card" onSubmit={submit}>
           {/* Step 1: Personal */}
           <div className={`reg-step ${step === 1 ? 'active' : ''}`}>
+            {/* Quick Newbie lookup banner */}
+            <div
+              style={{
+                background: 'rgba(19, 53, 126, 0.05)',
+                border: '1px solid rgba(19, 53, 126, 0.15)',
+                padding: '12px 16px',
+                borderRadius: 8,
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
+              <div>
+                <strong style={{ color: 'var(--reg-blue)', fontSize: '0.95rem' }}>
+                  Started with a Newbie registration?
+                </strong>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
+                  Enter your phone number to pre-fill your details:
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="tel"
+                  placeholder="10-digit number"
+                  value={lookupPhone}
+                  onChange={(e) => setLookupPhone(e.target.value)}
+                  className="reg-input"
+                  style={{ width: 140, padding: '6px 10px', fontSize: '0.85rem' }}
+                />
+                <button
+                  type="button"
+                  className="reg-btn reg-btn-outline"
+                  style={{ padding: '6px 14px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+                  onClick={handleLookupNewbie}
+                  disabled={lookingUp}
+                >
+                  {lookingUp ? 'Loading...' : 'Pre-fill Form'}
+                </button>
+              </div>
+            </div>
+
             <h3 className="reg-section-title">👤 Personal Information</h3>
             <div className="reg-row">
               <div className="reg-col-6">

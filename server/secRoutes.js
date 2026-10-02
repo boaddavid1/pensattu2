@@ -187,6 +187,9 @@ router.get('/members', requireSecAuth, async (req, res) => {
     if (officer === 'true') { where.push('is_officer = 1'); }
     if (level) { where.push('education_level = ?'); params.push(level); }
     if (duration) { where.push('program_duration = ?'); params.push(duration); }
+    if (req.query.include_graduated !== 'true') {
+      where.push('(graduated = 0 OR graduated IS NULL)');
+    }
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
     const [[{ total }]] = await secPool.query(`SELECT COUNT(*) as total FROM registrations ${whereSql}`, params);
@@ -205,7 +208,7 @@ router.get('/members', requireSecAuth, async (req, res) => {
 router.get('/members/by-level', requireSecAuth, async (req, res) => {
   try {
     const { search, gender, membership_type, hall, officer, duration } = req.query;
-    const where = [];
+    const where = ['(graduated = 0 OR graduated IS NULL)'];
     const params = [];
     if (search) {
       where.push('(surname LIKE ? OR othernames LIKE ? OR contact LIKE ? OR program LIKE ?)');
@@ -332,18 +335,290 @@ router.post('/members/import', requireSecAuth, async (req, res) => {
   }
 });
 
+// ─── Level Progression & Graduation Logic ─────────────────────
+function getProgressionTarget(member) {
+  const levelStr = String(member.education_level || '').trim();
+  const levelNum = parseInt(levelStr, 10);
+  if (isNaN(levelNum)) {
+    return { action: 'skip', reason: 'Unspecified or non-numeric level', currentLevel: levelStr };
+  }
+
+  const durationStr = (member.program_duration || '').trim().toUpperCase();
+  const programStr = (member.program || '').trim().toUpperCase();
+
+  // Rules:
+  // - Diploma: 2 years (100 -> 200, 200 -> Graduate to Alumni)
+  // - HND: 3 years (100 -> 200, 200 -> 300, 300 -> Graduate to Alumni)
+  // - BTECH: 4 years (100 -> 200, 200 -> 300, 300 -> 400, 400 -> Graduate to Alumni)
+  // - Certificate: 1 year (100 -> Graduate to Alumni)
+  // - Level 400+ or >= maxLevel: Graduate to Alumni
+  let maxYears = 4;
+  let programCategory = 'BTECH / DEGREE';
+
+  if (durationStr.includes('DIPLOMA') || programStr.includes('DIPLOMA')) {
+    maxYears = 2;
+    programCategory = 'DIPLOMA';
+  } else if (durationStr.includes('HND') || programStr.includes('HND')) {
+    maxYears = 3;
+    programCategory = 'HND';
+  } else if (durationStr.includes('CERT') || programStr.includes('CERT')) {
+    maxYears = 1;
+    programCategory = 'CERTIFICATE';
+  } else if (durationStr.includes('B-TECH') || durationStr.includes('BTECH') || programStr.includes('B-TECH') || programStr.includes('BTECH')) {
+    maxYears = 4;
+    programCategory = 'BTECH';
+  }
+
+  const maxLevel = maxYears * 100;
+
+  if (levelNum >= maxLevel || levelNum >= 400) {
+    return {
+      action: 'graduate',
+      currentLevel: levelStr,
+      targetLevel: 'Alumni',
+      programCategory,
+      maxYears,
+      maxLevel,
+    };
+  }
+
+  const nextLevel = String(levelNum + 100);
+  return {
+    action: 'promote',
+    currentLevel: levelStr,
+    targetLevel: nextLevel,
+    programCategory,
+    maxYears,
+    maxLevel,
+  };
+}
+
+async function graduateSingleMember(m) {
+  const [existing] = await secPool.query(
+    'SELECT id FROM alumni WHERE registration_id = ? LIMIT 1',
+    [m.id]
+  );
+  if (existing.length === 0) {
+    await secPool.query(
+      `INSERT INTO alumni (registration_id, surname, othernames, gender, dob, contact, program, education_level, graduation_year, graduation_level, alumni_status)
+       VALUES (?,?,?,?,?,?,?,?,?,?,'active')`,
+      [
+        m.id,
+        m.surname || '',
+        m.othernames || '',
+        m.gender || 'male',
+        m.dob || '2000-01-01',
+        m.contact || '',
+        m.program || '',
+        m.education_level || '',
+        new Date().getFullYear(),
+        m.education_level || ''
+      ]
+    );
+  }
+  await secPool.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [m.id]);
+}
+
+router.get('/members/promotion-preview', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query(
+      'SELECT id, surname, othernames, gender, contact, program, program_duration, education_level FROM registrations WHERE graduated = 0 OR graduated IS NULL ORDER BY surname'
+    );
+
+    const summary = {
+      totalActive: rows.length,
+      promotions: {
+        '100_to_200': 0,
+        '200_to_300': 0,
+        '300_to_400': 0,
+        other: 0,
+        total: 0,
+      },
+      graduations: {
+        diploma_200: 0,
+        hnd_300: 0,
+        btech_400: 0,
+        other: 0,
+        total: 0,
+      },
+      skipped: 0,
+    };
+
+    const previewList = [];
+
+    for (const m of rows) {
+      const plan = getProgressionTarget(m);
+      if (plan.action === 'skip') {
+        summary.skipped++;
+        previewList.push({
+          id: m.id,
+          name: `${m.surname} ${m.othernames}`,
+          currentLevel: m.education_level || 'None',
+          program: m.program || '-',
+          duration: m.program_duration || '-',
+          action: 'skip',
+          targetLevel: '-',
+          reason: plan.reason,
+        });
+      } else if (plan.action === 'graduate') {
+        summary.graduations.total++;
+        if (plan.programCategory === 'DIPLOMA' && plan.currentLevel === '200') {
+          summary.graduations.diploma_200++;
+        } else if (plan.programCategory === 'HND' && plan.currentLevel === '300') {
+          summary.graduations.hnd_300++;
+        } else if (plan.currentLevel === '400') {
+          summary.graduations.btech_400++;
+        } else {
+          summary.graduations.other++;
+        }
+        previewList.push({
+          id: m.id,
+          name: `${m.surname} ${m.othernames}`,
+          currentLevel: plan.currentLevel,
+          program: m.program || '-',
+          duration: m.program_duration || '-',
+          action: 'graduate',
+          targetLevel: 'Alumni',
+          category: plan.programCategory,
+        });
+      } else if (plan.action === 'promote') {
+        summary.promotions.total++;
+        const key = `${plan.currentLevel}_to_${plan.targetLevel}`;
+        if (summary.promotions[key] !== undefined) {
+          summary.promotions[key]++;
+        } else {
+          summary.promotions.other++;
+        }
+        previewList.push({
+          id: m.id,
+          name: `${m.surname} ${m.othernames}`,
+          currentLevel: plan.currentLevel,
+          program: m.program || '-',
+          duration: m.program_duration || '-',
+          action: 'promote',
+          targetLevel: plan.targetLevel,
+          category: plan.programCategory,
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      summary,
+      previewList: previewList.slice(0, 200),
+      totalPreviewCount: previewList.length,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/members/promote', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query(
+      'SELECT * FROM registrations WHERE graduated = 0 OR graduated IS NULL'
+    );
+
+    let promoted = 0;
+    let graduated = 0;
+    let skipped = 0;
+
+    const summary = {
+      promotions: { '100_to_200': 0, '200_to_300': 0, '300_to_400': 0, other: 0, total: 0 },
+      graduations: { diploma_200: 0, hnd_300: 0, btech_400: 0, other: 0, total: 0 },
+    };
+
+    for (const m of rows) {
+      const plan = getProgressionTarget(m);
+      if (plan.action === 'skip') {
+        skipped++;
+      } else if (plan.action === 'graduate') {
+        await graduateSingleMember(m);
+        graduated++;
+        summary.graduations.total++;
+        if (plan.programCategory === 'DIPLOMA' && plan.currentLevel === '200') summary.graduations.diploma_200++;
+        else if (plan.programCategory === 'HND' && plan.currentLevel === '300') summary.graduations.hnd_300++;
+        else if (plan.currentLevel === '400') summary.graduations.btech_400++;
+        else summary.graduations.other++;
+      } else if (plan.action === 'promote') {
+        await secPool.query('UPDATE registrations SET education_level = ? WHERE id = ?', [plan.targetLevel, m.id]);
+        promoted++;
+        summary.promotions.total++;
+        const key = `${plan.currentLevel}_to_${plan.targetLevel}`;
+        if (summary.promotions[key] !== undefined) summary.promotions[key]++;
+        else summary.promotions.other++;
+      }
+    }
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'PROMOTE_LEVELS',
+      `Promoted ${promoted} members, Graduated ${graduated} members to Alumni`,
+      req
+    );
+
+    res.json({
+      success: true,
+      promoted,
+      graduated,
+      skipped,
+      total: rows.length,
+      summary,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/members/:id/promote', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Member not found' });
+    const m = rows[0];
+
+    const plan = getProgressionTarget(m);
+    if (plan.action === 'skip') {
+      return res.status(400).json({ error: plan.reason || 'Cannot advance member with unspecified level' });
+    }
+
+    if (plan.action === 'graduate') {
+      await graduateSingleMember(m);
+      await logActivity(
+        secPool,
+        req.user.id,
+        req.user.username,
+        'GRADUATE_MEMBER',
+        `Graduated: ${m.surname} ${m.othernames} (${m.education_level} ${m.program_duration || ''})`,
+        req
+      );
+      return res.json({ success: true, action: 'graduated', oldLevel: m.education_level, newLevel: 'Alumni' });
+    }
+
+    await secPool.query('UPDATE registrations SET education_level = ? WHERE id = ?', [plan.targetLevel, m.id]);
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'PROMOTE_MEMBER',
+      `Promoted: ${m.surname} ${m.othernames} from ${m.education_level} to ${plan.targetLevel}`,
+      req
+    );
+
+    res.json({ success: true, action: 'promoted', oldLevel: m.education_level, newLevel: plan.targetLevel });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Member not found' });
     const m = rows[0];
 
-    await secPool.query(
-      `INSERT INTO alumni (registration_id, surname, othernames, gender, dob, contact, program, education_level, graduation_year)
-       VALUES (?,?,?,?,?,?,?,?,?)`,
-      [m.id, m.surname, m.othernames, m.gender, m.dob || '2000-01-01', m.contact || '', m.program || '', m.education_level || '', new Date().getFullYear()]
-    );
-    await secPool.query('UPDATE registrations SET graduated = 1 WHERE id = ?', [req.params.id]);
+    await graduateSingleMember(m);
     await logActivity(secPool, req.user.id, req.user.username, 'GRADUATE_MEMBER', `Graduated: ${m.surname} ${m.othernames}`, req);
     res.json({ success: true });
   } catch (err) {
@@ -757,6 +1032,102 @@ router.get('/settings/logs', requireSecAuth, async (req, res) => {
     const [[{ total }]] = await secPool.query('SELECT COUNT(*) as total FROM activity_logs');
     const [logs] = await secPool.query('SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ? OFFSET ?', [pp, offset]);
     res.json({ logs, pagination: { page: pg, perPage: pp, total, totalPages: Math.ceil(total / pp) } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Newbie Registrations (SEC Admin) ──────────────────────
+// List newbies with search, status filter, and pagination
+router.get('/newbies', requireSecAuth, async (req, res) => {
+  try {
+    const { search, status, page = 1, limit = 50 } = req.query;
+    const where = [];
+    const args = [];
+    if (search) {
+      where.push('(name LIKE ? OR contact LIKE ? OR program LIKE ? OR residence LIKE ?)');
+      const term = `%${search}%`;
+      args.push(term, term, term, term);
+    }
+    if (status) {
+      where.push('status = ?');
+      args.push(status);
+    }
+    const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const offset = (Math.max(1, Number(page) || 1) - 1) * (Number(limit) || 50);
+    const lim = Number(limit) || 50;
+
+    const [rows] = await secPool.query(
+      `SELECT * FROM newbie_registrations ${clause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...args, lim, offset]
+    );
+    const [[{ total }]] = await secPool.query(
+      `SELECT COUNT(*) AS total FROM newbie_registrations ${clause}`,
+      args
+    );
+
+    // Summary stats
+    const [counts] = await secPool.query(
+      'SELECT status, COUNT(*) as cnt FROM newbie_registrations GROUP BY status'
+    );
+    const stats = { total: 0, pending: 0, pushed: 0, completed: 0 };
+    counts.forEach((c) => {
+      if (stats[c.status] !== undefined) stats[c.status] = c.cnt;
+      stats.total += c.cnt;
+    });
+
+    res.json({ items: rows, total, stats, page: Number(page) || 1, limit: lim });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Push newbie to full membership registration
+router.post('/newbies/:id/push', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query('SELECT * FROM newbie_registrations WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Newbie registration not found' });
+    const newbie = rows[0];
+
+    await secPool.query(
+      'UPDATE newbie_registrations SET status = "pushed", pushed_at = NOW(), pushed_by = ? WHERE id = ?',
+      [req.user?.username || 'admin', req.params.id]
+    );
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'PUSH_NEWBIE',
+      `Pushed newbie #${req.params.id} (${newbie.name}, ${newbie.contact}) to full registration`,
+      req
+    );
+
+    res.json({
+      success: true,
+      message: `${newbie.name} pushed to full registration pipeline`,
+      newbie: { ...newbie, status: 'pushed' },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete newbie registration
+router.delete('/newbies/:id', requireSecAuth, async (req, res) => {
+  try {
+    const [rows] = await secPool.query('SELECT * FROM newbie_registrations WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ error: 'Newbie registration not found' });
+    await secPool.query('DELETE FROM newbie_registrations WHERE id = ?', [req.params.id]);
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'DELETE_NEWBIE',
+      `Deleted newbie #${req.params.id} (${rows[0].name})`,
+      req
+    );
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

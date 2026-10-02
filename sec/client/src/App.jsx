@@ -19,6 +19,7 @@ const Alumni = lazy(() => import('./pages/Alumni.jsx'));
 const Reports = lazy(() => import('./pages/Reports.jsx'));
 const ExportPage = lazy(() => import('./pages/ExportPage.jsx'));
 const Settings = lazy(() => import('./pages/Settings.jsx'));
+const Newbies = lazy(() => import('./pages/Newbies.jsx'));
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<ProtectedRoute><Lazy><Dashboard /></Lazy></ProtectedRoute>} />
+      <Route path="/newbies" element={<ProtectedRoute><Lazy><Newbies /></Lazy></ProtectedRoute>} />
       <Route path="/members" element={<ProtectedRoute><Lazy><Members /></Lazy></ProtectedRoute>} />
       <Route path="/members/level/:level" element={<ProtectedRoute><Lazy><LevelMembers /></Lazy></ProtectedRoute>} />
       <Route path="/members/add" element={<ProtectedRoute><Lazy><AddMember /></Lazy></ProtectedRoute>} />

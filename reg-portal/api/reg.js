@@ -1,5 +1,6 @@
 // api/reg.js — Vercel serverless function for the PENSA TTU registration portal.
-// Handles POST /api/reg (public submit) and GET /api/reg (admin list, requires token).
+// Handles POST /api/reg (member submit), POST /api/reg/newbie (newbie submit),
+// GET /api/reg/newbie/check/:contact (prefill check), and GET /api/reg (admin list).
 // Compatible with both Vercel Serverless Functions (req, res) and AWS Lambda (event, context).
 // Connects directly to the u197926764_pensattu MySQL database via env vars.
 //
@@ -7,7 +8,7 @@
 //   DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
 //   DB_SSL (optional, set to 'true' if the MySQL host requires SSL)
 //   JWT_SECRET (optional, defaults to a dev value)
-//   ADMIN_TOKEN (optional — if set, GET /api/reg requires this as a Bearer token)
+//   ADMIN_TOKEN (optional — if set, admin actions require this as a Bearer token)
 
 import mysql from 'mysql2/promise';
 import jwt from 'jsonwebtoken';
@@ -61,7 +62,7 @@ function clean(value) {
 
 let schemaInitialized = false;
 
-// Ensure registrations + departments tables exist (idempotent).
+// Ensure registrations + departments + newbie_registrations tables exist (idempotent).
 async function ensureSchema() {
   if (schemaInitialized) return;
   const p = getPool();
@@ -110,6 +111,24 @@ async function ensureSchema() {
         KEY \`idx_registration\` (\`registration_id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+    await p.query(`
+      CREATE TABLE IF NOT EXISTS \`newbie_registrations\` (
+        \`id\` int(11) NOT NULL AUTO_INCREMENT,
+        \`name\` varchar(255) NOT NULL,
+        \`contact\` varchar(20) NOT NULL,
+        \`residence\` varchar(255) NOT NULL,
+        \`program\` varchar(255) NOT NULL,
+        \`membership\` varchar(50) NOT NULL,
+        \`status\` varchar(20) NOT NULL DEFAULT 'pending',
+        \`created_at\` timestamp DEFAULT CURRENT_TIMESTAMP,
+        \`pushed_at\` timestamp NULL DEFAULT NULL,
+        \`pushed_by\` varchar(100) NULL DEFAULT NULL,
+        PRIMARY KEY (\`id\`),
+        KEY \`idx_contact\` (\`contact\`),
+        KEY \`idx_status\` (\`status\`),
+        KEY \`idx_created\` (\`created_at\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
     schemaInitialized = true;
   } catch (err) {
     console.warn('ensureSchema note:', err.message);
@@ -136,7 +155,7 @@ function checkAuth(req) {
   }
 }
 
-// ─── POST: submit registration ────────────────────────────
+// ─── POST: submit member registration ─────────────────────
 async function createRegistration(body) {
   const b = body || {};
   const required = [
@@ -284,6 +303,14 @@ async function createRegistration(body) {
         [departments.map((d) => [id, d])]
       );
     }
+
+    // Mark any matching newbie record as completed
+    try {
+      await conn.query("UPDATE newbie_registrations SET status = 'completed' WHERE contact = ?", [row.contact]);
+    } catch {
+      /* ignore */
+    }
+
     await conn.commit();
     return {
       statusCode: 201,
@@ -305,6 +332,77 @@ async function createRegistration(body) {
     return { statusCode: 500, body: { success: false, message: err.message } };
   } finally {
     if (conn) conn.release();
+  }
+}
+
+// ─── POST: submit newbie registration ─────────────────────
+async function createNewbie(body) {
+  const b = body || {};
+  const required = ['name', 'contact', 'residence', 'program', 'membership'];
+  const missing = required.filter((f) => !b[f] || !String(b[f]).trim());
+  if (missing.length) {
+    return {
+      statusCode: 400,
+      body: { success: false, message: `Missing required fields: ${missing.join(', ')}` },
+    };
+  }
+
+  const phoneRe = /^[0-9]{10}$/;
+  if (!phoneRe.test(String(b.contact).trim())) {
+    return { statusCode: 400, body: { success: false, message: 'Contact number must be exactly 10 digits' } };
+  }
+
+  const p = getPool();
+  try {
+    const contact = String(b.contact).trim();
+    const [dup] = await p.query(
+      "SELECT id FROM newbie_registrations WHERE contact = ? AND status != 'completed' LIMIT 1",
+      [contact]
+    );
+    if (dup.length) {
+      return {
+        statusCode: 409,
+        body: {
+          success: false,
+          message: 'A newbie registration with this contact number already exists.',
+        },
+      };
+    }
+
+    const [result] = await p.query(
+      `INSERT INTO newbie_registrations (name, contact, residence, program, membership, status)
+       VALUES (?, ?, ?, ?, ?, 'pending')`,
+      [clean(b.name), contact, clean(b.residence), clean(b.program), clean(b.membership)]
+    );
+
+    return {
+      statusCode: 201,
+      body: {
+        success: true,
+        message: 'Newbie registration submitted successfully!',
+        data: { id: result.insertId, name: clean(b.name) },
+      },
+    };
+  } catch (err) {
+    return { statusCode: 500, body: { success: false, message: err.message } };
+  }
+}
+
+// ─── GET: check newbie record by contact ──────────────────
+async function checkNewbie(contact) {
+  const p = getPool();
+  try {
+    const phone = String(contact || '').trim();
+    const [rows] = await p.query(
+      'SELECT id, name, contact, residence, program, membership, status FROM newbie_registrations WHERE contact = ? ORDER BY id DESC LIMIT 1',
+      [phone]
+    );
+    if (!rows.length) {
+      return { statusCode: 200, body: { found: false } };
+    }
+    return { statusCode: 200, body: { found: true, newbie: rows[0] } };
+  } catch (err) {
+    return { statusCode: 500, body: { error: err.message } };
   }
 }
 
@@ -377,6 +475,7 @@ function sendResponse(res, statusCode, body) {
 // Supports both Vercel Node.js runtime (req, res) and AWS Lambda (event, context)
 export default async function handler(req, res) {
   const method = req?.method || req?.httpMethod || 'GET';
+  const url = req?.url || req?.path || '';
 
   // Handle CORS preflight
   if (method === 'OPTIONS') {
@@ -404,21 +503,45 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (method === 'POST') {
-      let body = req.body;
-      if (typeof body === 'string') {
-        try {
-          body = JSON.parse(body || '{}');
-        } catch {
-          body = {};
-        }
-      } else if (!body) {
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body || '{}');
+      } catch {
         body = {};
       }
+    } else if (!body) {
+      body = {};
+    }
+
+    const query = req.query || req.queryStringParameters || {};
+    const isNewbie =
+      url.includes('/newbie') ||
+      query.type === 'newbie' ||
+      query.action === 'newbie' ||
+      body.is_newbie;
+
+    // Route: Check newbie by contact: GET /api/reg/newbie/check/:contact or query ?check=...
+    if (method === 'GET' && (query.check || url.includes('/check/'))) {
+      const match = url.match(/\/check\/([0-9]+)/);
+      const contact = query.check || (match ? match[1] : '');
+      const result = await checkNewbie(contact);
+      return sendResponse(res, result.statusCode, result.body);
+    }
+
+    // Route: POST Newbie form
+    if (method === 'POST' && isNewbie) {
+      const result = await createNewbie(body);
+      return sendResponse(res, result.statusCode, result.body);
+    }
+
+    // Route: POST Member form
+    if (method === 'POST') {
       const result = await createRegistration(body);
       return sendResponse(res, result.statusCode, result.body);
     }
 
+    // Route: GET list registrations
     if (method === 'GET') {
       const result = await listRegistrations(req);
       return sendResponse(res, result.statusCode, result.body);

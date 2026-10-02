@@ -13,6 +13,7 @@ export default function LevelMembers() {
   const [membershipType, setMembershipType] = useState('');
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState(null);
+  const [successMsg, setSuccessMsg] = useState('');
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -48,6 +49,31 @@ export default function LevelMembers() {
     if (!confirm('Graduate this member to alumni?')) return;
     try {
       await secApi.graduateMember(id);
+      setSuccessMsg('Member graduated to Alumni portal!');
+      setTimeout(() => setSuccessMsg(''), 4000);
+      fetchMembers();
+    } catch (err) { setError(err.message); }
+  };
+
+  const handlePromote = async (m) => {
+    const isFinal =
+      (m.program_duration === 'Diploma' && m.education_level === '200') ||
+      (m.program_duration === 'HND' && m.education_level === '300') ||
+      (m.education_level === '400');
+
+    const promptText = isFinal
+      ? `This member is in final year (${m.program_duration || 'degree'} Level ${m.education_level}). Move to Alumni portal?`
+      : `Advance ${m.surname} ${m.othernames} to the next academic level?`;
+
+    if (!confirm(promptText)) return;
+    try {
+      const res = await secApi.promoteMember(m.id);
+      if (res.action === 'graduated') {
+        setSuccessMsg(`Graduated ${m.surname} ${m.othernames} to Alumni portal!`);
+      } else {
+        setSuccessMsg(`Advanced ${m.surname} ${m.othernames} to Level ${res.newLevel}!`);
+      }
+      setTimeout(() => setSuccessMsg(''), 4000);
       fetchMembers();
     } catch (err) { setError(err.message); }
   };
@@ -72,6 +98,7 @@ export default function LevelMembers() {
       </div>
 
       {error && <div className="error-msg">{error}</div>}
+      {successMsg && <div className="success-msg">{successMsg}</div>}
 
       {/* Search & filters */}
       <div className="card">
@@ -132,6 +159,7 @@ export default function LevelMembers() {
                     <td style={{ whiteSpace: 'nowrap' }}>
                       <Link to={`/members/${m.id}`} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4 }}>View</Link>
                       <Link to={`/members/${m.id}/edit`} className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }}>Edit</Link>
+                      <button onClick={() => handlePromote(m)} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4, background: '#27ae60' }} title="Advance to next level or graduate">Advance</button>
                       <button onClick={() => handleGraduate(m.id)} className="btn btn-success" style={{ padding: '4px 10px', marginRight: 4 }}>Graduate</button>
                       <button onClick={() => setShowDelete(m)} className="btn btn-danger" style={{ padding: '4px 10px' }}>Delete</button>
                     </td>

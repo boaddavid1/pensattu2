@@ -120,6 +120,31 @@ export default async function regSyncSchema() {
       `);
     }
 
+    // newbie_registrations table (simplified fast form before full membership)
+    const [[newbieExists]] = await secPool.query(
+      "SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'newbie_registrations'"
+    );
+    if (newbieExists.cnt === 0) {
+      await secPool.query(`
+        CREATE TABLE \`newbie_registrations\` (
+          \`id\` int(11) NOT NULL AUTO_INCREMENT,
+          \`name\` varchar(255) NOT NULL,
+          \`contact\` varchar(20) NOT NULL,
+          \`residence\` varchar(255) NOT NULL,
+          \`program\` varchar(255) NOT NULL,
+          \`membership\` varchar(50) NOT NULL,
+          \`status\` varchar(20) NOT NULL DEFAULT 'pending',
+          \`created_at\` timestamp DEFAULT CURRENT_TIMESTAMP,
+          \`pushed_at\` timestamp NULL DEFAULT NULL,
+          \`pushed_by\` varchar(100) NULL DEFAULT NULL,
+          PRIMARY KEY (\`id\`),
+          KEY \`idx_contact\` (\`contact\`),
+          KEY \`idx_status\` (\`status\`),
+          KEY \`idx_created\` (\`created_at\`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      `);
+    }
+
     // Patch any missing columns on an existing registrations table.
     await syncRegColumns();
 
