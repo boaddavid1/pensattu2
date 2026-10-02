@@ -66,9 +66,20 @@ export default function Header() {
               </button>
             </div>
             <ul className="dropdown">
+              <li><Link to="/about" onClick={closeAll}>About Us</Link></li>
+              <li><Link to="/ministries" onClick={closeAll}>Ministries</Link></li>
               <li><Link to="/departments-and-teams" onClick={closeAll}>Departments &amp; Teams</Link></li>
               <li><Link to="/leadership" onClick={closeAll}>Leadership</Link></li>
             </ul>
+          </li>
+          <li>
+            <Link
+              to="/ministries"
+              className={pathname === '/ministries' || pathname === '/departments-and-teams' ? 'active' : ''}
+              onClick={closeAll}
+            >
+              Ministries
+            </Link>
           </li>
           <li className={`has-dropdown${feedOpen ? ' open' : ''}`} ref={feedRef}>
             <div className="nav-dropdown-trigger">

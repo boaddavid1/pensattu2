@@ -212,10 +212,10 @@ export default function DepartmentsTeams() {
           <img src="/images/leadership-hero.png" alt="PENSA TTU Departments and Teams" />
         </div>
         <div className="page-hero-inner">
-          <span className="eyebrow">Departments &amp; Teams</span>
+          <span className="eyebrow">Ministries · Departments &amp; Teams</span>
           <h1>Serving with passion, <em>growing together in Christ</em>.</h1>
           <p>
-            Every department and team at PENSA TTU exists to build God's Kingdom, equip believers,
+            Every ministry, department, and team at PENSA TTU exists to build God's Kingdom, equip believers,
             and provide a vibrant family where your gifts find purpose.
           </p>
         </div>
@@ -228,12 +228,12 @@ export default function DepartmentsTeams() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
               <div>
                 <span className="eyebrow" style={{ marginBottom: '8px' }}>Find Your Fit</span>
-                <h2 style={{ fontSize: '28px', color: 'var(--pine-deep)' }}>Explore Our Departments &amp; Teams</h2>
+                <h2 style={{ fontSize: '28px', color: 'var(--pine-deep)' }}>Explore Our Ministries, Departments &amp; Teams</h2>
               </div>
               <div style={{ minWidth: '260px', maxWidth: '380px', width: '100%' }}>
                 <input
                   type="text"
-                  placeholder="Search department or keyword..."
+                  placeholder="Search ministry, department or keyword..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
@@ -337,7 +337,7 @@ export default function DepartmentsTeams() {
 
           {filteredDepartments.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '20px', border: '1px solid var(--line)' }}>
-              <h3 style={{ fontSize: '20px', color: 'var(--pine-deep)', marginBottom: '8px' }}>No department or team found</h3>
+              <h3 style={{ fontSize: '20px', color: 'var(--pine-deep)', marginBottom: '8px' }}>No ministry, department, or team found</h3>
               <p style={{ color: 'var(--ink-soft)', fontSize: '14.5px', marginBottom: '20px' }}>
                 We couldn't find any team matching your current filter or search criteria.
               </p>
@@ -360,7 +360,7 @@ export default function DepartmentsTeams() {
             <span className="eyebrow">Why Serve</span>
             <h2>More than volunteering — <em>it's discipleship</em>.</h2>
             <p>
-              Joining a department or team is one of the quickest ways to build deep friendships,
+              Joining a ministry, department, or team is one of the quickest ways to build deep friendships,
               discover your leadership potential, and leave a permanent mark on campus.
             </p>
           </div>
@@ -398,7 +398,7 @@ export default function DepartmentsTeams() {
               Every member has a <em>place to belong</em>.
             </h2>
             <p style={{ color: 'var(--ink-soft)', fontSize: '15.5px', lineHeight: 1.65, marginBottom: '26px' }}>
-              Still unsure which department or team suits you best? Reach out to our leadership team or speak to any executive after Sunday service.
+              Still unsure which ministry, department, or team suits you best? Reach out to our leadership team or speak to any executive after Sunday service.
             </p>
             <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link to="/contact" className="btn btn-dark">

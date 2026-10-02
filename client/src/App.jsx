@@ -70,9 +70,9 @@ function AppShell() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/leadership" element={<Leadership />} />
+          <Route path="/ministries" element={<DepartmentsTeams />} />
           <Route path="/departments-and-teams" element={<DepartmentsTeams />} />
-          <Route path="/departments" element={<Navigate to="/departments-and-teams" replace />} />
-          <Route path="/ministries" element={<Navigate to="/departments-and-teams" replace />} />
+          <Route path="/departments" element={<Navigate to="/ministries" replace />} />
           <Route path="/sermons" element={<Sermons />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/events" element={<Events />} />

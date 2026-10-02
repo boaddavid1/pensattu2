@@ -47,11 +47,23 @@ export default function Footer() {
           </div>
           <div>
             <h4>Church</h4>
-            <ul><li><Link to="/about">About Us</Link></li><li><Link to="/departments-and-teams">Departments &amp; Teams</Link></li><li><Link to="/leadership">Leadership</Link></li><li><Link to="/sermons">Sermons</Link></li><li><Link to="/contact">Contact</Link></li></ul>
+            <ul>
+              <li><Link to="/about">About Us</Link></li>
+              <li><Link to="/ministries">Ministries</Link></li>
+              <li><Link to="/departments-and-teams">Departments &amp; Teams</Link></li>
+              <li><Link to="/leadership">Leadership</Link></li>
+              <li><Link to="/sermons">Sermons</Link></li>
+              <li><Link to="/contact">Contact</Link></li>
+            </ul>
           </div>
           <div>
-            <h4>Departments &amp; Teams</h4>
-            <ul><li><Link to="/departments-and-teams">Worship &amp; Music</Link></li><li><Link to="/departments-and-teams">Youth &amp; Kids</Link></li><li><Link to="/departments-and-teams">Outreach</Link></li><li><Link to="/departments-and-teams">Bible Study</Link></li></ul>
+            <h4>Ministries &amp; Teams</h4>
+            <ul>
+              <li><Link to="/ministries">Worship &amp; Music</Link></li>
+              <li><Link to="/ministries">Youth &amp; Kids</Link></li>
+              <li><Link to="/ministries">Outreach &amp; Missions</Link></li>
+              <li><Link to="/ministries">Bible Study &amp; Prayer</Link></li>
+            </ul>
           </div>
           <div>
             <h4>Visit Us</h4>

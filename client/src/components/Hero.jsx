@@ -85,7 +85,7 @@ export default function Hero() {
           <p>{slide.desc}</p>
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <Link to="/about" className="btn btn-primary">About us <span className="btn-arrow">→</span></Link>
-            <Link to="/departments-and-teams" className="btn btn-ghost" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff' }}>Explore Departments &amp; Teams</Link>
+            <Link to="/ministries" className="btn btn-ghost" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff' }}>Explore Ministries</Link>
           </div>
         </div>
       </div>
