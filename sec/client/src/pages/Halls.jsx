@@ -2,16 +2,23 @@
 import { useState, useEffect, useMemo } from 'react';
 import { secApi } from '../api/secApi.js';
 
+// Module-level cache for instant zero-wait rendering
+let clientHallsCache = null;
+
 export default function Halls() {
-  const [data, setData] = useState({
-    halls: [],
-    campusHalls: [],
-    offCampusResidences: [],
-    totalCampus: 0,
-    totalOffCampus: 0,
-    totalMembers: 0,
+  const [data, setData] = useState(() => {
+    return (
+      clientHallsCache || {
+        halls: [],
+        campusHalls: [],
+        offCampusResidences: [],
+        totalCampus: 0,
+        totalOffCampus: 0,
+        totalMembers: 0,
+      }
+    );
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !clientHallsCache);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'campus' | 'offcampus'
   const [search, setSearch] = useState('');
@@ -19,21 +26,26 @@ export default function Halls() {
   const [memberSearch, setMemberSearch] = useState('');
 
   useEffect(() => {
+    // If cached data is already present, fetch in background silently
     secApi
       .halls()
       .then((res) => {
-        setData({
+        const payload = {
           halls: res.halls || [],
           campusHalls: res.campusHalls || [],
           offCampusResidences: res.offCampusResidences || [],
           totalCampus: res.totalCampus || 0,
           totalOffCampus: res.totalOffCampus || 0,
           totalMembers: res.totalMembers || 0,
-        });
+        };
+        clientHallsCache = payload;
+        setData(payload);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || 'Failed to load halls and residences');
+        if (!clientHallsCache) {
+          setError(err.message || 'Failed to load halls and residences');
+        }
         setLoading(false);
       });
   }, []);

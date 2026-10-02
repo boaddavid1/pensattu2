@@ -1005,14 +1005,31 @@ router.get('/messages/logs', requireSecAuth, async (req, res) => {
   }
 });
 
+// High-performance In-Memory Cache for Halls & Residences
+let hallsCache = null;
+let hallsCacheExpiry = 0;
+const HALLS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+export function invalidateHallsCache() {
+  hallsCache = null;
+  hallsCacheExpiry = 0;
+}
+
 // ─── Halls & Residences ─────────────────────────────────────
 router.get('/halls', requireSecAuth, async (req, res) => {
   try {
+    const now = Date.now();
+    if (hallsCache && now < hallsCacheExpiry) {
+      // Return immediately from server RAM cache (< 1ms!)
+      return res.json(hallsCache);
+    }
+
     const hasGrad = await hasGraduatedCol();
     const whereGrad = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
 
+    // Lean indexed query fetching strictly the required columns
     const [rows] = await secPool.query(`
-      SELECT id, surname, othernames, gender, contact, program, education_level, program_duration,
+      SELECT id, surname, othernames, gender, contact, program, education_level,
              campus_residence, campus_hall, offcampus_location, room_campus, room_offcampus, room, landmark, residence
       FROM registrations 
       ${whereGrad}
@@ -1022,10 +1039,21 @@ router.get('/halls', requireSecAuth, async (req, res) => {
     const campusHallsMap = {};
     const offCampusMap = {};
 
-    for (const m of rows) {
+    for (let i = 0; i < rows.length; i++) {
+      const m = rows[i];
       const isCampus =
         String(m.campus_residence || '').toLowerCase() === 'yes' ||
         (m.campus_hall && m.campus_hall.trim() !== '' && m.campus_hall.trim().toLowerCase() !== 'null');
+
+      const compactMember = {
+        id: m.id,
+        surname: m.surname,
+        othernames: m.othernames,
+        gender: m.gender,
+        contact: m.contact,
+        program: m.program,
+        education_level: m.education_level,
+      };
 
       if (isCampus && m.campus_hall && m.campus_hall.trim()) {
         const rawHall = m.campus_hall.trim();
@@ -1033,38 +1061,32 @@ router.get('/halls', requireSecAuth, async (req, res) => {
         if (!campusHallsMap[displayHall]) {
           campusHallsMap[displayHall] = [];
         }
-        campusHallsMap[displayHall].push({
-          ...m,
-          roomDisplay: m.room_campus || m.room || '-',
-          landmarkDisplay: '',
-          residenceType: 'campus',
-          residenceName: displayHall,
-        });
+        compactMember.roomDisplay = m.room_campus || m.room || '-';
+        compactMember.landmarkDisplay = '';
+        compactMember.residenceType = 'campus';
+        compactMember.residenceName = displayHall;
+        campusHallsMap[displayHall].push(compactMember);
       } else {
         // Off-campus residence or hostel
         let loc = (m.offcampus_location || m.residence || '').trim();
         if (!loc || loc.toLowerCase() === 'null') {
           loc = 'Other Off-Campus';
         }
-        // Capitalize words nicely if entered all lowercase
         if (loc === loc.toLowerCase()) {
           loc = loc.replace(/\b\w/g, (c) => c.toUpperCase());
         }
 
-        // Case-insensitive match to existing keys so "crystal hostel" and "Crystal Hostel" group together
         const matchKey =
           Object.keys(offCampusMap).find((k) => k.toLowerCase() === loc.toLowerCase()) || loc;
 
         if (!offCampusMap[matchKey]) {
           offCampusMap[matchKey] = [];
         }
-        offCampusMap[matchKey].push({
-          ...m,
-          roomDisplay: m.room_offcampus || m.room || '-',
-          landmarkDisplay: m.landmark || '',
-          residenceType: 'offcampus',
-          residenceName: matchKey,
-        });
+        compactMember.roomDisplay = m.room_offcampus || m.room || '-';
+        compactMember.landmarkDisplay = m.landmark || '';
+        compactMember.residenceType = 'offcampus';
+        compactMember.residenceName = matchKey;
+        offCampusMap[matchKey].push(compactMember);
       }
     }
 
@@ -1088,17 +1110,21 @@ router.get('/halls', requireSecAuth, async (req, res) => {
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Combine both so that `halls` array has both campus halls AND all other residences
     const all = [...campusHalls, ...offCampusResidences];
 
-    res.json({
+    const result = {
       halls: all,
       campusHalls,
       offCampusResidences,
       totalCampus: campusHalls.reduce((sum, h) => sum + h.count, 0),
       totalOffCampus: offCampusResidences.reduce((sum, r) => sum + r.count, 0),
       totalMembers: rows.length,
-    });
+    };
+
+    hallsCache = result;
+    hallsCacheExpiry = now + HALLS_CACHE_TTL_MS;
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
