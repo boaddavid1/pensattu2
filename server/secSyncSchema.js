@@ -164,6 +164,17 @@ export default async function secSyncSchema() {
     console.warn("secSyncSchema: could not check/add 'graduated' column:", err.message);
   }
 
+  // Ensure 'profile_image' column exists on registrations table
+  try {
+    const [cols] = await conn.query("SHOW COLUMNS FROM registrations LIKE 'profile_image'");
+    if (!cols || cols.length === 0) {
+      await conn.query("ALTER TABLE registrations ADD COLUMN profile_image VARCHAR(255) NULL");
+      console.log("secSyncSchema: added 'profile_image' column to registrations");
+    }
+  } catch (err) {
+    console.warn("secSyncSchema: could not check/add 'profile_image' column:", err.message);
+  }
+
   // ─── Index & Performance Optimization for fast member fetching ───────────
   const ensureIndex = async (table, indexName, cols) => {
     try {

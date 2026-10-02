@@ -238,10 +238,7 @@ router.get('/members', requireSecAuth, async (req, res) => {
     const [countResult, rowsResult] = await Promise.all([
       secPool.query(`SELECT COUNT(*) as total FROM registrations ${whereSql}`, params),
       secPool.query(
-        `SELECT id, surname, othernames, gender, contact, program, program_duration, education_level, membership_type, campus_hall, campus_residence, is_officer, officer_role, profile_image, created_at 
-         FROM registrations ${whereSql} 
-         ORDER BY created_at DESC 
-         LIMIT ? OFFSET ?`,
+        `SELECT * FROM registrations ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
         [...params, pp, offset]
       )
     ]);
