@@ -1141,6 +1141,25 @@ router.get('/messages/logs', requireSecAuth, async (req, res) => {
   }
 });
 
+let regColumnsCache = null;
+async function getHallsSelectFields() {
+  if (regColumnsCache) return regColumnsCache;
+  try {
+    const [cols] = await secPool.query("SHOW COLUMNS FROM registrations");
+    const colNames = new Set(cols.map((c) => c.Field.toLowerCase()));
+    const fields = [
+      'id', 'surname', 'othernames', 'gender', 'contact', 'program', 'education_level',
+      'campus_residence', 'campus_hall', 'offcampus_location', 'room_campus', 'room_offcampus', 'room', 'landmark', 'residence'
+    ];
+    if (colNames.has('profile_image')) fields.push('profile_image');
+    if (colNames.has('photo_data')) fields.push('photo_data');
+    regColumnsCache = fields.join(', ');
+    return regColumnsCache;
+  } catch {
+    return 'id, surname, othernames, gender, contact, program, education_level, campus_residence, campus_hall, offcampus_location, room_campus, room_offcampus, room, landmark, residence';
+  }
+}
+
 // High-performance In-Memory Cache for Halls & Residences
 let hallsCache = null;
 let hallsCacheExpiry = 0;
@@ -1162,11 +1181,11 @@ router.get('/halls', requireSecAuth, async (req, res) => {
 
     const hasGrad = await hasGraduatedCol();
     const whereGrad = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
+    const fields = await getHallsSelectFields();
 
     // Lean indexed query fetching strictly the required columns
     const [rows] = await secPool.query(`
-      SELECT id, surname, othernames, gender, contact, program, education_level,
-             campus_residence, campus_hall, offcampus_location, room_campus, room_offcampus, room, landmark, residence
+      SELECT ${fields}
       FROM registrations 
       ${whereGrad}
       ORDER BY surname
@@ -1189,6 +1208,7 @@ router.get('/halls', requireSecAuth, async (req, res) => {
         contact: m.contact,
         program: m.program,
         education_level: m.education_level,
+        profile_image: m.profile_image || m.photo_data || null,
       };
 
       if (isCampus && m.campus_hall && m.campus_hall.trim()) {

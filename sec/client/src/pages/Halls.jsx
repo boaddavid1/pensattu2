@@ -1,5 +1,6 @@
 // Halls.jsx — Members grouped by Hall & Off-Campus Residence with Right-Hand Side Drawer
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { secApi } from '../api/secApi.js';
 
 // Module-level cache for instant zero-wait rendering
@@ -25,6 +26,7 @@ export default function Halls() {
   const [expanded, setExpanded] = useState(null); // Hall/residence currently open in right-hand drawer
   const [memberSearch, setMemberSearch] = useState('');
   const [copiedPhones, setCopiedPhones] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     // If cached data is already present, fetch in background silently
@@ -602,141 +604,218 @@ export default function Halls() {
                       style={{
                         background: '#ffffff',
                         border: '1px solid #e9ecef',
-                        borderRadius: 10,
+                        borderRadius: 12,
                         padding: '14px 16px',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                        transition: 'border-color 0.15s ease',
+                        display: 'flex',
+                        gap: 14,
+                        alignItems: 'flex-start',
+                        transition: 'box-shadow 0.15s ease',
                       }}
                     >
-                      {/* Name & Badges */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          gap: 10,
-                          marginBottom: 8,
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                          <span
+                      {/* Member Photo / Avatar */}
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        {m.profile_image ? (
+                          <img
+                            src={m.profile_image}
+                            alt={`${m.surname} ${m.othernames}`}
+                            onClick={() =>
+                              setPreviewImage({
+                                url: m.profile_image,
+                                name: `${m.surname} ${m.othernames}`,
+                                program: m.program,
+                                room: m.roomDisplay,
+                                contact: m.contact,
+                              })
+                            }
                             style={{
-                              width: 24,
-                              height: 24,
+                              width: 52,
+                              height: 52,
                               borderRadius: '50%',
-                              background: '#f1f3f5',
-                              display: 'inline-flex',
+                              objectFit: 'cover',
+                              border: '2px solid var(--blue)',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                              display: 'block',
+                            }}
+                            title="Click to enlarge photo"
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 52,
+                              height: 52,
+                              borderRadius: '50%',
+                              background:
+                                String(m.gender).toLowerCase() === 'female' ? '#fce4ec' : 'var(--light-blue)',
+                              color:
+                                String(m.gender).toLowerCase() === 'female' ? '#c2185b' : 'var(--blue)',
+                              display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              color: '#6c757d',
+                              fontWeight: 700,
+                              fontSize: '0.95rem',
+                              border: '2px solid #e9ecef',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                             }}
                           >
-                            {idx + 1}
-                          </span>
-                          <strong style={{ fontSize: '1rem', color: 'var(--dark)' }}>
-                            {m.surname} {m.othernames}
-                          </strong>
-                        </div>
+                            {`${m.surname?.[0] || ''}${m.othernames?.[0] || ''}`.toUpperCase() || (
+                              <i className="bx bx-user" />
+                            )}
+                          </div>
+                        )}
+                      </div>
 
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <span
-                            style={{
-                              fontSize: '0.72rem',
-                              fontWeight: 600,
-                              padding: '2px 8px',
-                              borderRadius: 4,
-                              background:
-                                String(m.gender).toLowerCase() === 'female' ? '#fce4ec' : '#e3f2fd',
-                              color: String(m.gender).toLowerCase() === 'female' ? '#c2185b' : '#1976d2',
-                              textTransform: 'capitalize',
-                            }}
-                          >
-                            {m.gender || '-'}
-                          </span>
-                          {m.education_level && (
+                      {/* Member Details */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            gap: 10,
+                            marginBottom: 6,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <span
+                              style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                background: '#f1f3f5',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: '#6c757d',
+                              }}
+                            >
+                              {idx + 1}
+                            </span>
+                            <strong style={{ fontSize: '1rem', color: 'var(--dark)' }}>
+                              {m.surname} {m.othernames}
+                            </strong>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                             <span
                               style={{
                                 fontSize: '0.72rem',
-                                fontWeight: 700,
+                                fontWeight: 600,
                                 padding: '2px 8px',
                                 borderRadius: 4,
-                                background: '#f8f9fa',
-                                border: '1px solid #e9ecef',
-                                color: '#495057',
+                                background:
+                                  String(m.gender).toLowerCase() === 'female' ? '#fce4ec' : '#e3f2fd',
+                                color: String(m.gender).toLowerCase() === 'female' ? '#c2185b' : '#1976d2',
+                                textTransform: 'capitalize',
                               }}
                             >
-                              L{m.education_level}
+                              {m.gender || '-'}
                             </span>
-                          )}
+                            {m.education_level && (
+                              <span
+                                style={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  padding: '2px 8px',
+                                  borderRadius: 4,
+                                  background: '#f8f9fa',
+                                  border: '1px solid #e9ecef',
+                                  color: '#495057',
+                                }}
+                              >
+                                L{m.education_level}
+                              </span>
+                            )}
+                            {m.id && (
+                              <Link
+                                to={`/members/${m.id}`}
+                                target="_blank"
+                                style={{
+                                  fontSize: '0.75rem',
+                                  color: 'var(--blue)',
+                                  textDecoration: 'none',
+                                  padding: '2px 6px',
+                                  borderRadius: 4,
+                                  background: 'rgba(19, 53, 126, 0.08)',
+                                  fontWeight: 600,
+                                }}
+                                title="Open full member profile"
+                              >
+                                View ↗
+                              </Link>
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Room & Contact Row */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          flexWrap: 'wrap',
-                          gap: 8,
-                          fontSize: '0.88rem',
-                          color: '#555',
-                          marginBottom: 6,
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span
-                            style={{
-                              background: 'rgba(19, 53, 126, 0.08)',
-                              color: 'var(--blue)',
-                              fontWeight: 600,
-                              padding: '2px 8px',
-                              borderRadius: 6,
-                              fontSize: '0.82rem',
-                            }}
-                          >
-                            🚪 {m.roomDisplay && m.roomDisplay !== '-' ? `Room ${m.roomDisplay}` : 'Room unassigned'}
-                          </span>
-                          {m.landmarkDisplay && (
-                            <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
-                              📍 {m.landmarkDisplay}
-                            </span>
-                          )}
-                        </div>
-
-                        <div>
-                          {m.contact ? (
-                            <a
-                              href={`tel:${m.contact}`}
+                        {/* Room & Contact Row */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                            gap: 8,
+                            fontSize: '0.88rem',
+                            color: '#555',
+                            marginBottom: 6,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span
                               style={{
+                                background: 'rgba(19, 53, 126, 0.08)',
                                 color: 'var(--blue)',
-                                textDecoration: 'none',
                                 fontWeight: 600,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                background: '#f8f9fa',
-                                padding: '3px 8px',
+                                padding: '2px 8px',
                                 borderRadius: 6,
-                                border: '1px solid #e9ecef',
+                                fontSize: '0.82rem',
                               }}
                             >
-                              <i className="bx bx-phone"></i> {m.contact}
-                            </a>
-                          ) : (
-                            <span style={{ color: '#aaa' }}>No phone</span>
-                          )}
-                        </div>
-                      </div>
+                              🚪 {m.roomDisplay && m.roomDisplay !== '-' ? `Room ${m.roomDisplay}` : 'Room unassigned'}
+                            </span>
+                            {m.landmarkDisplay && (
+                              <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                                📍 {m.landmarkDisplay}
+                              </span>
+                            )}
+                          </div>
 
-                      {/* Program */}
-                      {m.program && (
-                        <div style={{ fontSize: '0.82rem', color: '#6c757d', marginTop: 4 }}>
-                          🎓 {m.program}
+                          <div>
+                            {m.contact ? (
+                              <a
+                                href={`tel:${m.contact}`}
+                                style={{
+                                  color: 'var(--blue)',
+                                  textDecoration: 'none',
+                                  fontWeight: 600,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  background: '#f8f9fa',
+                                  padding: '3px 8px',
+                                  borderRadius: 6,
+                                  border: '1px solid #e9ecef',
+                                  fontSize: '0.84rem',
+                                }}
+                              >
+                                <i className="bx bx-phone"></i> {m.contact}
+                              </a>
+                            ) : (
+                              <span style={{ color: '#aaa', fontSize: '0.82rem' }}>No phone</span>
+                            )}
+                          </div>
                         </div>
-                      )}
+
+                        {/* Program */}
+                        {m.program && (
+                          <div style={{ fontSize: '0.82rem', color: '#6c757d' }}>
+                            🎓 {m.program}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -769,6 +848,77 @@ export default function Halls() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Enlarged Photo Lightbox Modal */}
+      {previewImage && (
+        <div
+          onClick={() => setPreviewImage(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            zIndex: 100000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#fff',
+              borderRadius: 16,
+              padding: 24,
+              maxWidth: 400,
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+            }}
+          >
+            <img
+              src={previewImage.url}
+              alt={previewImage.name}
+              style={{
+                width: '100%',
+                maxHeight: 380,
+                objectFit: 'cover',
+                borderRadius: 12,
+                border: '1px solid #e9ecef',
+              }}
+            />
+            <h3 style={{ margin: '14px 0 4px', color: 'var(--dark)' }}>{previewImage.name}</h3>
+            <p style={{ margin: 0, color: '#6c757d', fontSize: '0.9rem' }}>{previewImage.program || ''}</p>
+            {previewImage.room && previewImage.room !== '-' && (
+              <span
+                style={{
+                  display: 'inline-block',
+                  marginTop: 8,
+                  padding: '3px 10px',
+                  borderRadius: 6,
+                  background: 'var(--light-blue)',
+                  color: 'var(--blue)',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                }}
+              >
+                🚪 Room {previewImage.room}
+              </span>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setPreviewImage(null)}
+                style={{ padding: '8px 24px', borderRadius: 8 }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Global CSS animation for the right drawer */}
