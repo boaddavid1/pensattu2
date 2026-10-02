@@ -164,16 +164,26 @@ export default async function secSyncSchema() {
     console.warn("secSyncSchema: could not check/add 'graduated' column:", err.message);
   }
 
-  // Ensure 'profile_image' column exists on registrations table
-  try {
-    const [cols] = await conn.query("SHOW COLUMNS FROM registrations LIKE 'profile_image'");
-    if (!cols || cols.length === 0) {
-      await conn.query("ALTER TABLE registrations ADD COLUMN profile_image VARCHAR(255) NULL");
-      console.log("secSyncSchema: added 'profile_image' column to registrations");
+  // Ensure 'profile_image' and other required columns exist on registrations table
+  const ensureRegCol = async (colName, def) => {
+    try {
+      const [cols] = await conn.query(`SHOW COLUMNS FROM registrations LIKE '${colName}'`);
+      if (!cols || cols.length === 0) {
+        await conn.query(`ALTER TABLE registrations ADD COLUMN \`${colName}\` ${def}`);
+        console.log(`secSyncSchema: added '${colName}' column to registrations`);
+      }
+    } catch (err) {
+      console.warn(`secSyncSchema: could not check/add '${colName}':`, err.message);
     }
-  } catch (err) {
-    console.warn("secSyncSchema: could not check/add 'profile_image' column:", err.message);
-  }
+  };
+
+  await ensureRegCol('profile_image', 'VARCHAR(255) NULL');
+  await ensureRegCol('photo_data', 'LONGTEXT NULL');
+  await ensureRegCol('room_campus', 'VARCHAR(100) NULL');
+  await ensureRegCol('room_offcampus', 'VARCHAR(100) NULL');
+  await ensureRegCol('offcampus_location', 'VARCHAR(200) NULL');
+  await ensureRegCol('campus_residence', 'VARCHAR(50) NULL');
+  await ensureRegCol('landmark', 'VARCHAR(200) NULL');
 
   // ─── Index & Performance Optimization for fast member fetching ───────────
   const ensureIndex = async (table, indexName, cols) => {

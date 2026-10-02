@@ -29,6 +29,9 @@ export default function Halls() {
   const [previewImage, setPreviewImage] = useState(null);
 
   const fetchHalls = useCallback((force = false) => {
+    if (force) {
+      clientHallsCache = null;
+    }
     if (!clientHallsCache || force) {
       setLoading(true);
     }
@@ -49,9 +52,7 @@ export default function Halls() {
         setLoading(false);
       })
       .catch((err) => {
-        if (!clientHallsCache) {
-          setError(err.message || 'Failed to load halls and residences');
-        }
+        setError(err.message || 'Failed to load halls and residences');
         setLoading(false);
       });
   }, []);

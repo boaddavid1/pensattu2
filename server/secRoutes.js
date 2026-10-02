@@ -1311,6 +1311,64 @@ export function invalidateHallsCache() {
   hallsCacheExpiry = 0;
 }
 
+let regColsCache = null;
+async function getRegColumns() {
+  if (regColsCache) return regColsCache;
+  try {
+    const [cols] = await secPool.query("SHOW COLUMNS FROM registrations");
+    regColsCache = new Set(cols.map((c) => c.Field.toLowerCase()));
+    return regColsCache;
+  } catch (err) {
+    return new Set();
+  }
+}
+
+// ─── Public/Fast member photo streaming endpoint ──────────
+router.get('/members/:id/photo', async (req, res) => {
+  try {
+    const cols = await getRegColumns();
+    const selectCols = [];
+    if (cols.size === 0 || cols.has('profile_image')) selectCols.push('profile_image');
+    if (cols.size === 0 || cols.has('photo_data')) selectCols.push('photo_data');
+    if (!selectCols.length) {
+      return res.status(404).send('No photo uploaded');
+    }
+
+    const [rows] = await secPool.query(
+      `SELECT ${selectCols.join(', ')} FROM registrations WHERE id = ? LIMIT 1`,
+      [req.params.id]
+    );
+    if (!rows || !rows.length) {
+      return res.status(404).send('Photo not found');
+    }
+    const photo = rows[0].profile_image || rows[0].photo_data;
+    if (!photo || !String(photo).trim()) {
+      return res.status(404).send('No photo uploaded');
+    }
+
+    const str = String(photo).trim();
+    if (str.startsWith('http://') || str.startsWith('https://')) {
+      return res.redirect(str);
+    }
+
+    const dataMatch = str.match(/^data:([^;]+);base64,(.+)$/);
+    if (dataMatch) {
+      const mime = dataMatch[1];
+      const buffer = Buffer.from(dataMatch[2], 'base64');
+      res.setHeader('Content-Type', mime);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.send(buffer);
+    }
+
+    const buffer = Buffer.from(str, 'base64');
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(buffer);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 // ─── Halls & Residences ─────────────────────────────────────
 router.get('/halls', requireSecAuth, async (req, res) => {
   try {
@@ -1320,21 +1378,47 @@ router.get('/halls', requireSecAuth, async (req, res) => {
       return res.json(hallsCache);
     }
 
-    const hasGrad = await hasGraduatedCol();
+    const cols = await getRegColumns();
+    const has = (c) => cols.size === 0 || cols.has(c.toLowerCase());
+
+    const selectFields = ['id', 'surname', 'othernames'];
+    selectFields.push(has('gender') ? 'gender' : "'' AS gender");
+    selectFields.push(has('contact') ? 'contact' : "'' AS contact");
+    selectFields.push(has('program') ? 'program' : "'' AS program");
+    selectFields.push(has('education_level') ? 'education_level' : "'' AS education_level");
+    selectFields.push(has('campus_residence') ? 'campus_residence' : "'' AS campus_residence");
+    selectFields.push(has('campus_hall') ? 'campus_hall' : "'' AS campus_hall");
+    selectFields.push(has('offcampus_location') ? 'offcampus_location' : "'' AS offcampus_location");
+    selectFields.push(has('room_campus') ? 'room_campus' : "'' AS room_campus");
+    selectFields.push(has('room_offcampus') ? 'room_offcampus' : "'' AS room_offcampus");
+    selectFields.push(has('room') ? 'room' : "'' AS room");
+    selectFields.push(has('landmark') ? 'landmark' : "'' AS landmark");
+    selectFields.push(has('residence') ? 'residence' : "'' AS residence");
+
+    const hasProfileImg = cols.has('profile_image');
+    const hasPhotoData = cols.has('photo_data');
+
+    if (hasProfileImg) {
+      selectFields.push(`CASE WHEN profile_image LIKE 'http%' THEN profile_image ELSE NULL END AS photo_url`);
+    } else {
+      selectFields.push(`NULL AS photo_url`);
+    }
+
+    if (hasProfileImg && hasPhotoData) {
+      selectFields.push(`CASE WHEN (photo_data IS NOT NULL AND photo_data != '') OR (profile_image IS NOT NULL AND profile_image != '') THEN 1 ELSE 0 END AS has_photo`);
+    } else if (hasProfileImg) {
+      selectFields.push(`CASE WHEN profile_image IS NOT NULL AND profile_image != '' THEN 1 ELSE 0 END AS has_photo`);
+    } else if (hasPhotoData) {
+      selectFields.push(`CASE WHEN photo_data IS NOT NULL AND photo_data != '' THEN 1 ELSE 0 END AS has_photo`);
+    } else {
+      selectFields.push(`0 AS has_photo`);
+    }
+
+    const hasGrad = cols.has('graduated');
     const whereGrad = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
 
-    // Fast indexed query with NO heavy Base64 BLOBs to keep payload tiny (~25KB) and lightning fast
     const [rows] = await secPool.query(`
-      SELECT id, surname, othernames, gender, contact, program, education_level,
-             campus_residence, campus_hall, offcampus_location, room_campus, room_offcampus, room, landmark, residence,
-             CASE 
-               WHEN profile_image LIKE 'http%' THEN profile_image 
-               ELSE NULL 
-             END as photo_url,
-             CASE 
-               WHEN (photo_data IS NOT NULL AND photo_data != '') OR (profile_image IS NOT NULL AND profile_image != '') 
-               THEN 1 ELSE 0 
-             END as has_photo
+      SELECT ${selectFields.join(', ')}
       FROM registrations 
       ${whereGrad}
       ORDER BY surname

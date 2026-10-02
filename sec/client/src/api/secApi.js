@@ -1,5 +1,18 @@
 // secApi.js — API client for the SEC member management module
-export const SEC_API_BASE = import.meta.env.VITE_SEC_API_URL || import.meta.env.VITE_API_URL || '/api/sec';
+function getSecApiBase() {
+  const envSec = import.meta.env.VITE_SEC_API_URL;
+  if (envSec) return envSec.replace(/\/+$/, '');
+  const envApi = import.meta.env.VITE_API_URL;
+  if (envApi) {
+    const clean = envApi.replace(/\/+$/, '');
+    if (clean.endsWith('/sec')) return clean;
+    if (clean.endsWith('/api')) return `${clean}/sec`;
+    return `${clean}/api/sec`;
+  }
+  return '/api/sec';
+}
+
+export const SEC_API_BASE = getSecApiBase();
 const API_BASE = SEC_API_BASE;
 
 function getToken() {
@@ -13,7 +26,7 @@ export function clearSecCache() {
   cache.clear();
 }
 
-async function request(path, options = {}) {
+async function request(path, options = {}, retries = 1) {
   const method = (options.method || 'GET').toUpperCase();
   const isGet = method === 'GET';
 
@@ -30,13 +43,23 @@ async function request(path, options = {}) {
     cache.clear();
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-    },
-    ...options,
-  });
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+      },
+      ...options,
+    });
+  } catch (netErr) {
+    if (retries > 0) {
+      await new Promise((r) => setTimeout(r, 1000));
+      return request(path, options, retries - 1);
+    }
+    throw new Error(netErr.message || 'Failed to fetch');
+  }
+
   if (res.status === 401) {
     sessionStorage.removeItem('sec_admin_token');
     sessionStorage.removeItem('sec_admin_user');
@@ -44,10 +67,25 @@ async function request(path, options = {}) {
       window.location.href = '/login';
     }
   }
+
+  const contentType = res.headers.get('content-type') || '';
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Request failed: ${res.status}`);
+    let errMsg = `Request failed: ${res.status}`;
+    if (contentType.includes('application/json')) {
+      const err = await res.json().catch(() => ({}));
+      errMsg = err.error || errMsg;
+    } else {
+      const text = await res.text().catch(() => '');
+      errMsg = text.slice(0, 120) || errMsg;
+    }
+    throw new Error(errMsg);
   }
+
+  if (!contentType.includes('application/json')) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Server returned non-JSON response (status ${res.status}). Verify API URL.`);
+  }
+
   const data = await res.json();
   if (isGet) {
     cache.set(path, { data, timestamp: Date.now() });
