@@ -204,19 +204,7 @@ export default function MinistryDetail() {
                 )}
               </div>
 
-              {/* Key Activities */}
-              {ministry.activities && ministry.activities.length > 0 && (
-                <div style={{ marginTop: '28px' }}>
-                  <h3 className="ministry-section-title">
-                    <span>🗓️</span> Key Regular Activities
-                  </h3>
-                  <ul style={{ paddingLeft: '20px', color: '#3c4e45', fontSize: '15px', lineHeight: 1.8 }}>
-                    {ministry.activities.map((act, index) => (
-                      <li key={index}>{act}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+
             </div>
           </div>
 
@@ -272,6 +260,23 @@ export default function MinistryDetail() {
                 Contact Fellowship &rarr;
               </Link>
             </div>
+
+            {/* Key Regular Activities */}
+            {ministry.activities && ministry.activities.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: '18px', padding: '22px', border: '1px solid var(--line)', marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '16px', color: 'var(--pine-deep)', margin: '0 0 14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>🗓️</span> Key Regular Activities
+                </h4>
+                <ul style={{ paddingLeft: '0', listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {ministry.activities.map((act, index) => (
+                    <li key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13.5px', color: '#3c4e45', lineHeight: 1.5 }}>
+                      <span style={{ color: 'var(--moss-deep)', fontWeight: 800, marginTop: '2px', flexShrink: 0 }}>✓</span>
+                      <span>{act}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Other Ministries Navigation */}
             {otherMinistries.length > 0 && (
