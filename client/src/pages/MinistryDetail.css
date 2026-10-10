@@ -295,61 +295,7 @@
   font-weight: 600;
 }
 
-/* Inquiry Join Form */
-.ministry-join-box {
-  background: linear-gradient(135deg, #f4f8f5 0%, #e8f2ec 100%);
-  border: 1px solid #c9ded2;
-  border-radius: 18px;
-  padding: 24px;
-}
 
-.ministry-join-box h4 {
-  font-size: 18px;
-  color: var(--pine-deep, #0c2b20);
-  margin: 0 0 6px;
-}
-
-.ministry-join-box p {
-  font-size: 13.5px;
-  color: #4a6156;
-  margin: 0 0 16px;
-  line-height: 1.5;
-}
-
-.join-form-input {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #c8d9cf;
-  background: #fff;
-  font-size: 13.5px;
-  margin-bottom: 12px;
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-.join-form-input:focus {
-  outline: none;
-  border-color: var(--pine, #174233);
-  box-shadow: 0 0 0 3px rgba(23, 66, 51, 0.12);
-}
-
-.btn-submit-join {
-  width: 100%;
-  background: var(--pine-deep, #0c2b20);
-  color: #fff;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-submit-join:hover {
-  background: #143e30;
-}
 
 /* Clickable card improvements in Ministries list */
 .service-card-clickable {

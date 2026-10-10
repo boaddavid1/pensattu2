@@ -11,16 +11,6 @@ export default function MinistryDetail() {
   const [ministry, setMinistry] = useState(() => getMinistryByIdOrSlug(id));
   const [loading, setLoading] = useState(!ministry);
 
-  // Join inquiry form state
-  const [joinForm, setJoinForm] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    year: 'Level 100',
-    notes: '',
-  });
-  const [submitStatus, setSubmitStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
-
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
 
@@ -54,31 +44,6 @@ export default function MinistryDetail() {
         setLoading(false);
       });
   }, [id]);
-
-  async function handleJoinSubmit(e) {
-    e.preventDefault();
-    if (!joinForm.name.trim() || !joinForm.phone.trim()) {
-      alert('Please provide your name and phone number.');
-      return;
-    }
-
-    setSubmitStatus('submitting');
-    try {
-      await api.post('/visits', {
-        first_name: joinForm.name,
-        last_name: `[Ministry: ${ministry?.title || 'General'}]`,
-        email: joinForm.email || 'no-email@pensattu.example',
-        phone: joinForm.phone,
-        service: joinForm.year,
-        notes: `Interested in joining ${ministry?.title}. Message: ${joinForm.notes}`,
-      });
-      setSubmitStatus('success');
-      setJoinForm({ name: '', phone: '', email: '', year: 'Level 100', notes: '' });
-    } catch {
-      // In demo mode or if table error, show success gracefully
-      setSubmitStatus('success');
-    }
-  }
 
   if (loading) {
     return (
@@ -255,7 +220,7 @@ export default function MinistryDetail() {
             </div>
           </div>
 
-          {/* Right Column: Sidebar (Info & Inquiry Form) */}
+          {/* Right Column: Sidebar (Quick Details & Contact) */}
           <aside>
             {/* Quick Overview Card */}
             <div className="ministry-sidebar-card">
@@ -296,82 +261,16 @@ export default function MinistryDetail() {
               </div>
             </div>
 
-            {/* Inquiry / Join This Ministry Card */}
-            <div className="ministry-join-box">
-              <h4>Want to Join This Ministry?</h4>
-              <p>
-                Ready to serve with <strong>{ministry.title}</strong>? Leave your contact details and the team lead will get in touch with you.
+            <div style={{ background: '#fff', borderRadius: '18px', padding: '22px', border: '1px solid var(--line)', marginBottom: '24px' }}>
+              <h4 style={{ fontSize: '16px', color: 'var(--pine-deep)', margin: '0 0 8px', fontWeight: 700 }}>
+                Get In Touch
+              </h4>
+              <p style={{ fontSize: '13.5px', color: '#55665e', lineHeight: 1.55, margin: '0 0 16px' }}>
+                Have questions about {ministry.title}? Speak with the ministry leadership after any service or reach out through our contact page.
               </p>
-
-              {submitStatus === 'success' ? (
-                <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid #c0d8cb' }}>
-                  <div style={{ fontSize: '30px', marginBottom: '8px' }}>🎉</div>
-                  <h4 style={{ margin: '0 0 6px', color: 'var(--pine-deep)' }}>Request Received!</h4>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#4d6156' }}>
-                    Thank you! The {ministry.title} leadership has received your interest and will reach out shortly.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    style={{ marginTop: '14px', width: '100%', fontSize: '13px' }}
-                    onClick={() => setSubmitStatus('idle')}
-                  >
-                    Submit Another Request
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleJoinSubmit}>
-                  <input
-                    type="text"
-                    className="join-form-input"
-                    placeholder="Your Full Name *"
-                    required
-                    value={joinForm.name}
-                    onChange={(e) => setJoinForm({ ...joinForm, name: e.target.value })}
-                  />
-                  <input
-                    type="tel"
-                    className="join-form-input"
-                    placeholder="Phone / WhatsApp Number *"
-                    required
-                    value={joinForm.phone}
-                    onChange={(e) => setJoinForm({ ...joinForm, phone: e.target.value })}
-                  />
-                  <input
-                    type="email"
-                    className="join-form-input"
-                    placeholder="Email Address (optional)"
-                    value={joinForm.email}
-                    onChange={(e) => setJoinForm({ ...joinForm, email: e.target.value })}
-                  />
-                  <select
-                    className="join-form-input"
-                    value={joinForm.year}
-                    onChange={(e) => setJoinForm({ ...joinForm, year: e.target.value })}
-                  >
-                    <option value="Level 100">Level 100</option>
-                    <option value="Level 200">Level 200</option>
-                    <option value="Level 300">Level 300</option>
-                    <option value="Level 400">Level 400</option>
-                    <option value="Alumni / Visitor">Alumni / Visitor</option>
-                  </select>
-                  <textarea
-                    className="join-form-input"
-                    rows={3}
-                    placeholder="Any musical skills, experience or notes? (optional)"
-                    value={joinForm.notes}
-                    onChange={(e) => setJoinForm({ ...joinForm, notes: e.target.value })}
-                  />
-
-                  <button
-                    type="submit"
-                    className="btn-submit-join"
-                    disabled={submitStatus === 'submitting'}
-                  >
-                    {submitStatus === 'submitting' ? 'Submitting...' : 'Send Inquiry →'}
-                  </button>
-                </form>
-              )}
+              <Link to="/contact" className="btn btn-dark" style={{ width: '100%', justifyContent: 'center', fontSize: '13.5px' }}>
+                Contact Fellowship &rarr;
+              </Link>
             </div>
 
             {/* Other Ministries Navigation */}
