@@ -24,6 +24,7 @@ const AlbumDetail = lazy(() => import('./pages/AlbumDetail'));
 const Register = lazy(() => import('./pages/Register'));
 const Ministries = lazy(() => import('./pages/Ministries'));
 const DepartmentsTeams = lazy(() => import('./pages/Ministries'));
+const MinistryDetail = lazy(() => import('./pages/MinistryDetail'));
 
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
 const AdminCrudPage = lazy(() => import('./admin/AdminCrudPage'));
@@ -74,8 +75,12 @@ function AppShell() {
           <Route path="/about" element={<About />} />
           <Route path="/leadership" element={<Leadership />} />
           <Route path="/ministries" element={<Ministries />} />
+          <Route path="/ministries/:id" element={<MinistryDetail />} />
+          <Route path="/ministry/:id" element={<MinistryDetail />} />
           <Route path="/ministry" element={<Navigate to="/ministries" replace />} />
           <Route path="/departments-and-teams" element={<Ministries />} />
+          <Route path="/departments-and-teams/:id" element={<MinistryDetail />} />
+          <Route path="/departments/:id" element={<MinistryDetail />} />
           <Route path="/departments" element={<Navigate to="/ministries" replace />} />
           <Route path="/sermons" element={<Sermons />} />
           <Route path="/contact" element={<Contact />} />

@@ -1,99 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getImageUrl } from '../api.js';
+import { ministriesData } from '../data/ministriesData.js';
+import './MinistryDetail.css';
 
-const initialMinistries = [
-  {
-    id: 1,
-    title: 'Music & Worship Ministry',
-    category: 'Worship & Creative Arts',
-    meeting: 'Saturdays, 3:00 PM',
-    description: 'Musicians, vocalists, and choir members leading the congregation into deep, heartfelt worship and praise every Sunday and during special services.',
-    responsibilities: 'Praise & worship leading, instrumental training, choir rehearsals, and musical arrangement.',
-    idealFor: 'Singers, keyboardists, drummers, bassists, and anyone with a passion for music and praise.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 2,
-    title: 'Organizing & Ushering Ministry',
-    category: 'Hospitality & Protocol',
-    meeting: 'Sundays, 6:00 AM',
-    description: 'The first smile you see at PENSA TTU. Welcoming members, coordinating seating, handling offering collections, and creating a warm, orderly environment.',
-    responsibilities: 'Auditorium setup, welcoming worshippers, seating protocol, order of service coordination, and hospitality.',
-    idealFor: 'Friendly, hospitable, and detail-oriented people who love serving behind the scenes.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 3,
-    title: 'Evangelism & Outreach Ministry',
-    category: 'Outreach & Evangelism',
-    meeting: 'Saturdays, 7:00 AM',
-    description: 'Taking the Gospel beyond the church walls. Spearheading campus room-to-room evangelism, outreach to secondary schools, and rural community missions.',
-    responsibilities: 'Room-to-room outreach, high school missions, tract distribution, and follow-up with new converts.',
-    idealFor: 'Passionate believers with a burning heart to win souls for Christ and share the Gospel.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 4,
-    title: 'Prayer & Intercessory Ministry',
-    category: 'Prayer & Intercession',
-    meeting: 'Fridays, 8:00 PM',
-    description: 'The powerhouse of the fellowship. Standing in the gap through prayer vigils, fasting, chain prayers, and seeking God’s presence for the campus and nation.',
-    responsibilities: 'Leading morning devotionals, organizing prayer vigils, intercessory chains, and personal prayer ministry.',
-    idealFor: 'Anyone with a burden for prayer, spiritual alertness, and interceding for others.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 5,
-    title: 'Media & Publicity Ministry',
-    category: 'Media & Tech',
-    meeting: 'Saturdays, 10:00 AM',
-    description: 'Crafting the visual and digital story of PENSA TTU through livestreaming, social media content, photography, graphic design, and video production.',
-    responsibilities: 'Photography, videography, livestreaming Sunday services, flyer and social graphics design, and social media management.',
-    idealFor: 'Photographers, videographers, graphic designers, copywriters, and content creators.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 6,
-    title: 'Bible Studies & Discipleship Ministry',
-    category: 'Care & Discipleship',
-    meeting: 'Wednesdays, 5:30 PM',
-    description: 'Fostering biblical literacy and spiritual growth through structured cell group meetings, syllabus drafting, and discipleship mentoring.',
-    responsibilities: 'Curating study materials, training cell leaders, organizing Bible quizzes, and mentoring new believers.',
-    idealFor: 'Enthusiastic students of the Word who love teaching, discussing scripture, and discipling others.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 7,
-    title: 'Counseling & Welfare Ministry',
-    category: 'Care & Discipleship',
-    meeting: 'Tuesdays, 4:00 PM',
-    description: 'Ensuring no member walks alone. Providing compassionate pastoral care, emotional support, welfare assistance, and hospital and hostel visits.',
-    responsibilities: 'Welfare distribution, hospital visits, peer counseling, academic encouragement, and follow-ups.',
-    idealFor: 'Good listeners, empathetic hearts, and anyone with a gift of compassion and care.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 8,
-    title: 'Creative Arts & Choreography Ministry',
-    category: 'Worship & Creative Arts',
-    meeting: 'Fridays, 4:00 PM',
-    description: 'Communicating the timeless Gospel through choreography, drama, poetry, spoken word, and creative stage performances during services and events.',
-    responsibilities: 'Stage acting, dance and choreography choreography, spoken word poetry, and scriptwriting.',
-    idealFor: 'Actors, dancers, spoken-word artists, and creative performers.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-  {
-    id: 9,
-    title: 'Technical & Sound Engineering Ministry',
-    category: 'Media & Tech',
-    meeting: 'Sundays, 5:45 AM',
-    description: 'Powering the sound, projection, and lighting that make our worship services smooth, audible, and immersive.',
-    responsibilities: 'Audio mixing, microphone management, projector displays, hymn presentation, and equipment maintenance.',
-    idealFor: 'Tech enthusiasts, sound lovers, and anyone who wants to learn live audio production.',
-    image_url: '/images/pensafallback-bw.png',
-  },
-];
+const initialMinistries = ministriesData;
 
 const categoryFilters = [
   'All',
@@ -295,8 +206,9 @@ export default function Ministries() {
 
           <div className="service-grid" style={{ marginTop: '0', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
             {filteredMinistries.map((min) => (
-              <div
-                className="service-card"
+              <Link
+                to={`/ministries/${min.id}`}
+                className="service-card service-card-clickable"
                 key={min.id}
                 style={{
                   display: 'flex',
@@ -307,6 +219,8 @@ export default function Ministries() {
                   border: '1px solid var(--line)',
                   boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
                   overflow: 'hidden',
+                  textDecoration: 'none',
+                  color: 'inherit',
                 }}
               >
                 <div>
@@ -339,7 +253,7 @@ export default function Ministries() {
                       {min.description}
                     </p>
                     {min.meeting && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--moss-deep)', fontWeight: '600', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--moss-deep)', fontWeight: '600', marginBottom: '8px' }}>
                         <span>🕒 Meeting Time:</span>
                         <span>{min.meeting}</span>
                       </div>
@@ -347,17 +261,15 @@ export default function Ministries() {
                   </div>
                 </div>
 
-                <div style={{ padding: '0 24px 24px' }}>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                    onClick={() => handleOpenModal(min)}
-                  >
-                    Join Ministry &rarr;
-                  </button>
+                <div className="card-view-details-footer">
+                  <span style={{ fontSize: '12.5px', color: '#52665e', fontWeight: 600 }}>
+                    {min.leader ? `Lead: ${min.leader.name}` : 'Leadership details'}
+                  </span>
+                  <span className="card-view-details-btn">
+                    View details &rarr;
+                  </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 

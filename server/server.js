@@ -69,6 +69,18 @@ app.get(['/api/ministries', '/api/departments', '/api/departments-teams'], async
   }
 });
 
+app.get(['/api/ministries/:id', '/api/departments/:id'], async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM core_values WHERE id = ?', [req.params.id]);
+    if (rows && rows.length > 0) return res.json(rows[0]);
+  } catch (err) {
+    // Falls through to fallback
+  }
+  const item = ministries.find((m) => String(m.id) === String(req.params.id));
+  if (item) return res.json(item);
+  res.status(404).json({ error: 'Ministry not found' });
+});
+
 // Sermons / messages
 app.get('/api/sermons', async (req, res) => {
   try {
