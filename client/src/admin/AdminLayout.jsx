@@ -88,7 +88,7 @@ export default function AdminLayout({ children }) {
             <Link
               key={item.to}
               to={item.to}
-              className={pathname === item.to ? 'active' : ''}
+              className={pathname === item.to || pathname.startsWith(item.to + '/') ? 'active' : ''}
               onClick={() => setMenuOpen(false)}
             >
               {item.label}

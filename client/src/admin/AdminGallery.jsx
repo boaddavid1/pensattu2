@@ -35,7 +35,7 @@ export default function AdminGallery() {
   }
 
   function photosForAlbum(albumId) {
-    return allPhotos.filter((p) => p.album_id === albumId);
+    return allPhotos.filter((p) => String(p.album_id) === String(albumId));
   }
 
   async function handlePhotoFileChange(e) {

@@ -6,14 +6,19 @@ const statCards = [
   { key: 'navigation', label: 'Navbar & Footer', to: '/control-panel/navigation', isAction: true },
   { key: 'ministries', label: 'Departments & Teams', to: '/control-panel/ministries' },
   { key: 'sermons', label: 'Sermons', to: '/control-panel/sermons' },
-  { key: 'team', label: 'Team', to: '/control-panel/team' },
+  { key: 'team', label: 'Leadership Team', to: '/control-panel/team' },
   { key: 'events', label: 'Events', to: '/control-panel/events' },
   { key: 'announcements', label: 'Announcements', to: '/control-panel/announcements' },
   { key: 'notices', label: 'Notices', to: '/control-panel/notices' },
-  { key: 'visits', label: 'Visits', to: '/control-panel/visits' },
+  { key: 'gallery_albums', label: 'Gallery Albums', to: '/control-panel/gallery' },
+  { key: 'past_questions', label: 'Past Questions', to: '/control-panel/past-questions' },
+  { key: 'books', label: 'Library Books', to: '/control-panel/books' },
+  { key: 'prayers', label: 'Prayer Requests', to: '/control-panel/prayers' },
+  { key: 'registrations', label: 'Registrations', to: '/control-panel/registrations' },
+  { key: 'visits', label: 'Visit Plans', to: '/control-panel/visits' },
   { key: 'subscribers', label: 'Subscribers', to: '/control-panel/subscribers' },
   { key: 'contacts', label: 'Messages', to: '/control-panel/contacts' },
-  { key: 'gallery_albums', label: 'Albums', to: '/control-panel/gallery' },
+  { key: 'users', label: 'Admins', to: '/control-panel/users' },
 ];
 
 export default function AdminDashboard() {

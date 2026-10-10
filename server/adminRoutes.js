@@ -199,7 +199,11 @@ router.post('/login', async (req, res) => {
       user: { id: user.id, name: user.full_name || user.username, email: user.email, role: user.role },
     });
   } catch (err) {
-    if (isDbUnavailable(err) && email === DEMO_USER.email && password === DEMO_USER.password) {
+    if (
+      isDbUnavailable(err) &&
+      (email?.toLowerCase() === DEMO_USER.email.toLowerCase() || email?.toLowerCase() === 'admin') &&
+      password === DEMO_USER.password
+    ) {
       const token = generateToken({
         id: DEMO_USER.id,
         email: DEMO_USER.email,
@@ -243,6 +247,9 @@ router.get('/stats', requireAuth, async (req, res) => {
       stats[table] = await safeCount(table);
     }
     stats.contacts = stats.contact_messages || 0;
+    stats.prayers = await safeCount('prayer_requests');
+    stats.registrations = await safeCount('registrations');
+    stats.users = await safeCount('admin_users');
     const [recent] = await pool.query(
       'SELECT al.*, u.full_name AS name FROM activity_logs al LEFT JOIN admin_users u ON al.user_id = u.id ORDER BY al.id DESC LIMIT 10'
     );
@@ -252,6 +259,10 @@ router.get('/stats', requireAuth, async (req, res) => {
       const stats = {};
       for (const table of Object.keys(TABLES)) stats[table] = memoryList(table).length;
       for (const table of READONLY_TABLES) stats[table] = memoryList(table).length;
+      stats.contacts = memoryList('contacts').length;
+      stats.prayers = (memory.prayers || []).length;
+      stats.registrations = (memory.registrations || []).length;
+      stats.users = (memory.users || []).length;
       return res.json({ stats, recentActivity: [], demo: true });
     }
     res.status(500).json({ error: err.message });
