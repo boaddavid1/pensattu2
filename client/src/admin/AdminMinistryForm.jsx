@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
+import './admin-ministry-editor.css';
 
 const CATEGORY_OPTIONS = [
   'Worship & Creative Arts',
@@ -43,7 +44,6 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
     scripture: '',
     responsibilities: '',
     ideal_for: '',
-    // Leader Information
     leader_name: '',
     leader_role: '',
     leader_image: '',
@@ -57,11 +57,18 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
 
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('basic');
+
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingLeaderImg, setUploadingLeaderImg] = useState(false);
   const [uploadingAstIdx, setUploadingAstIdx] = useState(null);
 
+  const bannerInputRef = useRef(null);
+  const leaderInputRef = useRef(null);
+
+  // Fetch or populate data
   useEffect(() => {
     setError('');
 
@@ -143,35 +150,49 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
       });
   }, [id, isNew, passedItem]);
 
+  // Keyboard shortcut Ctrl+S / Cmd+S
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSubmit();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  });
+
   function handleChange(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Cover Image
+  // Cover Banner Upload
   async function handleCoverUpload(e) {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     setUploadingImage(true);
+    setError('');
     try {
       const url = await uploadImageToCloudinary(file, 'pensattu/ministries');
       handleChange('image_url', url);
     } catch (err) {
-      setError(err.message || 'Image upload failed');
+      setError(err.message || 'Banner upload failed');
     } finally {
       setUploadingImage(false);
     }
   }
 
-  // Leader Image
+  // Leader Photo Upload
   async function handleLeaderUpload(e) {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     setUploadingLeaderImg(true);
+    setError('');
     try {
       const url = await uploadImageToCloudinary(file, 'pensattu/ministries/leaders');
       handleChange('leader_image', url);
     } catch (err) {
-      setError(err.message || 'Leader image upload failed');
+      setError(err.message || 'Leader photo upload failed');
     } finally {
       setUploadingLeaderImg(false);
     }
@@ -195,9 +216,10 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
   }
 
   async function handleAssistantUpload(index, e) {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     setUploadingAstIdx(index);
+    setError('');
     try {
       const url = await uploadImageToCloudinary(file, 'pensattu/ministries/assistants');
       updateAssistant(index, 'image_url', url);
@@ -225,10 +247,19 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
     setActivities((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function scrollToSection(sectionId, tabKey) {
+    setActiveTab(tabKey);
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   async function handleSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!form.title.trim()) {
       setError('Ministry title is required.');
+      scrollToSection('sec-basic', 'basic');
       return;
     }
 
@@ -252,7 +283,10 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
       } else {
         await adminApi.update('ministries', id, payload);
       }
-      navigate('/control-panel/ministries');
+      setSaveSuccess(true);
+      setTimeout(() => {
+        navigate('/control-panel/ministries');
+      }, 700);
     } catch (err) {
       setError(err.message || 'Failed to save ministry');
       setSaving(false);
@@ -261,527 +295,645 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
 
   if (loading) {
     return (
-      <div className="admin-loading" style={{ padding: '60px', textAlign: 'center' }}>
-        Loading ministry details...
+      <div className="ministry-editor-wrap" style={{ textAlign: 'center', padding: '100px 20px' }}>
+        <div style={{ fontSize: '32px', marginBottom: '14px' }}>⏳</div>
+        <h3 style={{ margin: 0, color: '#0f172a' }}>Loading Ministry Details...</h3>
+        <p style={{ color: '#64748b', fontSize: '14px' }}>Fetching department profile from server</p>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '60px' }}>
-      <div className="admin-page-header" style={{ marginBottom: '24px' }}>
-        <div>
-          <Link
-            to="/control-panel/ministries"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '13.5px',
-              color: 'var(--pine)',
-              textDecoration: 'none',
-              fontWeight: 600,
-              marginBottom: '8px',
-            }}
-          >
-            ← Back to Departments &amp; Teams
-          </Link>
-          <h2 style={{ margin: 0 }}>
-            {isNew ? 'New Department / Ministry' : `Edit: ${form.title || 'Ministry'}`}
-          </h2>
+    <div className="ministry-editor-wrap">
+      {/* ----------------- Breadcrumb Navigation ----------------- */}
+      <div className="editor-top-nav">
+        <nav className="editor-breadcrumb">
+          <Link to="/control-panel/dashboard">Dashboard</Link>
+          <span className="sep">/</span>
+          <Link to="/control-panel/ministries">Departments &amp; Teams</Link>
+          <span className="sep">/</span>
+          <span className="current">{isNew ? 'New Department' : form.title || `Ministry #${id}`}</span>
+        </nav>
+      </div>
+
+      {/* ----------------- Header Hero Bar ----------------- */}
+      <div className="editor-header-bar">
+        <div className="editor-header-main">
+          <div className="editor-title-row">
+            <h1 className="editor-title">
+              {isNew ? 'New Department' : form.title || 'Edit Ministry'}
+            </h1>
+            <span className="editor-category-badge">
+              🏷️ {form.category}
+            </span>
+            <span className={`editor-status-pill ${form.is_active ? 'active' : 'inactive'}`}>
+              <span className="status-dot" />
+              {form.is_active ? 'Published & Active' : 'Hidden / Draft'}
+            </span>
+          </div>
+          <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
+            {isNew
+              ? 'Configure leadership, meeting times, and department overview.'
+              : `Managing public profile, leadership hierarchy, and regular activities.`}
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div className="editor-header-actions">
+          {!isNew && (
+            <a
+              href={`/ministries/${id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-editor-live"
+              title="Open public page in new tab"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              View on Site
+            </a>
+          )}
+
           <button
             type="button"
-            className="btn btn-ghost"
+            className="btn-editor-cancel"
             onClick={() => navigate('/control-panel/ministries')}
           >
             Cancel
           </button>
+
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn-editor-save"
             onClick={handleSubmit}
             disabled={saving}
           >
-            {saving ? 'Saving...' : isNew ? 'Create Department' : 'Save Changes'}
+            {saving ? (
+              <>Saving...</>
+            ) : saveSuccess ? (
+              <>✓ Saved!</>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                {isNew ? 'Create Department' : 'Save Changes'}
+              </>
+            )}
           </button>
         </div>
       </div>
 
+      {/* ----------------- Section Jump Tabs ----------------- */}
+      <div className="editor-section-nav">
+        <button
+          type="button"
+          className={`editor-nav-tab ${activeTab === 'basic' ? 'active' : ''}`}
+          onClick={() => scrollToSection('sec-basic', 'basic')}
+        >
+          <span>🏛️</span> Basic Details
+        </button>
+        <button
+          type="button"
+          className={`editor-nav-tab ${activeTab === 'media' ? 'active' : ''}`}
+          onClick={() => scrollToSection('sec-media', 'media')}
+        >
+          <span>🖼️</span> Cover Banner
+        </button>
+        <button
+          type="button"
+          className={`editor-nav-tab ${activeTab === 'leader' ? 'active' : ''}`}
+          onClick={() => scrollToSection('sec-leader', 'leader')}
+        >
+          <span>👤</span> Primary Leader
+        </button>
+        <button
+          type="button"
+          className={`editor-nav-tab ${activeTab === 'assistants' ? 'active' : ''}`}
+          onClick={() => scrollToSection('sec-assistants', 'assistants')}
+        >
+          <span>👥</span> Assistant Leaders
+          <span className="tab-count">{assistants.length}</span>
+        </button>
+        <button
+          type="button"
+          className={`editor-nav-tab ${activeTab === 'activities' ? 'active' : ''}`}
+          onClick={() => scrollToSection('sec-activities', 'activities')}
+        >
+          <span>🗓️</span> Key Activities
+          <span className="tab-count">{activities.filter(Boolean).length}</span>
+        </button>
+      </div>
+
+      {/* ----------------- Error Banner ----------------- */}
       {error && (
-        <div className="admin-error" style={{ marginBottom: '24px' }}>
-          {error}
+        <div
+          className="admin-error"
+          style={{
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            borderRadius: '12px',
+            padding: '14px 18px',
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>⚠️</span>
+          <span style={{ flex: 1, fontWeight: 500 }}>{error}</span>
+          <button
+            type="button"
+            onClick={() => setError('')}
+            style={{ background: 'none', border: 'none', color: '#991B1B', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            ✕
+          </button>
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* Section 1: Basic Information */}
-        <div className="admin-card" style={{ marginBottom: '28px', padding: '28px' }}>
-          <h3
-            style={{
-              fontSize: '18px',
-              color: 'var(--pine-deep)',
-              margin: '0 0 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              borderBottom: '1px solid #edf2ef',
-              paddingBottom: '12px',
-            }}
-          >
-            <span>🏛️</span> Basic Department Details
-          </h3>
+        {/* =========================================================================
+            SECTION 1: Basic Information
+            ========================================================================= */}
+        <section id="sec-basic" className="editor-card">
+          <div className="editor-card-header">
+            <div className="editor-card-title-group">
+              <h2 className="editor-card-title">
+                <span className="editor-icon-badge">🏛️</span>
+                Department Profile &amp; Meeting Schedule
+              </h2>
+              <p className="editor-card-subtitle">
+                Core identity, public category classification, meeting intervals, and scriptural foundation.
+              </p>
+            </div>
 
-          <div className="admin-form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-            <label>
-              Ministry / Department Title *
+            {/* iOS Style Active Toggle Switch */}
+            <div
+              className="editor-switch-container"
+              onClick={() => handleChange('is_active', form.is_active ? 0 : 1)}
+              title="Click to toggle department visibility"
+            >
+              <div className={`editor-switch-track ${form.is_active ? 'on' : ''}`}>
+                <div className="editor-switch-thumb" />
+              </div>
+              <div className="editor-switch-label">
+                <span className="editor-switch-title">
+                  {form.is_active ? 'Active & Visible' : 'Hidden from Public'}
+                </span>
+                <span className="editor-switch-desc">
+                  {form.is_active ? 'Shown in public menus' : 'Draft / offline mode'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="editor-form-grid">
+            <div className="editor-field full-width">
+              <label className="editor-label">
+                <span>Ministry / Department Title <span className="required">*</span></span>
+                <span className="hint">Public name displayed across headers and cards</span>
+              </label>
               <input
                 type="text"
+                className="editor-input"
                 value={form.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="e.g. Music & Worship Ministry"
+                placeholder="e.g. Counseling & Welfare Ministry"
                 required
               />
-            </label>
+            </div>
 
-            <label>
-              Category
+            <div className="editor-field">
+              <label className="editor-label">
+                <span>Category Classification</span>
+                <span className="hint">Groups related departments</span>
+              </label>
               <select
+                className="editor-select"
                 value={form.category}
                 onChange={(e) => handleChange('category', e.target.value)}
               >
                 {CATEGORY_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
-            </label>
+            </div>
 
-            <label>
-              Meeting Time / Schedule
-              <input
-                type="text"
-                value={form.meeting}
-                onChange={(e) => handleChange('meeting', e.target.value)}
-                placeholder="e.g. Saturdays, 3:00 PM"
-              />
-            </label>
-
-            <label>
-              Meeting Venue
-              <input
-                type="text"
-                value={form.venue}
-                onChange={(e) => handleChange('venue', e.target.value)}
-                placeholder="e.g. Main Sanctuary & Choir Hall"
-              />
-            </label>
-
-            <label>
-              Display Order
+            <div className="editor-field">
+              <label className="editor-label">
+                <span>Display Order Index</span>
+                <span className="hint">Lower numbers appear first</span>
+              </label>
               <input
                 type="number"
+                className="editor-input"
                 value={form.display_order}
                 onChange={(e) => handleChange('display_order', e.target.value)}
+                min="0"
               />
-            </label>
+            </div>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginTop: '24px' }}>
+            <div className="editor-field">
+              <label className="editor-label">
+                <span>Meeting Schedule &amp; Day</span>
+                <span className="hint">e.g. Tuesdays, 4:00 PM</span>
+              </label>
               <input
-                type="checkbox"
-                checked={Boolean(form.is_active)}
-                onChange={(e) => handleChange('is_active', e.target.checked ? 1 : 0)}
-                style={{ width: '18px', height: '18px' }}
+                type="text"
+                className="editor-input"
+                value={form.meeting}
+                onChange={(e) => handleChange('meeting', e.target.value)}
+                placeholder="e.g. Saturdays, 3:00 PM - 5:30 PM"
               />
-              <span style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--pine-deep)' }}>
-                Active &amp; Visible to Public
-              </span>
-            </label>
-          </div>
+            </div>
 
-          <label className="admin-form-full" style={{ marginTop: '16px' }}>
-            Short Summary Description (shown on overview cards)
-            <textarea
-              rows={2}
-              value={form.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Brief summary of what this ministry is about..."
-            />
-          </label>
+            <div className="editor-field">
+              <label className="editor-label">
+                <span>Meeting Venue / Room</span>
+                <span className="hint">Physical location on campus</span>
+              </label>
+              <input
+                type="text"
+                className="editor-input"
+                value={form.venue}
+                onChange={(e) => handleChange('venue', e.target.value)}
+                placeholder="e.g. Main Auditorium & Welfare Room"
+              />
+            </div>
 
-          <label className="admin-form-full" style={{ marginTop: '16px' }}>
-            Full In-depth Description (shown on the detailed page)
-            <textarea
-              rows={4}
-              value={form.full_description}
-              onChange={(e) => handleChange('full_description', e.target.value)}
-              placeholder="Detailed overview of the department's purpose, vision, and mission..."
-            />
-          </label>
-
-          <label className="admin-form-full" style={{ marginTop: '16px' }}>
-            Scripture Reference &amp; Verse
-            <input
-              type="text"
-              value={form.scripture}
-              onChange={(e) => handleChange('scripture', e.target.value)}
-              placeholder='e.g. Psalm 100:1-2 — "Make a joyful noise unto the Lord..."'
-            />
-          </label>
-
-          <div className="admin-form-grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: '16px' }}>
-            <label>
-              Core Responsibilities
+            <div className="editor-field full-width">
+              <label className="editor-label">
+                <span>Short Summary Description</span>
+                <span className="hint">Concise 1–2 sentence overview for cards and listings</span>
+              </label>
               <textarea
+                className="editor-textarea"
+                rows={2}
+                value={form.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+                placeholder="Ensuring no member walks alone. Providing compassionate pastoral care, emotional support, and welfare assistance..."
+              />
+            </div>
+
+            <div className="editor-field full-width">
+              <label className="editor-label">
+                <span>Full In-Depth Description</span>
+                <span className="hint">Displayed prominently on the ministry's dedicated page</span>
+              </label>
+              <textarea
+                className="editor-textarea"
+                rows={4}
+                value={form.full_description}
+                onChange={(e) => handleChange('full_description', e.target.value)}
+                placeholder="The Counseling & Welfare Ministry offers confidential, biblically grounded counseling, welfare relief packages, academic encouragement, and sincere brotherhood..."
+              />
+            </div>
+
+            <div className="editor-field full-width">
+              <label className="editor-label">
+                <span>Scripture Reference &amp; Verse</span>
+                <span className="hint">Biblical guiding principle for this ministry</span>
+              </label>
+              <input
+                type="text"
+                className="editor-input"
+                value={form.scripture}
+                onChange={(e) => handleChange('scripture', e.target.value)}
+                placeholder='e.g. Galatians 6:2 — "Bear ye one another&apos;s burdens, and so fulfil the law of Christ."'
+              />
+              {form.scripture && (
+                <div className="scripture-preview-card">
+                  <span className="quote-mark">&ldquo;</span>
+                  <span>{form.scripture}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="editor-field">
+              <label className="editor-label">
+                <span>Core Responsibilities</span>
+                <span className="hint">What duties do members fulfill?</span>
+              </label>
+              <textarea
+                className="editor-textarea"
                 rows={3}
                 value={form.responsibilities}
                 onChange={(e) => handleChange('responsibilities', e.target.value)}
-                placeholder="Primary duties and assignments handled by members..."
+                placeholder="Providing confidential counseling; distributing emergency relief; visiting sick members in hospitals and hostels..."
               />
-            </label>
+            </div>
 
-            <label>
-              Who Should Join (Ideal For)
+            <div className="editor-field">
+              <label className="editor-label">
+                <span>Who Should Join (Ideal For)</span>
+                <span className="hint">Target skills, temperament, or gifts</span>
+              </label>
               <textarea
+                className="editor-textarea"
                 rows={3}
                 value={form.ideal_for}
                 onChange={(e) => handleChange('ideal_for', e.target.value)}
-                placeholder="Who is this ministry best suited for? (e.g. singers, technicians...)"
+                placeholder="Empathetic listeners, caregivers, people with discerning hearts, and welfare volunteers..."
               />
-            </label>
-          </div>
-
-          {/* Banner Image */}
-          <div style={{ marginTop: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '6px' }}>Cover / Banner Image</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleCoverUpload}
-                disabled={uploadingImage}
-                style={{ width: 'auto' }}
-              />
-              {uploadingImage && <span style={{ fontSize: '13px', color: 'var(--pine)' }}>Uploading image...</span>}
-              {form.image_url && (
-                <img
-                  src={form.image_url}
-                  alt="Banner preview"
-                  style={{ width: '120px', height: '65px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #cdd8d1' }}
-                />
-              )}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Section 2: Primary Ministry Leader Information */}
-        <div className="admin-card" style={{ marginBottom: '28px', padding: '28px', background: '#fdfefd' }}>
-          <h3
-            style={{
-              fontSize: '18px',
-              color: 'var(--pine-deep)',
-              margin: '0 0 6px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span>👤</span> Ministry Leader Information
-          </h3>
-          <p style={{ margin: '0 0 20px', fontSize: '13.5px', color: '#65776f' }}>
-            Provide details for the primary lead / director in charge of this ministry.
-          </p>
+        {/* =========================================================================
+            SECTION 2: Cover Banner & Media
+            ========================================================================= */}
+        <section id="sec-media" className="editor-card">
+          <div className="editor-card-header">
+            <div className="editor-card-title-group">
+              <h2 className="editor-card-title">
+                <span className="editor-icon-badge">🖼️</span>
+                Cover Banner &amp; Media
+              </h2>
+              <p className="editor-card-subtitle">
+                High-resolution banner photo displayed in the hero section and previews.
+              </p>
+            </div>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '24px', alignItems: 'start' }}>
-            {/* Leader Avatar */}
-            <div>
+          <div className="banner-upload-zone">
+            <input
+              type="file"
+              ref={bannerInputRef}
+              accept="image/*"
+              onChange={handleCoverUpload}
+              disabled={uploadingImage}
+              style={{ display: 'none' }}
+            />
+
+            {form.image_url ? (
+              <div className="banner-preview-box">
+                <img src={form.image_url} alt="Department Banner" className="banner-preview-img" />
+                <div className="banner-overlay-actions">
+                  <div className="banner-info-badge">
+                    <span>Aspect Ratio: 16:9 • High Quality</span>
+                  </div>
+                  <div className="banner-action-buttons">
+                    <button
+                      type="button"
+                      className="btn-banner-action btn-banner-change"
+                      onClick={() => bannerInputRef.current?.click()}
+                      disabled={uploadingImage}
+                    >
+                      {uploadingImage ? 'Uploading...' : 'Change Banner'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-banner-action btn-banner-remove"
+                      onClick={() => handleChange('image_url', '')}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <div
-                style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
-                  background: '#eef3f0',
-                  border: '3px solid var(--moss, #c4f092)',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '10px',
-                }}
+                className="banner-empty-dropzone"
+                onClick={() => bannerInputRef.current?.click()}
               >
+                <div className="dropzone-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </div>
+                <div className="dropzone-text">
+                  <strong>
+                    {uploadingImage ? 'Uploading cover photo...' : 'Click to upload department cover photo'}
+                  </strong>
+                  <span>Supports WebP, PNG, JPG up to 10MB (recommended 1200 × 630px)</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* =========================================================================
+            SECTION 3: Primary Ministry Leader
+            ========================================================================= */}
+        <section id="sec-leader" className="editor-card">
+          <div className="editor-card-header">
+            <div className="editor-card-title-group">
+              <h2 className="editor-card-title">
+                <span className="editor-icon-badge">👤</span>
+                Primary Ministry Leader
+              </h2>
+              <p className="editor-card-subtitle">
+                The lead minister, director, or head coordinator guiding this ministry.
+              </p>
+            </div>
+          </div>
+
+          <div className="leader-profile-layout">
+            {/* Avatar Column */}
+            <div className="leader-avatar-column">
+              <div className="leader-avatar-circle">
                 {form.leader_image ? (
-                  <img
-                    src={form.leader_image}
-                    alt="Leader"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                  <img src={form.leader_image} alt="Ministry Leader" className="leader-avatar-img" />
                 ) : (
-                  <span style={{ fontSize: '32px', color: '#88998f' }}>👤</span>
+                  <span className="leader-avatar-placeholder">👤</span>
                 )}
               </div>
-              <label
-                className="btn btn-ghost"
-                style={{
-                  padding: '5px 10px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  display: 'block',
-                }}
+
+              <input
+                type="file"
+                ref={leaderInputRef}
+                accept="image/*"
+                onChange={handleLeaderUpload}
+                disabled={uploadingLeaderImg}
+                style={{ display: 'none' }}
+              />
+
+              <button
+                type="button"
+                className="leader-photo-btn"
+                onClick={() => leaderInputRef.current?.click()}
+                disabled={uploadingLeaderImg}
               >
-                {uploadingLeaderImg ? 'Uploading...' : 'Upload Photo'}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLeaderUpload}
-                  disabled={uploadingLeaderImg}
-                  style={{ display: 'none' }}
-                />
-              </label>
+                {uploadingLeaderImg ? 'Uploading...' : form.leader_image ? 'Change Photo' : 'Upload Photo'}
+              </button>
+
+              {form.leader_image && (
+                <button
+                  type="button"
+                  onClick={() => handleChange('leader_image', '')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#ef4444',
+                    fontSize: '11.5px',
+                    cursor: 'pointer',
+                    marginTop: '-4px',
+                  }}
+                >
+                  Remove
+                </button>
+              )}
             </div>
 
-            {/* Leader Text Fields */}
-            <div className="admin-form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-              <label>
-                Leader Full Name
+            {/* Profile Inputs */}
+            <div className="editor-form-grid">
+              <div className="editor-field">
+                <label className="editor-label">
+                  <span>Leader Full Name</span>
+                  <span className="hint">Include honorific e.g. Deaconess, Minister</span>
+                </label>
                 <input
                   type="text"
+                  className="editor-input"
                   value={form.leader_name}
                   onChange={(e) => handleChange('leader_name', e.target.value)}
-                  placeholder="e.g. Minister Emmanuel Adjei"
+                  placeholder="e.g. Deaconess Sarah Owusu"
                 />
-              </label>
+              </div>
 
-              <label>
-                Role / Title
+              <div className="editor-field">
+                <label className="editor-label">
+                  <span>Role / Leadership Portfolio</span>
+                  <span className="hint">e.g. Welfare &amp; Care Secretary</span>
+                </label>
                 <input
                   type="text"
+                  className="editor-input"
                   value={form.leader_role}
                   onChange={(e) => handleChange('leader_role', e.target.value)}
-                  placeholder="e.g. Music Director & Head of Worship"
+                  placeholder="e.g. Music Director &amp; Head of Worship"
                 />
-              </label>
+              </div>
 
-              <label>
-                Phone / WhatsApp Number
+              <div className="editor-field">
+                <label className="editor-label">
+                  <span>Phone / WhatsApp Contact</span>
+                  <span className="hint">With country code</span>
+                </label>
                 <input
                   type="text"
+                  className="editor-input"
                   value={form.leader_phone}
                   onChange={(e) => handleChange('leader_phone', e.target.value)}
-                  placeholder="e.g. +233 55 307 0627"
+                  placeholder="e.g. +233 54 990 4123"
                 />
-              </label>
+              </div>
 
-              <label>
-                Email Address
+              <div className="editor-field">
+                <label className="editor-label">
+                  <span>Official Email Address</span>
+                  <span className="hint">For inquiries and pastoral care</span>
+                </label>
                 <input
                   type="email"
+                  className="editor-input"
                   value={form.leader_email}
                   onChange={(e) => handleChange('leader_email', e.target.value)}
-                  placeholder="e.g. worship@pensattu.org"
+                  placeholder="e.g. welfare@pensattu.org"
                 />
-              </label>
+              </div>
 
-              <label className="admin-form-full">
-                Leader Bio / Description
+              <div className="editor-field full-width">
+                <label className="editor-label">
+                  <span>Leader Biography &amp; Ministry Heart</span>
+                  <span className="hint">Brief background, calling, and message to students</span>
+                </label>
                 <textarea
+                  className="editor-textarea"
                   rows={2}
                   value={form.leader_bio}
                   onChange={(e) => handleChange('leader_bio', e.target.value)}
-                  placeholder="Brief background, heart for the ministry, and years of service..."
+                  placeholder="Compassionate counselor committed to the emotional, spiritual, and physical well-being of all students..."
                 />
-              </label>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Section 3: Assistant Leaders ("Assistances") */}
-        <div className="admin-card" style={{ marginBottom: '28px', padding: '28px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '16px',
-              borderBottom: '1px solid #edf2ef',
-              paddingBottom: '12px',
-            }}
-          >
-            <div>
-              <h3
-                style={{
-                  fontSize: '18px',
-                  color: 'var(--pine-deep)',
-                  margin: '0 0 4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>👥</span> Assistant Leaders (&quot;Assistances&quot;)
-                <span
-                  style={{
-                    background: '#e4efe7',
-                    color: 'var(--pine)',
-                    padding: '2px 10px',
-                    borderRadius: '20px',
-                    fontSize: '12.5px',
-                    fontWeight: 700,
-                  }}
-                >
-                  {assistants.length}
-                </span>
-              </h3>
-              <p style={{ margin: 0, fontSize: '13.5px', color: '#65776f' }}>
-                Add assistant heads, section coordinators, or ministry secretaries.
+        {/* =========================================================================
+            SECTION 4: Assistant Leaders ("Assistances")
+            ========================================================================= */}
+        <section id="sec-assistants" className="editor-card">
+          <div className="editor-card-header">
+            <div className="editor-card-title-group">
+              <h2 className="editor-card-title">
+                <span className="editor-icon-badge">👥</span>
+                Assistant Leaders (&quot;Assistances&quot;)
+              </h2>
+              <p className="editor-card-subtitle">
+                Deputies, assistant directors, section heads, and portfolio coordinators.
               </p>
             </div>
 
             <button
               type="button"
-              className="btn btn-ghost"
+              className="btn-editor-live"
               onClick={addAssistant}
-              style={{
-                borderColor: 'var(--pine)',
-                color: 'var(--pine)',
-                fontWeight: 700,
-                fontSize: '13.5px',
-              }}
+              style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0', fontWeight: 700 }}
             >
-              + Add Assistant Leader
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Assistant Leader
             </button>
           </div>
 
           {assistants.length === 0 ? (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '36px 20px',
-                background: '#f9fbf9',
-                borderRadius: '12px',
-                border: '1px dashed #cdd8d1',
-              }}
-            >
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>👥</div>
-              <p style={{ margin: '0 0 12px', color: '#60726a', fontSize: '14px' }}>
-                No assistant leaders added for this ministry yet.
-              </p>
+            <div className="assistants-empty-state">
+              <div className="empty-icon">👥</div>
+              <p>No assistant leaders have been assigned to this department yet.</p>
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn-editor-save"
                 onClick={addAssistant}
-                style={{ fontSize: '13px' }}
+                style={{ margin: '0 auto', fontSize: '13.5px', padding: '8px 18px' }}
               >
                 + Add First Assistant
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="assistant-cards-list">
               {assistants.map((ast, index) => (
-                <div
-                  key={ast.id || index}
-                  style={{
-                    background: '#f8faf9',
-                    borderRadius: '14px',
-                    padding: '20px',
-                    border: '1px solid #dce5df',
-                    position: 'relative',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '14px',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        fontSize: '13.5px',
-                        color: 'var(--pine)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: '22px',
-                          height: '22px',
-                          background: 'var(--pine)',
-                          color: '#fff',
-                          borderRadius: '50%',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                        }}
-                      >
-                        {index + 1}
-                      </span>
-                      Assistant Leader
-                    </span>
+                <div key={ast.id || index} className="assistant-card">
+                  <div className="assistant-card-header">
+                    <div className="assistant-card-badge">
+                      <span className="assistant-number-tag">{index + 1}</span>
+                      <span>{ast.role || 'Assistant Leader'}</span>
+                    </div>
 
                     <button
                       type="button"
+                      className="btn-remove-assistant"
                       onClick={() => removeAssistant(index)}
-                      style={{
-                        background: '#fdf2f2',
-                        color: '#b91c1c',
-                        border: '1px solid #fecaca',
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
+                      title="Remove this assistant leader"
                     >
-                      ✕ Remove Assistant
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                      Remove Assistant
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '18px', alignItems: 'start' }}>
-                    {/* Assistant Avatar */}
-                    <div>
-                      <div
-                        style={{
-                          width: '70px',
-                          height: '70px',
-                          borderRadius: '50%',
-                          background: '#e9efeb',
-                          border: '2px solid #ccd8d1',
-                          overflow: 'hidden',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginBottom: '6px',
-                        }}
-                      >
+                  <div className="assistant-card-body">
+                    {/* Avatar */}
+                    <div className="assistant-avatar-box">
+                      <div className="assistant-avatar-circle">
                         {ast.image_url ? (
-                          <img
-                            src={ast.image_url}
-                            alt={ast.name || 'Assistant'}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
+                          <img src={ast.image_url} alt={ast.name || 'Assistant'} />
                         ) : (
-                          <span style={{ fontSize: '24px', color: '#90a097' }}>👤</span>
+                          <span style={{ fontSize: '26px', color: '#94a3b8' }}>👤</span>
                         )}
                       </div>
-                      <label
-                        style={{
-                          fontSize: '11px',
-                          color: 'var(--pine)',
-                          cursor: 'pointer',
-                          display: 'block',
-                          textAlign: 'center',
-                          textDecoration: 'underline',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {uploadingAstIdx === index ? 'Uploading...' : 'Photo'}
+
+                      <label className="assistant-photo-label">
+                        {uploadingAstIdx === index ? 'Uploading...' : ast.image_url ? 'Change' : 'Add Photo'}
                         <input
                           type="file"
                           accept="image/*"
@@ -792,153 +944,155 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
                       </label>
                     </div>
 
-                    {/* Assistant Inputs */}
-                    <div className="admin-form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', rowGap: '12px' }}>
-                      <label>
-                        Full Name *
+                    {/* Inputs */}
+                    <div className="editor-form-grid">
+                      <div className="editor-field">
+                        <label className="editor-label">
+                          <span>Full Name <span className="required">*</span></span>
+                        </label>
                         <input
                           type="text"
+                          className="editor-input"
                           value={ast.name}
                           onChange={(e) => updateAssistant(index, 'name', e.target.value)}
-                          placeholder="e.g. Sis. Abigail Mensah"
+                          placeholder="e.g. Bro. Stephen Coffie"
                           required
                         />
-                      </label>
+                      </div>
 
-                      <label>
-                        Role / Designation
+                      <div className="editor-field">
+                        <label className="editor-label">
+                          <span>Portfolio / Role</span>
+                        </label>
                         <input
                           type="text"
+                          className="editor-input"
                           value={ast.role}
                           onChange={(e) => updateAssistant(index, 'role', e.target.value)}
-                          placeholder="e.g. Assistant Choir Director"
+                          placeholder="e.g. Hostel &amp; Hospital Visitation Lead"
                         />
-                      </label>
+                      </div>
 
-                      <label>
-                        Phone / WhatsApp
+                      <div className="editor-field">
+                        <label className="editor-label">
+                          <span>Phone / WhatsApp Contact</span>
+                        </label>
                         <input
                           type="text"
+                          className="editor-input"
                           value={ast.phone}
                           onChange={(e) => updateAssistant(index, 'phone', e.target.value)}
-                          placeholder="e.g. +233 24 551 2341"
+                          placeholder="e.g. +233 24 881 2340"
                         />
-                      </label>
+                      </div>
 
-                      <label className="admin-form-full">
-                        Bio / Responsibilities Note
+                      <div className="editor-field">
+                        <label className="editor-label">
+                          <span>Scope / Responsibilities Note</span>
+                        </label>
                         <input
                           type="text"
+                          className="editor-input"
                           value={ast.bio}
                           onChange={(e) => updateAssistant(index, 'bio', e.target.value)}
-                          placeholder="Oversees vocal warm-ups and choir schedules..."
+                          placeholder="Organizes weekly check-in visits to sick students..."
                         />
-                      </label>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Section 4: Key Regular Activities */}
-        <div className="admin-card" style={{ marginBottom: '28px', padding: '28px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '16px',
-              borderBottom: '1px solid #edf2ef',
-              paddingBottom: '12px',
-            }}
-          >
-            <div>
-              <h3
-                style={{
-                  fontSize: '18px',
-                  color: 'var(--pine-deep)',
-                  margin: '0 0 4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>🗓️</span> Key Regular Activities
-              </h3>
-              <p style={{ margin: 0, fontSize: '13.5px', color: '#65776f' }}>
-                Shown on the sidebar checklist of the detailed ministry page.
+        {/* =========================================================================
+            SECTION 5: Key Regular Activities
+            ========================================================================= */}
+        <section id="sec-activities" className="editor-card">
+          <div className="editor-card-header">
+            <div className="editor-card-title-group">
+              <h2 className="editor-card-title">
+                <span className="editor-icon-badge">🗓️</span>
+                Key Regular Activities
+              </h2>
+              <p className="editor-card-subtitle">
+                Scheduled weekly or recurring sessions listed on the ministry profile page.
               </p>
             </div>
 
             <button
               type="button"
-              className="btn btn-ghost"
+              className="btn-editor-live"
               onClick={addActivity}
-              style={{
-                borderColor: 'var(--pine)',
-                color: 'var(--pine)',
-                fontWeight: 700,
-                fontSize: '13px',
-              }}
+              style={{ fontWeight: 600 }}
             >
               + Add Activity
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="activities-list">
             {activities.map((act, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, color: 'var(--moss-deep)', width: '20px' }}>
-                  {idx + 1}.
-                </span>
+              <div key={idx} className="activity-row">
+                <span className="activity-badge">{String(idx + 1).padStart(2, '0')}</span>
                 <input
                   type="text"
+                  className="activity-input"
                   value={act}
                   onChange={(e) => updateActivity(idx, e.target.value)}
-                  placeholder="e.g. Saturday weekly choir & band rehearsals"
-                  style={{ flex: 1 }}
+                  placeholder="e.g. Hospital and hostel visitation drives"
                 />
                 {activities.length > 1 && (
                   <button
                     type="button"
+                    className="btn-remove-activity"
                     onClick={() => removeActivity(idx)}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#b91c1c',
-                      fontSize: '16px',
-                      cursor: 'pointer',
-                      padding: '4px 8px',
-                    }}
-                    title="Remove activity"
+                    title="Remove activity item"
                   >
                     ✕
                   </button>
                 )}
               </div>
             ))}
-          </div>
-        </div>
 
-        {/* Footer Actions */}
-        <div className="admin-form-actions" style={{ justifyContent: 'flex-end', gap: '12px' }}>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => navigate('/control-panel/ministries')}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={saving}
-            style={{ minWidth: '160px' }}
-          >
-            {saving ? 'Saving...' : isNew ? 'Create Department' : 'Save Changes'}
-          </button>
+            <button
+              type="button"
+              className="btn-add-activity-dashed"
+              onClick={addActivity}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Another Regular Activity
+            </button>
+          </div>
+        </section>
+
+        {/* ----------------- Sticky Bottom Save Bar ----------------- */}
+        <div className="editor-sticky-footer">
+          <div className="footer-info">
+            <span>Editing: <strong>{form.title || 'Department'}</strong></span>
+            <span>•</span>
+            <span style={{ fontSize: '12px', color: '#94a3b8' }}>Press Ctrl + S to save</span>
+          </div>
+
+          <div className="footer-actions">
+            <button
+              type="button"
+              className="btn-editor-cancel"
+              onClick={() => navigate('/control-panel/ministries')}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn-editor-save"
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : saveSuccess ? '✓ Saved!' : isNew ? 'Create Department' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

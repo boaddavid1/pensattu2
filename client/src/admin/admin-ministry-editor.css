@@ -1,0 +1,1007 @@
+/* ==========================================================================
+   Admin Ministry Editor - World-Class CMS Styling
+   ========================================================================== */
+
+.ministry-editor-wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 8px 16px 100px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
+}
+
+/* --------------------------------------------------------------------------
+   Breadcrumb & Top Navigation Bar
+   -------------------------------------------------------------------------- */
+.editor-top-nav {
+  margin-bottom: 20px;
+}
+
+.editor-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.editor-breadcrumb a {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.editor-breadcrumb a:hover {
+  color: var(--pine, #0e4c92);
+}
+
+.editor-breadcrumb .sep {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.editor-breadcrumb .current {
+  color: #0f172a;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+/* --------------------------------------------------------------------------
+   Header Hero & Actions Bar
+   -------------------------------------------------------------------------- */
+.editor-header-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 22px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05);
+}
+
+.editor-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editor-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-title {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.editor-category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f0f7ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.editor-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.editor-status-pill.active {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.editor-status-pill.inactive {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.editor-status-pill.active .status-dot {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.editor-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-editor-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-editor-live:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.btn-editor-cancel {
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-editor-cancel:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.btn-editor-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0e4c92 0%, #0a2e5c 100%);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(14, 76, 146, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-editor-save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(14, 76, 146, 0.45);
+}
+
+.btn-editor-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   Quick Section Jump Navigation (Pill Tabs)
+   -------------------------------------------------------------------------- */
+.editor-section-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  margin-bottom: 20px;
+  scrollbar-width: none;
+}
+
+.editor-section-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.editor-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.editor-nav-tab:hover {
+  color: var(--pine, #0e4c92);
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.editor-nav-tab.active {
+  background: #0e4c92;
+  color: #ffffff;
+  border-color: #0e4c92;
+  box-shadow: 0 2px 8px rgba(14, 76, 146, 0.25);
+}
+
+.editor-nav-tab .tab-count {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1px 7px;
+  border-radius: 12px;
+  font-size: 11.5px;
+}
+
+.editor-nav-tab.active .tab-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Section Cards Container
+   -------------------------------------------------------------------------- */
+.editor-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.editor-card:hover {
+  border-color: #cbd5e1;
+}
+
+.editor-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 24px;
+}
+
+.editor-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editor-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.editor-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #0284c7;
+  font-size: 16px;
+}
+
+.editor-card-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Modern Form Controls & Fields
+   -------------------------------------------------------------------------- */
+.editor-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px 24px;
+}
+
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editor-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.editor-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: -0.01em;
+}
+
+.editor-label .required {
+  color: #ef4444;
+  margin-left: 3px;
+}
+
+.editor-label .hint {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.editor-input,
+.editor-select,
+.editor-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.editor-input:hover,
+.editor-select:hover,
+.editor-textarea:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.editor-input:focus,
+.editor-select:focus,
+.editor-textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #0e4c92;
+  box-shadow: 0 0 0 3px rgba(14, 76, 146, 0.12);
+}
+
+.editor-textarea {
+  min-height: 85px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.editor-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 38px;
+}
+
+/* Toggle Switch Switch */
+.editor-switch-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editor-switch-container:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.editor-switch-track {
+  width: 44px;
+  height: 24px;
+  background: #cbd5e1;
+  border-radius: 20px;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.editor-switch-track.on {
+  background: #10b981;
+}
+
+.editor-switch-thumb {
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.editor-switch-track.on .editor-switch-thumb {
+  transform: translateX(20px);
+}
+
+.editor-switch-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-switch-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.editor-switch-desc {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Scripture Preview Callout */
+.scripture-preview-card {
+  margin-top: 10px;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border-left: 3px solid #0e4c92;
+  border-radius: 0 10px 10px 0;
+  font-size: 13.5px;
+  color: #334155;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scripture-preview-card span.quote-mark {
+  font-size: 22px;
+  color: #0e4c92;
+  font-family: serif;
+  font-style: normal;
+  line-height: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Banner Image Uploader Dropzone
+   -------------------------------------------------------------------------- */
+.banner-upload-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.banner-preview-box {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #0f172a;
+}
+
+.banner-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.banner-preview-box:hover .banner-preview-img {
+  transform: scale(1.02);
+}
+
+.banner-overlay-actions {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px 20px;
+  gap: 10px;
+}
+
+.banner-info-badge {
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.banner-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-banner-action {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.btn-banner-change {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.btn-banner-change:hover {
+  background: #f1f5f9;
+}
+
+.btn-banner-remove {
+  background: rgba(239, 68, 68, 0.9);
+  color: #ffffff;
+}
+
+.btn-banner-remove:hover {
+  background: #dc2626;
+}
+
+.banner-empty-dropzone {
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 36px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.banner-empty-dropzone:hover {
+  border-color: #0e4c92;
+  background: #eff6ff;
+}
+
+.dropzone-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #0e4c92;
+  transition: background 0.2s ease;
+}
+
+.banner-empty-dropzone:hover .dropzone-icon {
+  background: #dbeafe;
+}
+
+.dropzone-text strong {
+  font-size: 14px;
+  color: #1e293b;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.dropzone-text span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* --------------------------------------------------------------------------
+   Leader Profile Section
+   -------------------------------------------------------------------------- */
+.leader-profile-layout {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.leader-avatar-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.leader-avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #eff6ff;
+  border: 3px solid #bfdbfe;
+  box-shadow: 0 4px 14px rgba(14, 76, 146, 0.12);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leader-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.leader-avatar-placeholder {
+  font-size: 42px;
+  color: #94a3b8;
+}
+
+.leader-photo-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0e4c92;
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.leader-photo-btn:hover {
+  background: #0e4c92;
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Assistant Leaders ("Assistances") Cards
+   -------------------------------------------------------------------------- */
+.assistant-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.assistant-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.assistant-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+}
+
+.assistant-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.assistant-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0e4c92;
+}
+
+.assistant-number-tag {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0e4c92;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.btn-remove-assistant {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-remove-assistant:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.assistant-card-body {
+  display: grid;
+  grid-template-columns: 85px 1fr;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.assistant-avatar-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.assistant-avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  border: 2px solid #cbd5e1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assistant-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.assistant-photo-label {
+  font-size: 11.5px;
+  color: #0e4c92;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.assistant-photo-label:hover {
+  color: #0a2e5c;
+}
+
+.assistants-empty-state {
+  text-align: center;
+  padding: 44px 24px;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+}
+
+.assistants-empty-state .empty-icon {
+  font-size: 38px;
+  margin-bottom: 8px;
+}
+
+.assistants-empty-state p {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Key Regular Activities
+   -------------------------------------------------------------------------- */
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 6px 10px 6px 14px;
+  transition: all 0.15s ease;
+}
+
+.activity-row:focus-within {
+  background: #ffffff;
+  border-color: #0e4c92;
+  box-shadow: 0 0 0 3px rgba(14, 76, 146, 0.1);
+}
+
+.activity-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0e4c92;
+  background: #eff6ff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.activity-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #0f172a;
+  padding: 8px 4px;
+  font-family: inherit;
+}
+
+.activity-input:focus {
+  outline: none;
+}
+
+.btn-remove-activity {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 14px;
+}
+
+.btn-remove-activity:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-add-activity-dashed {
+  margin-top: 14px;
+  width: 100%;
+  padding: 12px 18px;
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #0e4c92;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-activity-dashed:hover {
+  border-color: #0e4c92;
+  background: #eff6ff;
+}
+
+/* --------------------------------------------------------------------------
+   Sticky Floating Action Footer Bar
+   -------------------------------------------------------------------------- */
+.editor-sticky-footer {
+  position: fixed;
+  bottom: 0;
+  left: 260px;
+  right: 0;
+  z-index: 850;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid #e2e8f0;
+  padding: 14px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.footer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: #64748b;
+}
+
+.footer-info strong {
+  color: #0f172a;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .editor-sticky-footer {
+    left: 0;
+    padding: 12px 20px;
+  }
+
+  .editor-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .editor-header-actions {
+    justify-content: flex-start;
+  }
+
+  .leader-profile-layout {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .leader-avatar-column {
+    margin: 0 auto;
+  }
+
+  .assistant-card-body {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .assistant-avatar-box {
+    margin: 0 auto;
+  }
+}
