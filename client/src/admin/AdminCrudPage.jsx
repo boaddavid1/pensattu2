@@ -96,6 +96,10 @@ export default function AdminCrudPage({ entity, title }) {
       navigate('/control-panel/team/new');
       return;
     }
+    if (entity === 'ministries') {
+      navigate('/control-panel/ministries/new');
+      return;
+    }
     setEditing('new');
     setForm(Object.fromEntries(fields.map((f) => [f.name, f.type === 'number' ? 0 : ''])));
   }
@@ -103,6 +107,10 @@ export default function AdminCrudPage({ entity, title }) {
   function startEdit(item) {
     if (entity === 'team') {
       navigate(`/control-panel/team/${item.id}/edit`, { state: { item } });
+      return;
+    }
+    if (entity === 'ministries') {
+      navigate(`/control-panel/ministries/${item.id}/edit`, { state: { item } });
       return;
     }
     setEditing(item.id);
@@ -170,6 +178,41 @@ export default function AdminCrudPage({ entity, title }) {
   }
 
   function renderCardMeta(item) {
+    if (entity === 'ministries') {
+      let assistantsCount = 0;
+      if (item.assistants) {
+        if (typeof item.assistants === 'string') {
+          try {
+            const parsed = JSON.parse(item.assistants);
+            if (Array.isArray(parsed)) assistantsCount = parsed.length;
+          } catch {}
+        } else if (Array.isArray(item.assistants)) {
+          assistantsCount = item.assistants.length;
+        }
+      }
+      return (
+        <>
+          <div className="admin-crud-card-meta-item">
+            <span className="admin-crud-card-meta-label">Leader</span>
+            <span className="admin-crud-card-meta-value" style={{ fontWeight: 600 }}>
+              {item.leader_name ? `${item.leader_name} (${item.leader_role || 'Lead'})` : '—'}
+            </span>
+          </div>
+          <div className="admin-crud-card-meta-item">
+            <span className="admin-crud-card-meta-label">Assistants</span>
+            <span className="admin-crud-card-meta-value">
+              {assistantsCount > 0 ? `${assistantsCount} assistant${assistantsCount > 1 ? 's' : ''}` : 'None'}
+            </span>
+          </div>
+          {item.meeting && (
+            <div className="admin-crud-card-meta-item">
+              <span className="admin-crud-card-meta-label">Meeting</span>
+              <span className="admin-crud-card-meta-value">{item.meeting}</span>
+            </div>
+          )}
+        </>
+      );
+    }
     const metaFields = fields
       .filter((f) => f.type !== 'image' && f.type !== 'textarea' && !['title', 'name', 'full_name'].includes(f.name))
       .slice(0, 3);

@@ -29,7 +29,7 @@ const toIso = (dateStr) => {
 };
 
 const memory = {
-  ministries: data.coreValues?.map((r) => ({ ...r })) || data.ministries.map((r) => ({ ...r })),
+  ministries: data.ministries?.map((r) => ({ ...r })) || data.coreValues.map((r) => ({ ...r })),
   sermons: data.sermons.map((r) => ({ ...r })),
   team: data.leadership?.map((r) => ({ ...r })) || data.team.map((r) => ({ ...r })),
   events: data.events.map((r) => ({ ...r })),
@@ -92,9 +92,14 @@ const router = Router();
 const TABLES = {
   ministries: {
     actualTable: 'core_values',
-    columns: ['title', 'description', 'icon', 'image_url', 'display_order', 'is_active'],
+    columns: [
+      'title', 'description', 'icon', 'image_url', 'display_order', 'is_active',
+      'category', 'meeting', 'venue', 'scripture', 'full_description', 'responsibilities', 'ideal_for',
+      'leader_name', 'leader_role', 'leader_image', 'leader_phone', 'leader_email', 'leader_bio',
+      'assistants', 'activities'
+    ],
     required: ['title'],
-    orderBy: 'display_order',
+    orderBy: 'display_order, id',
   },
   sermons: {
     actualTable: 'sermons',

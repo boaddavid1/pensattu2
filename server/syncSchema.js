@@ -259,6 +259,22 @@ const REQUIRED_COLUMNS = [
   { table: 'prayer_requests', column: 'status', definition: "ENUM('pending','prayed') DEFAULT 'pending'" },
   { table: 'prayer_requests', column: 'prayed_at', definition: "DATETIME DEFAULT NULL" },
   { table: 'prayer_requests', column: 'ip_address', definition: "VARCHAR(45) DEFAULT NULL" },
+  // core_values (ministries leadership and details)
+  { table: 'core_values', column: 'category', definition: "VARCHAR(150)" },
+  { table: 'core_values', column: 'meeting', definition: "VARCHAR(200)" },
+  { table: 'core_values', column: 'venue', definition: "VARCHAR(200)" },
+  { table: 'core_values', column: 'scripture', definition: "TEXT" },
+  { table: 'core_values', column: 'full_description', definition: "TEXT" },
+  { table: 'core_values', column: 'responsibilities', definition: "TEXT" },
+  { table: 'core_values', column: 'ideal_for', definition: "TEXT" },
+  { table: 'core_values', column: 'leader_name', definition: "VARCHAR(200)" },
+  { table: 'core_values', column: 'leader_role', definition: "VARCHAR(200)" },
+  { table: 'core_values', column: 'leader_image', definition: "VARCHAR(500)" },
+  { table: 'core_values', column: 'leader_phone', definition: "VARCHAR(50)" },
+  { table: 'core_values', column: 'leader_email', definition: "VARCHAR(150)" },
+  { table: 'core_values', column: 'leader_bio', definition: "TEXT" },
+  { table: 'core_values', column: 'assistants', definition: "LONGTEXT" },
+  { table: 'core_values', column: 'activities', definition: "LONGTEXT" },
 ];
 
 async function syncColumns() {

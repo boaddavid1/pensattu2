@@ -26,16 +26,48 @@ export default function MinistryDetail() {
         if (Array.isArray(data)) {
           const apiMatch = data.find((m) => String(m.id) === String(id));
           if (apiMatch) {
-            setMinistry((prev) => ({
-              ...(prev || localMatch || {}),
-              ...apiMatch,
-              leader: (prev || localMatch)?.leader || {
-                name: apiMatch.leader_name || 'Ministry Leader',
-                role: apiMatch.leader_role || 'Head of Department',
-                image_url: apiMatch.leader_image || '/images/pensafallback-bw.png',
-              },
-              assistants: (prev || localMatch)?.assistants || [],
-            }));
+            let parsedAssistants = [];
+            if (typeof apiMatch.assistants === 'string' && apiMatch.assistants.trim()) {
+              try {
+                const parsed = JSON.parse(apiMatch.assistants);
+                if (Array.isArray(parsed)) parsedAssistants = parsed;
+              } catch {}
+            } else if (Array.isArray(apiMatch.assistants)) {
+              parsedAssistants = apiMatch.assistants;
+            }
+
+            let parsedActivities = [];
+            if (typeof apiMatch.activities === 'string' && apiMatch.activities.trim()) {
+              try {
+                const parsed = JSON.parse(apiMatch.activities);
+                if (Array.isArray(parsed)) parsedActivities = parsed;
+              } catch {
+                parsedActivities = apiMatch.activities.split('\n').filter(Boolean);
+              }
+            } else if (Array.isArray(apiMatch.activities)) {
+              parsedActivities = apiMatch.activities;
+            }
+
+            setMinistry((prev) => {
+              const base = prev || localMatch || {};
+              return {
+                ...base,
+                ...apiMatch,
+                fullDescription: apiMatch.full_description || apiMatch.fullDescription || base.fullDescription,
+                responsibilities: apiMatch.responsibilities || base.responsibilities,
+                idealFor: apiMatch.ideal_for || apiMatch.idealFor || base.idealFor,
+                leader: apiMatch.leader_name ? {
+                  name: apiMatch.leader_name,
+                  role: apiMatch.leader_role || 'Ministry Leader',
+                  image_url: apiMatch.leader_image || base.leader?.image_url || '/images/pensafallback-bw.png',
+                  phone: apiMatch.leader_phone || base.leader?.phone || '',
+                  email: apiMatch.leader_email || base.leader?.email || '',
+                  bio: apiMatch.leader_bio || base.leader?.bio || '',
+                } : base.leader,
+                assistants: parsedAssistants.length > 0 ? parsedAssistants : base.assistants || [],
+                activities: parsedActivities.length > 0 ? parsedActivities : base.activities || [],
+              };
+            });
           }
         }
       })

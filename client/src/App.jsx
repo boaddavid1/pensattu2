@@ -28,6 +28,7 @@ const MinistryDetail = lazy(() => import('./pages/MinistryDetail'));
 
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
 const AdminCrudPage = lazy(() => import('./admin/AdminCrudPage'));
+const AdminMinistryForm = lazy(() => import('./admin/AdminMinistryForm'));
 const AdminGallery = lazy(() => import('./admin/AdminGallery'));
 const AdminReadonly = lazy(() => import('./admin/AdminReadonly'));
 const AdminTeamForm = lazy(() => import('./admin/AdminTeamForm'));
@@ -116,6 +117,8 @@ function AdminShell() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="navigation" element={<AdminNavigation />} />
           <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Departments & Teams" />} />
+          <Route path="ministries/new" element={<AdminMinistryForm isNew={true} />} />
+          <Route path="ministries/:id/edit" element={<AdminMinistryForm />} />
           <Route path="departments" element={<Navigate to="/control-panel/ministries" replace />} />
           <Route path="departments-teams" element={<Navigate to="/control-panel/ministries" replace />} />
           <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
