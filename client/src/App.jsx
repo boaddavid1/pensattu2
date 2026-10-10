@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState, Component } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -8,6 +8,47 @@ import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
 import { isLoggedIn } from './admin/adminApi';
 import { NavigationProvider } from './context/NavigationContext';
+
+class AdminErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('Admin Error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2.5rem', maxWidth: '640px', margin: '4rem auto', background: '#1a1a2e', color: '#e0e0e0', borderRadius: '12px', border: '1px solid #333', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', fontFamily: 'system-ui, sans-serif' }}>
+          <h2 style={{ color: '#ff6b6b', marginTop: 0, fontSize: '1.4rem' }}>Portal Error</h2>
+          <p style={{ lineHeight: 1.5, color: '#aaa' }}>Something went wrong loading this section of the admin portal.</p>
+          <pre style={{ background: '#12121e', padding: '1rem', borderRadius: '8px', overflow: 'auto', fontSize: '0.85rem', color: '#ff9999', margin: '1rem 0' }}>
+            {this.state.error?.message || String(this.state.error)}
+          </pre>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+            <button
+              onClick={() => window.location.reload()}
+              style={{ padding: '0.6rem 1.4rem', background: '#2c5f4a', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              Reload Page
+            </button>
+            <a
+              href="/control-panel/dashboard"
+              style={{ padding: '0.6rem 1.4rem', background: '#333', color: '#fff', textDecoration: 'none', borderRadius: '6px', fontWeight: 'bold' }}
+            >
+              Go to Dashboard
+            </a>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Route-level code splitting — each page loads on demand.
 const Home = lazy(() => import('./pages/Home'));
@@ -109,38 +150,40 @@ function RegisterShell() {
 
 function AdminShell() {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route index element={<Navigate to={isLoggedIn() ? '/control-panel/dashboard' : '/control-panel/login'} replace />} />
-        <Route path="login" element={<AdminLogin />} />
-        <Route element={<AdminLayout><Outlet /></AdminLayout>}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="navigation" element={<AdminNavigation />} />
-          <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Departments & Teams" />} />
-          <Route path="ministries/new" element={<AdminMinistryForm isNew={true} />} />
-          <Route path="ministries/:id/edit" element={<AdminMinistryForm />} />
-          <Route path="departments" element={<Navigate to="/control-panel/ministries" replace />} />
-          <Route path="departments-teams" element={<Navigate to="/control-panel/ministries" replace />} />
-          <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
-          <Route path="team" element={<AdminCrudPage entity="team" title="Leadership Team" />} />
-          <Route path="team/new" element={<AdminTeamForm isNew={true} />} />
-          <Route path="team/year/:year" element={<AdminTeamYear />} />
-          <Route path="team/:id/edit" element={<AdminTeamForm />} />
-          <Route path="events" element={<AdminCrudPage entity="events" title="Events" />} />
-          <Route path="announcements" element={<AdminCrudPage entity="announcements" title="Announcements" />} />
-          <Route path="notices" element={<AdminCrudPage entity="notices" title="Notices" />} />
-          <Route path="visits" element={<AdminReadonly entity="visits" title="Visit Plans" />} />
-          <Route path="subscribers" element={<AdminReadonly entity="subscribers" title="Subscribers" />} />
-          <Route path="contacts" element={<AdminReadonly entity="contacts" title="Contact Messages" />} />
-          <Route path="gallery" element={<AdminGallery />} />
-          <Route path="past-questions" element={<AdminPastQuestions />} />
-          <Route path="books" element={<AdminBooks />} />
-          <Route path="prayers" element={<AdminPrayers />} />
-          <Route path="registrations" element={<AdminRegistrations />} />
-          <Route path="users" element={<AdminUsers />} />
-        </Route>
-      </Routes>
-    </Suspense>
+    <AdminErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route index element={<Navigate to={isLoggedIn() ? '/control-panel/dashboard' : '/control-panel/login'} replace />} />
+          <Route path="login" element={<AdminLogin />} />
+          <Route element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="navigation" element={<AdminNavigation />} />
+            <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Departments & Teams" />} />
+            <Route path="ministries/new" element={<AdminMinistryForm isNew={true} />} />
+            <Route path="ministries/:id/edit" element={<AdminMinistryForm />} />
+            <Route path="departments" element={<Navigate to="/control-panel/ministries" replace />} />
+            <Route path="departments-teams" element={<Navigate to="/control-panel/ministries" replace />} />
+            <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
+            <Route path="team" element={<AdminCrudPage entity="team" title="Leadership Team" />} />
+            <Route path="team/new" element={<AdminTeamForm isNew={true} />} />
+            <Route path="team/year/:year" element={<AdminTeamYear />} />
+            <Route path="team/:id/edit" element={<AdminTeamForm />} />
+            <Route path="events" element={<AdminCrudPage entity="events" title="Events" />} />
+            <Route path="announcements" element={<AdminCrudPage entity="announcements" title="Announcements" />} />
+            <Route path="notices" element={<AdminCrudPage entity="notices" title="Notices" />} />
+            <Route path="visits" element={<AdminReadonly entity="visits" title="Visit Plans" />} />
+            <Route path="subscribers" element={<AdminReadonly entity="subscribers" title="Subscribers" />} />
+            <Route path="contacts" element={<AdminReadonly entity="contacts" title="Contact Messages" />} />
+            <Route path="gallery" element={<AdminGallery />} />
+            <Route path="past-questions" element={<AdminPastQuestions />} />
+            <Route path="books" element={<AdminBooks />} />
+            <Route path="prayers" element={<AdminPrayers />} />
+            <Route path="registrations" element={<AdminRegistrations />} />
+            <Route path="users" element={<AdminUsers />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </AdminErrorBoundary>
   );
 }
 

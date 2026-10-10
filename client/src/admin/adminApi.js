@@ -1,10 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 function getToken() {
-  return sessionStorage.getItem('pensa_admin_token');
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('pensa_admin_token') || sessionStorage.getItem('pensa_admin_token');
 }
 
 function removeToken() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('pensa_admin_token');
   sessionStorage.removeItem('pensa_admin_token');
 }
 
@@ -19,7 +22,9 @@ async function request(path, options = {}) {
   if (res.status === 401) {
     removeToken();
     if (typeof window !== 'undefined' && !path.startsWith('/cp/login')) {
-      window.location.href = '/control-panel/login';
+      if (window.location.pathname !== '/control-panel/login') {
+        window.location.href = '/control-panel/login';
+      }
     }
   }
   if (!res.ok) {
@@ -34,6 +39,8 @@ export function isLoggedIn() {
 }
 
 export function setToken(token) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('pensa_admin_token', token);
   sessionStorage.setItem('pensa_admin_token', token);
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate, Outlet } from 'react-router-dom';
 import { adminApi, isLoggedIn } from './adminApi';
 import './admin.css';
 
@@ -30,11 +30,11 @@ export default function AdminLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
 
+  if (!isLoggedIn()) {
+    return <Navigate to="/control-panel/login" replace />;
+  }
+
   useEffect(() => {
-    if (!isLoggedIn()) {
-      navigate('/control-panel/login', { replace: true });
-      return;
-    }
     adminApi.me().then((res) => setUser(res.user)).catch(() => {
       navigate('/control-panel/login', { replace: true });
     });
@@ -73,6 +73,7 @@ export default function AdminLayout({ children }) {
 
   function handleLogout() {
     sessionStorage.removeItem('pensa_admin_token');
+    localStorage.removeItem('pensa_admin_token');
     navigate('/control-panel/login', { replace: true });
   }
 
@@ -107,7 +108,7 @@ export default function AdminLayout({ children }) {
           <span className="admin-page-title">Super Admin Portal</span>
           <a href="/" className="admin-back-link">← Back to site</a>
         </header>
-        <div className="admin-content">{children}</div>
+        <div className="admin-content">{children || <Outlet />}</div>
       </main>
       {installPrompt && (
         <div className="cp-install-prompt">
