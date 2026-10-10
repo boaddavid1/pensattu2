@@ -61,4 +61,9 @@ export const adminApi = {
   regStats: () => request('/reg/stats'),
   regGet: (id) => request(`/reg/${id}`),
   regRemove: (id) => request(`/reg/${id}`, { method: 'DELETE' }),
+
+  // Site Navigation & Footer Management
+  getNavigation: () => request('/cp/navigation'),
+  updateNavigation: (body) => request('/cp/navigation', { method: 'PUT', body: JSON.stringify(body) }),
+  resetNavigation: () => request('/cp/navigation/reset', { method: 'POST' }),
 };

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { adminApi } from './adminApi';
 
 const statCards = [
+  { key: 'navigation', label: 'Navbar & Footer', to: '/control-panel/navigation', isAction: true },
   { key: 'ministries', label: 'Departments & Teams', to: '/control-panel/ministries' },
   { key: 'sermons', label: 'Sermons', to: '/control-panel/sermons' },
   { key: 'team', label: 'Team', to: '/control-panel/team' },
@@ -44,7 +45,7 @@ export default function AdminDashboard() {
           <div className="admin-stats-grid">
             {statCards.map((card) => (
               <Link key={card.key} to={card.to} className="admin-stat-card">
-                <strong>{stats[card.key] ?? 0}</strong>
+                <strong>{card.isAction ? '⚙' : (stats[card.key] ?? 0)}</strong>
                 <span>{card.label}</span>
               </Link>
             ))}

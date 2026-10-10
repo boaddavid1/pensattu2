@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
-import adminRoutes from './adminRoutes.js';
+import adminRoutes, { getActiveNavigation } from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
 import alumniRoutes from './alumniRoutes.js';
@@ -20,6 +20,7 @@ import {
   ministries, sermons, team, events,
   addVisit, addSubscriber, addContact,
   announcements, notices, galleryAlbums,
+  defaultNavigation,
 } from './data.js';
 
 dotenv.config();
@@ -237,6 +238,20 @@ app.get('/api/hero-slider', async (req, res) => {
   } catch (err) {
     res.json([]);
   }
+});
+
+// Navigation & Footer Settings (Public)
+app.get('/api/navigation', async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT setting_value FROM navigation_settings WHERE setting_key = 'main_navigation' LIMIT 1");
+    if (rows && rows.length > 0 && rows[0].setting_value) {
+      const parsed = JSON.parse(rows[0].setting_value);
+      return res.json(parsed);
+    }
+  } catch (err) {
+    // If DB is unreachable or query errors, falls through to default
+  }
+  res.json(getActiveNavigation ? getActiveNavigation() : defaultNavigation);
 });
 
 // About Settings

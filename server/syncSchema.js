@@ -204,6 +204,13 @@ const TABLES = [
     INDEX idx_user_status (user_status),
     INDEX idx_submitted_at (submitted_at)
   )`,
+
+  `CREATE TABLE IF NOT EXISTS navigation_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value LONGTEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )`,
 ];
 
 // Columns that must exist for the public library view to work correctly.

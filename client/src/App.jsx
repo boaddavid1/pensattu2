@@ -7,6 +7,7 @@ import PwaPrompt from './components/PwaPrompt';
 import AdminLogin from './admin/AdminLogin';
 import AdminLayout from './admin/AdminLayout';
 import { isLoggedIn } from './admin/adminApi';
+import { NavigationProvider } from './context/NavigationContext';
 
 // Route-level code splitting — each page loads on demand.
 const Home = lazy(() => import('./pages/Home'));
@@ -35,6 +36,7 @@ const AdminBooks = lazy(() => import('./admin/AdminBooks'));
 const AdminUsers = lazy(() => import('./admin/AdminUsers'));
 const AdminPrayers = lazy(() => import('./prayer-admin/AdminPrayers'));
 const AdminRegistrations = lazy(() => import('./admin/AdminRegistrations'));
+const AdminNavigation = lazy(() => import('./admin/AdminNavigation'));
 
 function PageLoader() {
   return <div className="loading">Loading...</div>;
@@ -107,6 +109,7 @@ function AdminShell() {
         <Route path="login" element={<AdminLogin />} />
         <Route element={<AdminLayout><Outlet /></AdminLayout>}>
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="navigation" element={<AdminNavigation />} />
           <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Departments & Teams" />} />
           <Route path="departments" element={<Navigate to="/control-panel/ministries" replace />} />
           <Route path="departments-teams" element={<Navigate to="/control-panel/ministries" replace />} />
@@ -135,13 +138,15 @@ function AdminShell() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/control-panel/*" element={<AdminShell />} />
-        <Route path="/register/*" element={<RegisterShell />} />
-        <Route path="/*" element={<AppShell />} />
-      </Routes>
-    </BrowserRouter>
+    <NavigationProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/control-panel/*" element={<AdminShell />} />
+          <Route path="/register/*" element={<RegisterShell />} />
+          <Route path="/*" element={<AppShell />} />
+        </Routes>
+      </BrowserRouter>
+    </NavigationProvider>
   );
 }
 

@@ -41,12 +41,27 @@ const memory = {
   contacts: data.contactMessages || data.contacts,
   gallery_photos: data.gallery?.map((r) => ({ ...r })) || [],
   users: [{ ...DEMO_USER, password_hash: null }],
+  navigation: JSON.parse(JSON.stringify(data.defaultNavigation || {})),
 };
 
 function isDbUnavailable(err) {
-  const msg = err && err.message ? err.message.toLowerCase() : '';
-  const code = err && err.code ? err.code.toLowerCase() : '';
-  return msg.includes('unknown database') || msg.includes('econnrefused') || msg.includes('etimedout') || msg.includes('access denied') || msg.includes("can't connect") || msg.includes('connection lost') || msg.includes('connect timeout') || code === 'etimedout';
+  if (!err) return false;
+  const msg = err.message ? err.message.toLowerCase() : '';
+  const code = err.code ? err.code.toLowerCase() : '';
+  return (
+    code === 'econnrefused' ||
+    code === 'etimedout' ||
+    code === 'er_bad_db_error' ||
+    code === 'er_access_denied_error' ||
+    code === 'enotfound' ||
+    msg.includes('unknown database') ||
+    msg.includes('econnrefused') ||
+    msg.includes('etimedout') ||
+    msg.includes('access denied') ||
+    msg.includes("can't connect") ||
+    msg.includes('connection lost') ||
+    msg.includes('connect timeout')
+  );
 }
 
 function memoryList(table) { return memory[table] || []; }
@@ -507,5 +522,77 @@ router.delete('/users/:id', requireAuth, requireSuperAdmin, async (req, res) => 
     res.status(500).json({ error: err.message });
   }
 });
+
+// Navigation & Footer Management
+router.get('/navigation', requireAuth, async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT setting_value FROM navigation_settings WHERE setting_key = 'main_navigation' LIMIT 1");
+    if (rows && rows.length > 0 && rows[0].setting_value) {
+      const parsed = JSON.parse(rows[0].setting_value);
+      return res.json(parsed);
+    }
+  } catch (err) {
+    // If DB unavailable or empty, fallback
+  }
+  res.json(memory.navigation || data.defaultNavigation);
+});
+
+router.put('/navigation', requireAuth, async (req, res) => {
+  const { navbar, footer } = req.body;
+  if (!navbar && !footer) {
+    return res.status(400).json({ error: 'Navbar or footer data required' });
+  }
+
+  const current = memory.navigation || JSON.parse(JSON.stringify(data.defaultNavigation));
+  const updated = {
+    navbar: navbar || current.navbar,
+    footer: footer || current.footer,
+  };
+
+  memory.navigation = updated;
+
+  try {
+    const jsonStr = JSON.stringify(updated);
+    await pool.query(
+      `INSERT INTO navigation_settings (setting_key, setting_value)
+       VALUES ('main_navigation', ?)
+       ON DUPLICATE KEY UPDATE setting_value = ?`,
+      [jsonStr, jsonStr]
+    );
+    logAction(req.user.id, 'UPDATE', 'navigation_settings', 1, { section: 'navbar_and_footer' });
+    res.json({ ok: true, message: 'Navbar and Footer updated successfully', data: updated });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      return res.json({ ok: true, message: 'Saved (fallback mode)', data: updated, demo: true });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/navigation/reset', requireAuth, async (req, res) => {
+  const def = JSON.parse(JSON.stringify(data.defaultNavigation));
+  memory.navigation = def;
+
+  try {
+    const jsonStr = JSON.stringify(def);
+    await pool.query(
+      `INSERT INTO navigation_settings (setting_key, setting_value)
+       VALUES ('main_navigation', ?)
+       ON DUPLICATE KEY UPDATE setting_value = ?`,
+      [jsonStr, jsonStr]
+    );
+    logAction(req.user.id, 'RESET', 'navigation_settings', 1);
+    res.json({ ok: true, message: 'Reset to default navigation', data: def });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      return res.json({ ok: true, message: 'Reset to default (fallback mode)', data: def, demo: true });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+export function getActiveNavigation() {
+  return memory.navigation || data.defaultNavigation;
+}
 
 export default router;

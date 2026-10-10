@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    watch: {
+      ignored: ['**/dist/**'],
+    },
     fs: {
       allow: [path.resolve(__dirname, '..')],
     },

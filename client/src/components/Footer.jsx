@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useNavigation } from '../context/NavigationContext';
 import { requestNotificationPermission, showLocalNotification, registerPushSubscription } from '../utils/notifications.js';
 
 export default function Footer() {
+  const { navData } = useNavigation();
+  const footer = navData?.footer || {};
   const [notifyStatus, setNotifyStatus] = useState('default');
 
   useEffect(() => {
@@ -20,66 +23,106 @@ export default function Footer() {
     setNotifyStatus(permission);
     if (permission === 'granted') {
       await registerPushSubscription();
-      showLocalNotification('PENSA TTU', {
-        body: 'You will now receive updates from PENSA TTU.',
+      showLocalNotification(footer.brand_title || 'PENSA TTU', {
+        body: `You will now receive updates from ${footer.brand_title || 'PENSA TTU'}.`,
         data: '/',
       });
     }
   }
+
+  const renderSocialIcon = (network, url) => {
+    if (!url) return null;
+    const labels = {
+      facebook: 'f',
+      instagram: 'ig',
+      youtube: 'yt',
+      twitter: 'x',
+      tiktok: 'tk',
+    };
+    return (
+      <a
+        key={network}
+        href={url}
+        target={url.startsWith('http') ? '_blank' : '_self'}
+        rel="noopener noreferrer"
+        aria-label={network}
+      >
+        {labels[network] || network.slice(0, 2)}
+      </a>
+    );
+  };
+
+  const renderLink = (to, label) => {
+    const isExternal = /^https?:\/\//i.test(to);
+    if (isExternal) {
+      return (
+        <a href={to} target="_blank" rel="noopener noreferrer">
+          {label}
+        </a>
+      );
+    }
+    return <Link to={to || '#'}>{label}</Link>;
+  };
+
+  const social = footer.social_links || {};
+  const columns = footer.columns || [];
+  const contact = footer.contact_info || {};
 
   return (
     <footer>
       <div className="wrap">
         <div className="foot-grid">
           <div>
-            <div className="foot-logo">PENSA <span>TTU</span></div>
-            <p>A church community in Accra built on honest worship, real friendship, and a Word that meets you where you are.</p>
-            <div className="foot-social"><a href="#">f</a><a href="#">ig</a><a href="#">yt</a></div>
-            <div className="foot-notify">
-              {notifyStatus === 'granted' ? (
-                <span>Notifications enabled</span>
-              ) : (
-                <button type="button" onClick={enableNotifications}>
-                  Enable notifications
-                </button>
-              )}
+            <div className="foot-logo">
+              {footer.brand_title || 'PENSA'} {footer.brand_accent ? <span>{footer.brand_accent}</span> : null}
             </div>
+            {footer.brand_tagline && <p>{footer.brand_tagline}</p>}
+            <div className="foot-social">
+              {Object.entries(social).map(([net, url]) => renderSocialIcon(net, url))}
+            </div>
+            {footer.show_notifications_btn !== false && (
+              <div className="foot-notify">
+                {notifyStatus === 'granted' ? (
+                  <span>Notifications enabled</span>
+                ) : (
+                  <button type="button" onClick={enableNotifications}>
+                    Enable notifications
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-          <div>
-            <h4>Church</h4>
-            <ul>
-              <li><Link to="/about">About Us</Link></li>
-              <li><Link to="/ministries">Ministries</Link></li>
-              <li><Link to="/departments-and-teams">Departments &amp; Teams</Link></li>
-              <li><Link to="/leadership">Leadership</Link></li>
-              <li><Link to="/sermons">Sermons</Link></li>
-              <li><Link to="/contact">Contact</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4>Ministries &amp; Teams</h4>
-            <ul>
-              <li><Link to="/ministries">Worship &amp; Music</Link></li>
-              <li><Link to="/ministries">Youth &amp; Kids</Link></li>
-              <li><Link to="/ministries">Outreach &amp; Missions</Link></li>
-              <li><Link to="/ministries">Bible Study &amp; Prayer</Link></li>
-            </ul>
-          </div>
+
+          {columns.map((col) => (
+            <div key={col.id || col.title}>
+              <h4>{col.title}</h4>
+              <ul>
+                {(col.links || []).map((link) => (
+                  <li key={link.id || link.label + link.path}>
+                    {renderLink(link.path, link.label)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
           <div>
             <h4>Visit Us</h4>
             <ul className="foot-contact">
-              <li>📍 12 Cantonments Road, Accra, GH</li>
-              <li>✉️ hello@pensattu.example</li>
-              <li>☎ +233553070627</li>
-              <li>🕊 Sundays, 6:30 AM - 9:30 AM</li>
+              {contact.address && <li>📍 {contact.address}</li>}
+              {contact.email && <li>✉️ {contact.email}</li>}
+              {contact.phone && <li>☎ {contact.phone}</li>}
+              {contact.service_time && <li>🕊 {contact.service_time}</li>}
             </ul>
           </div>
         </div>
+
         <div className="foot-bottom">
-          <span>© 2026 PENSA TTU. All rights reserved.</span>
-          <span>Privacy · Terms</span>
+          <span>{footer.copyright_text || '© 2026 PENSA TTU. All rights reserved.'}</span>
+          <span>{footer.privacy_terms_text || 'Privacy · Terms'}</span>
         </div>
-        <div className="foot-word">PENSA TTU</div>
+
+        {footer.watermark_text && <div className="foot-word">{footer.watermark_text}</div>}
       </div>
     </footer>
   );
