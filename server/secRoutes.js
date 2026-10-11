@@ -1737,25 +1737,76 @@ router.post('/settings/users', requireSecAuth, requireSecAdmin, async (req, res)
 
 router.put('/settings/users/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
-    const { username, email, role, password } = req.body;
-    if (password) {
-      const hashed = await bcrypt.hash(password, 10);
-      await secPool.query('UPDATE users SET username=?, email=?, role=?, password=? WHERE id=?', [username, email, role || 'user', hashed, req.params.id]);
-    } else {
-      await secPool.query('UPDATE users SET username=?, email=?, role=? WHERE id=?', [username, email, role || 'user', req.params.id]);
+    const [existing] = await secPool.query('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    if (!existing.length) return res.status(404).json({ error: 'User not found' });
+    const userRow = existing[0];
+
+    const username = req.body.username !== undefined ? String(req.body.username).trim() : userRow.username;
+    const email = req.body.email !== undefined ? String(req.body.email).trim() : userRow.email;
+    const role = req.body.role !== undefined ? String(req.body.role).toLowerCase().trim() : userRow.role;
+
+    if (!['admin', 'user'].includes(role)) {
+      return res.status(400).json({ error: "Invalid role. Role must be 'admin' or 'user'." });
     }
-    await logActivity(secPool, req.user.id, req.user.username, 'EDIT_USER', `Edited admin user #${req.params.id}`, req);
-    res.json({ success: true });
+
+    // Safeguard: Ensure at least one admin remains in the system
+    if (userRow.role === 'admin' && role !== 'admin') {
+      const [[{ adminCount }]] = await secPool.query("SELECT COUNT(*) as adminCount FROM users WHERE role = 'admin' AND id != ?", [req.params.id]);
+      if (adminCount === 0) {
+        return res.status(400).json({ error: 'Cannot demote user: The system must have at least one active administrator.' });
+      }
+    }
+
+    if (req.body.password && String(req.body.password).trim()) {
+      const hashed = await bcrypt.hash(String(req.body.password).trim(), 10);
+      await secPool.query('UPDATE users SET username=?, email=?, role=?, password=? WHERE id=?', [username, email, role, hashed, req.params.id]);
+    } else {
+      await secPool.query('UPDATE users SET username=?, email=?, role=? WHERE id=?', [username, email, role, req.params.id]);
+    }
+
+    const roleChanged = userRow.role !== role;
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      roleChanged ? 'CHANGE_USER_ROLE' : 'EDIT_USER',
+      roleChanged
+        ? `Changed role of user #${req.params.id} (${username}) from '${userRow.role}' to '${role}'`
+        : `Updated profile details of user #${req.params.id} (${username})`,
+      req
+    );
+
+    res.json({
+      success: true,
+      message: roleChanged ? `Role changed to ${role} successfully` : 'User updated successfully',
+      user: { id: userRow.id, username, email, role }
+    });
   } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Username or email already exists' });
     res.status(500).json({ error: err.message });
   }
 });
 
 router.delete('/settings/users/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
+    const [existing] = await secPool.query('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    if (!existing.length) return res.status(404).json({ error: 'User not found' });
+    const target = existing[0];
+
+    // Safeguard: Cannot delete yourself or the last remaining admin
+    if (Number(req.user.id) === Number(target.id)) {
+      return res.status(400).json({ error: 'Cannot delete your own account while logged in.' });
+    }
+    if (target.role === 'admin') {
+      const [[{ adminCount }]] = await secPool.query("SELECT COUNT(*) as adminCount FROM users WHERE role = 'admin' AND id != ?", [req.params.id]);
+      if (adminCount === 0) {
+        return res.status(400).json({ error: 'Cannot delete the only administrator account.' });
+      }
+    }
+
     await secPool.query('DELETE FROM users WHERE id = ?', [req.params.id]);
-    await logActivity(secPool, req.user.id, req.user.username, 'DELETE_USER', `Deleted admin user #${req.params.id}`, req);
-    res.json({ success: true });
+    await logActivity(secPool, req.user.id, req.user.username, 'DELETE_USER', `Deleted user #${req.params.id} (${target.username}, ${target.email}, role: ${target.role})`, req);
+    res.json({ success: true, message: 'User deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
