@@ -1,10 +1,12 @@
 // ViewMember.jsx — View a single member's details (ported from view_user.php)
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../api/AuthContext.jsx';
 import { secApi } from '../api/secApi.js';
 
 export default function ViewMember() {
   const { id } = useParams();
+  const { isAdmin } = useAuth();
   const [member, setMember] = useState(null);
   const [error, setError] = useState('');
   const [showTopup, setShowTopup] = useState(false);
@@ -78,21 +80,23 @@ export default function ViewMember() {
             <li><a>{member.surname} {member.othernames}</a></li>
           </ul>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          {((member.program_duration || '').toLowerCase().includes('diploma') || member.education_level === '200') && (
-            <button
-              type="button"
-              onClick={openTopup}
-              className="btn-download"
-              style={{ background: '#2980b9', color: '#fff', border: 'none', cursor: 'pointer' }}
-            >
-              <i className='bx bx-transfer'></i> BTech Top-up
-            </button>
-          )}
-          <Link to={`/members/${id}/edit`} className="btn-download">
-            <i className='bx bxs-edit'></i> Edit Member
-          </Link>
-        </div>
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 10 }}>
+            {((member.program_duration || '').toLowerCase().includes('diploma') || member.education_level === '200') && (
+              <button
+                type="button"
+                onClick={openTopup}
+                className="btn-download"
+                style={{ background: '#2980b9', color: '#fff', border: 'none', cursor: 'pointer' }}
+              >
+                <i className='bx bx-transfer'></i> BTech Top-up
+              </button>
+            )}
+            <Link to={`/members/${id}/edit`} className="btn-download">
+              <i className='bx bxs-edit'></i> Edit Member
+            </Link>
+          </div>
+        )}
       </div>
 
       {topupMsg && (
@@ -133,7 +137,7 @@ export default function ViewMember() {
       </div>
 
       {/* BTech Top-up Modal */}
-      {showTopup && (
+      {isAdmin && showTopup && (
         <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => !topupSaving && setShowTopup(false)}>
           <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

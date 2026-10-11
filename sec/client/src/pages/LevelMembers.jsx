@@ -1,10 +1,12 @@
 // LevelMembers.jsx — Shows all members in a specific education level
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../api/AuthContext.jsx';
 import { secApi } from '../api/secApi.js';
 
 export default function LevelMembers() {
   const { level } = useParams();
+  const { isAdmin } = useAuth();
   const [data, setData] = useState(() => {
     try {
       const cached = sessionStorage.getItem(`sec_level_members_${level}_p1`);
@@ -242,7 +244,7 @@ export default function LevelMembers() {
           </ul>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {level === '400' && (
+          {isAdmin && level === '400' && (
             <button
               type="button"
               className="btn-download"
@@ -281,7 +283,7 @@ export default function LevelMembers() {
       </div>
 
       {/* Level 400 Batch Actions Bar */}
-      {level === '400' && selectedIds.length > 0 && (
+      {isAdmin && level === '400' && selectedIds.length > 0 && (
         <div style={{ background: '#f5eeff', border: '1px solid #dcd0ff', padding: '10px 16px', borderRadius: 8, marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <span style={{ fontSize: 13, color: '#5b2c6f', fontWeight: 600 }}>
             <i className='bx bx-check-square' style={{ marginRight: 6, fontSize: 16 }}></i>
@@ -323,7 +325,7 @@ export default function LevelMembers() {
             <table>
               <thead>
                 <tr>
-                  {level === '400' && (
+                  {isAdmin && level === '400' && (
                     <th style={{ width: 36, textAlign: 'center' }}>
                       <input 
                         type="checkbox" 
@@ -345,7 +347,7 @@ export default function LevelMembers() {
               <tbody>
                 {members.map(m => (
                   <tr key={m.id}>
-                    {level === '400' && (
+                    {isAdmin && level === '400' && (
                       <td style={{ textAlign: 'center' }}>
                         <input 
                           type="checkbox" 
@@ -371,20 +373,24 @@ export default function LevelMembers() {
                     <td><span className={`status ${m.membership_type}`}>{m.membership_type}</span></td>
                     <td style={{ whiteSpace: 'nowrap' }}>
                       <Link to={`/members/${m.id}`} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4 }}>View</Link>
-                      <Link to={`/members/${m.id}/edit`} className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }}>Edit</Link>
-                      {((m.program_duration || '').toLowerCase().includes('diploma') || m.education_level === '200') && (
-                        <button
-                          onClick={() => openTopupModal(m)}
-                          className="btn btn-primary"
-                          style={{ padding: '4px 10px', marginRight: 4, background: '#2980b9' }}
-                          title="Diploma student doing BTech Top-up? Click to switch to BTech continuing from Level 200"
-                        >
-                          BTech Top-up
-                        </button>
+                      {isAdmin && (
+                        <>
+                          <Link to={`/members/${m.id}/edit`} className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }}>Edit</Link>
+                          {((m.program_duration || '').toLowerCase().includes('diploma') || m.education_level === '200') && (
+                            <button
+                              onClick={() => openTopupModal(m)}
+                              className="btn btn-primary"
+                              style={{ padding: '4px 10px', marginRight: 4, background: '#2980b9' }}
+                              title="Diploma student doing BTech Top-up? Click to switch to BTech continuing from Level 200"
+                            >
+                              BTech Top-up
+                            </button>
+                          )}
+                          <button onClick={() => handlePromote(m)} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4, background: '#27ae60' }} title="Advance to next level or graduate">Advance</button>
+                          <button onClick={() => handleGraduate(m.id)} className="btn btn-success" style={{ padding: '4px 10px', marginRight: 4 }}>Graduate</button>
+                          <button onClick={() => setShowDelete(m)} className="btn btn-danger" style={{ padding: '4px 10px' }}>Delete</button>
+                        </>
                       )}
-                      <button onClick={() => handlePromote(m)} className="btn btn-primary" style={{ padding: '4px 10px', marginRight: 4, background: '#27ae60' }} title="Advance to next level or graduate">Advance</button>
-                      <button onClick={() => handleGraduate(m.id)} className="btn btn-success" style={{ padding: '4px 10px', marginRight: 4 }}>Graduate</button>
-                      <button onClick={() => setShowDelete(m)} className="btn btn-danger" style={{ padding: '4px 10px' }}>Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -404,7 +410,7 @@ export default function LevelMembers() {
         </div>
       </div>
 
-      {showDelete && (
+      {isAdmin && showDelete && (
         <div className="modal-overlay" onClick={() => setShowDelete(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h2>Delete Member</h2>
@@ -418,7 +424,7 @@ export default function LevelMembers() {
       )}
 
       {/* Manual BTech Top-up Modal */}
-      {topupTarget && (
+      {isAdmin && topupTarget && (
         <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => !topupSaving && setTopupTarget(null)}>
           <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -519,7 +525,7 @@ export default function LevelMembers() {
       )}
 
       {/* Graduate Level 400 Candidates Modal */}
-      {showGrad400Modal && (
+      {isAdmin && showGrad400Modal && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-box" style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

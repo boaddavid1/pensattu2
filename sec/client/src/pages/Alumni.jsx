@@ -1,8 +1,10 @@
 // Alumni.jsx — Alumni management (ported from alumni.php)
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../api/AuthContext.jsx';
 import { secApi } from '../api/secApi.js';
 
 export default function Alumni() {
+  const { isAdmin } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -75,7 +77,7 @@ export default function Alumni() {
             <div className="empty-state"><i className='bx bxs-graduation'></i><p>No alumni found</p></div>
           ) : (
             <table>
-              <thead><tr><th>Name</th><th>Gender</th><th>Contact</th><th>Program</th><th>Level</th><th>Year</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Name</th><th>Gender</th><th>Contact</th><th>Program</th><th>Level</th><th>Year</th><th>Status</th>{isAdmin && <th>Actions</th>}</tr></thead>
               <tbody>
                 {alumni.map(a => (
                   <tr key={a.id}>
@@ -86,10 +88,12 @@ export default function Alumni() {
                     <td>{a.education_level || '-'}</td>
                     <td>{a.graduation_year || '-'}</td>
                     <td><span className={`badge ${a.alumni_status === 'active' ? 'badge-green' : 'badge-yellow'}`}>{a.alumni_status || 'active'}</span></td>
-                    <td>
-                      <button className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }} onClick={() => setEditAlumni(a)}>Edit</button>
-                      <button className="btn btn-danger" style={{ padding: '4px 10px' }} onClick={() => setShowDelete(a)}>Delete</button>
-                    </td>
+                    {isAdmin && (
+                      <td>
+                        <button className="btn btn-warning" style={{ padding: '4px 10px', marginRight: 4 }} onClick={() => setEditAlumni(a)}>Edit</button>
+                        <button className="btn btn-danger" style={{ padding: '4px 10px' }} onClick={() => setShowDelete(a)}>Delete</button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -108,7 +112,7 @@ export default function Alumni() {
         </div>
       </div>
 
-      {editAlumni && (
+      {isAdmin && editAlumni && (
         <div className="modal-overlay" onClick={() => setEditAlumni(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h2>Edit Alumni</h2>
@@ -138,7 +142,7 @@ export default function Alumni() {
         </div>
       )}
 
-      {showDelete && (
+      {isAdmin && showDelete && (
         <div className="modal-overlay" onClick={() => setShowDelete(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h2>Delete Alumni</h2>

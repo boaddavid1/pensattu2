@@ -147,8 +147,9 @@ router.get('/diagnostic-level400', async (req, res) => {
 // Restore / unmark graduated endpoint to instantly recover any accidental moves
 router.post('/maintenance/restore-graduated-all', async (req, res) => {
   const token = (req.headers.authorization || '').replace(/^Bearer /, '');
-  const isAuth = verifySecToken(token) || req.query.secret === 'pensa2026';
-  if (!isAuth) return res.status(401).json({ error: 'Unauthorized' });
+  const user = verifySecToken(token);
+  const isAuth = (user && user.role === 'admin') || req.query.secret === 'pensa2026';
+  if (!isAuth) return res.status(403).json({ error: 'Administrator access required' });
 
   try {
     const [result] = await secPool.query('UPDATE registrations SET graduated = 0 WHERE graduated = 1');
@@ -160,7 +161,7 @@ router.post('/maintenance/restore-graduated-all', async (req, res) => {
   }
 });
 
-router.post('/maintenance/move-previous-400', requireSecAuth, async (req, res) => {
+router.post('/maintenance/move-previous-400', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [previous400] = await secPool.query(`
       SELECT * FROM registrations 
@@ -272,7 +273,9 @@ function requireSecAuth(req, res, next) {
 }
 
 function requireSecAdmin(req, res, next) {
-  if (!req.user || req.user.role !== 'admin') return res.status(403).json({ error: 'Admin required' });
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Administrator access required. You have read-only permissions.' });
+  }
   next();
 }
 
@@ -622,7 +625,7 @@ async function graduateMemberRecord(member, conn = secPool) {
 }
 
 // Preview level progression & graduation
-router.get('/members/promotion-preview', requireSecAuth, async (req, res) => {
+router.get('/members/promotion-preview', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const hasGrad = await hasGraduatedCol();
     const where = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
@@ -684,7 +687,7 @@ router.get('/members/promotion-preview', requireSecAuth, async (req, res) => {
 });
 
 // Bulk advance members to next academic level and graduate final years
-router.post('/members/promote', requireSecAuth, async (req, res) => {
+router.post('/members/promote', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const hasGrad = await hasGraduatedCol();
     const where = hasGrad ? 'WHERE (graduated = 0 OR graduated IS NULL)' : '';
@@ -724,7 +727,7 @@ router.post('/members/promote', requireSecAuth, async (req, res) => {
 });
 
 // Advance a single member to next level or graduate if final year
-router.post('/members/:id/promote', requireSecAuth, async (req, res) => {
+router.post('/members/:id/promote', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Member not found' });
@@ -752,7 +755,7 @@ router.post('/members/:id/promote', requireSecAuth, async (req, res) => {
 });
 
 // Explicitly graduate a single member to alumni
-router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
+router.post('/members/:id/graduate', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Member not found' });
@@ -769,7 +772,7 @@ router.post('/members/:id/graduate', requireSecAuth, async (req, res) => {
 });
 
 // Get Level 400 members with vintage/history analysis to separate previous from recent
-router.get('/members/level400-candidates', requireSecAuth, async (req, res) => {
+router.get('/members/level400-candidates', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [rows] = await secPool.query(`
       SELECT id, surname, othernames, gender, contact, program, program_duration, education_level, created_at, graduated
@@ -819,7 +822,7 @@ router.get('/members/level400-candidates', requireSecAuth, async (req, res) => {
 });
 
 // Bulk graduate selected members to Alumni
-router.post('/members/graduate-batch', requireSecAuth, async (req, res) => {
+router.post('/members/graduate-batch', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { memberIds } = req.body;
     if (!Array.isArray(memberIds) || !memberIds.length) {
@@ -862,7 +865,7 @@ router.post('/members/graduate-batch', requireSecAuth, async (req, res) => {
 });
 
 // Automatically graduate previous Level 400s (excluding recent registrations)
-router.post('/members/graduate-previous-400-auto', requireSecAuth, async (req, res) => {
+router.post('/members/graduate-previous-400-auto', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { daysThreshold = 30 } = req.body || {};
     const [members] = await secPool.query(`
@@ -907,7 +910,7 @@ router.post('/members/graduate-previous-400-auto', requireSecAuth, async (req, r
 });
 
 // Manually convert Diploma student to BTech Top-up (continues from Level 200)
-router.post('/members/:id/topup-btech', requireSecAuth, async (req, res) => {
+router.post('/members/:id/topup-btech', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM registrations WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Member not found' });
@@ -964,7 +967,7 @@ router.post('/members/:id/topup-btech', requireSecAuth, async (req, res) => {
 });
 
 // Get rollback diagnostic info
-router.get('/members/rollback-info', requireSecAuth, async (req, res) => {
+router.get('/members/rollback-info', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [[{ gradCount }]] = await secPool.query("SELECT COUNT(*) as gradCount FROM registrations WHERE graduated = 1");
     const [[{ activeCount }]] = await secPool.query("SELECT COUNT(*) as activeCount FROM registrations WHERE graduated = 0 OR graduated IS NULL");
@@ -983,7 +986,7 @@ router.get('/members/rollback-info', requireSecAuth, async (req, res) => {
 });
 
 // Revert all moves: restore graduated members from alumni, reset graduated=0, delete transferred alumni records
-router.post('/members/rollback', requireSecAuth, async (req, res) => {
+router.post('/members/rollback', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { stepDown } = req.body || {};
 
@@ -1052,7 +1055,7 @@ router.post('/members/rollback', requireSecAuth, async (req, res) => {
 });
 
 // Step active levels back down by 100 atomically
-router.post('/members/step-down-levels', requireSecAuth, async (req, res) => {
+router.post('/members/step-down-levels', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [stepResult] = await secPool.query(`
       UPDATE registrations 
@@ -1089,7 +1092,7 @@ router.get('/members/:id', requireSecAuth, async (req, res) => {
   }
 });
 
-router.post('/members', requireSecAuth, async (req, res) => {
+router.post('/members', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const b = req.body;
     // NOT NULL columns get empty string fallback instead of null
@@ -1107,7 +1110,7 @@ router.post('/members', requireSecAuth, async (req, res) => {
   }
 });
 
-router.put('/members/:id', requireSecAuth, async (req, res) => {
+router.put('/members/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const b = req.body;
     const cr = ['on-campus', 'off-campus'].includes(b.campus_residence) ? b.campus_residence : (b.campus_residence || 'off-campus');
@@ -1132,7 +1135,7 @@ router.put('/members/:id', requireSecAuth, async (req, res) => {
   }
 });
 
-router.delete('/members/:id', requireSecAuth, async (req, res) => {
+router.delete('/members/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT surname, othernames FROM registrations WHERE id = ?', [req.params.id]);
     await secPool.query('DELETE FROM registrations WHERE id = ?', [req.params.id]);
@@ -1145,7 +1148,7 @@ router.delete('/members/:id', requireSecAuth, async (req, res) => {
   }
 });
 
-router.post('/members/import', requireSecAuth, async (req, res) => {
+router.post('/members/import', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { members } = req.body;
     if (!Array.isArray(members) || !members.length) return res.status(400).json({ error: 'No members provided' });
@@ -1170,7 +1173,7 @@ router.post('/members/import', requireSecAuth, async (req, res) => {
 });
 
 // ─── Attendance ────────────────────────────────────────────
-router.get('/attendance/sessions', requireSecAuth, async (req, res) => {
+router.get('/attendance/sessions', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [sessions] = await secPool.query('SELECT * FROM attendance_sessions ORDER BY session_date DESC LIMIT 100');
     res.json({ sessions });
@@ -1179,7 +1182,7 @@ router.get('/attendance/sessions', requireSecAuth, async (req, res) => {
   }
 });
 
-router.post('/attendance/sessions', requireSecAuth, async (req, res) => {
+router.post('/attendance/sessions', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { session_name, session_date, session_type, description } = req.body;
     const [result] = await secPool.query(
@@ -1193,7 +1196,7 @@ router.post('/attendance/sessions', requireSecAuth, async (req, res) => {
   }
 });
 
-router.get('/attendance/sessions/:id', requireSecAuth, async (req, res) => {
+router.get('/attendance/sessions/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [sessions] = await secPool.query('SELECT * FROM attendance_sessions WHERE id = ?', [req.params.id]);
     if (!sessions.length) return res.status(404).json({ error: 'Session not found' });
@@ -1208,7 +1211,7 @@ router.get('/attendance/sessions/:id', requireSecAuth, async (req, res) => {
   }
 });
 
-router.post('/attendance/sessions/:id/checkin', requireSecAuth, async (req, res) => {
+router.post('/attendance/sessions/:id/checkin', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { registration_id } = req.body;
     await secPool.query('INSERT IGNORE INTO attendance_records (session_id, registration_id) VALUES (?, ?)', [req.params.id, registration_id]);
@@ -1218,7 +1221,7 @@ router.post('/attendance/sessions/:id/checkin', requireSecAuth, async (req, res)
   }
 });
 
-router.post('/attendance/sessions/:id/visitor', requireSecAuth, async (req, res) => {
+router.post('/attendance/sessions/:id/visitor', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { name, contact, invited_by } = req.body;
     const [result] = await secPool.query(
@@ -1231,7 +1234,7 @@ router.post('/attendance/sessions/:id/visitor', requireSecAuth, async (req, res)
   }
 });
 
-router.post('/attendance/ai', requireSecAuth, async (req, res) => {
+router.post('/attendance/ai', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { query } = req.body;
     const q = (query || '').toLowerCase().trim();
@@ -1266,7 +1269,7 @@ router.post('/attendance/ai', requireSecAuth, async (req, res) => {
 });
 
 // ─── Messages (SMS) ────────────────────────────────────────
-router.post('/messages/send', requireSecAuth, async (req, res) => {
+router.post('/messages/send', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { message, recipients, recipient_group } = req.body;
     if (!message) return res.status(400).json({ error: 'Message required' });
@@ -1335,7 +1338,7 @@ router.post('/messages/send', requireSecAuth, async (req, res) => {
   }
 });
 
-router.get('/messages/logs', requireSecAuth, async (req, res) => {
+router.get('/messages/logs', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [logs] = await secPool.query('SELECT * FROM sms_logs ORDER BY sent_at DESC LIMIT 100');
     res.json({ logs });
@@ -1587,7 +1590,7 @@ router.get('/alumni', requireSecAuth, async (req, res) => {
   }
 });
 
-router.put('/alumni/:id', requireSecAuth, async (req, res) => {
+router.put('/alumni/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const b = req.body;
     await secPool.query(
@@ -1601,7 +1604,7 @@ router.put('/alumni/:id', requireSecAuth, async (req, res) => {
   }
 });
 
-router.delete('/alumni/:id', requireSecAuth, async (req, res) => {
+router.delete('/alumni/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     await secPool.query('DELETE FROM alumni WHERE id = ?', [req.params.id]);
     await logActivity(secPool, req.user.id, req.user.username, 'DELETE_ALUMNI', `Deleted alumni #${req.params.id}`, req);
@@ -1676,7 +1679,7 @@ router.get('/reports', requireSecAuth, async (req, res) => {
 });
 
 // ─── Export ────────────────────────────────────────────────
-router.get('/export', requireSecAuth, async (req, res) => {
+router.get('/export', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { format, filter, hall, level, duration } = req.query;
     const where = [];
@@ -1758,7 +1761,7 @@ router.delete('/settings/users/:id', requireSecAuth, requireSecAdmin, async (req
   }
 });
 
-router.get('/settings/logs', requireSecAuth, async (req, res) => {
+router.get('/settings/logs', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { page, perPage } = req.query;
     const pp = Math.min(parseInt(perPage) || 50, 200);
@@ -1774,7 +1777,7 @@ router.get('/settings/logs', requireSecAuth, async (req, res) => {
 
 // ─── Newbie Registrations (SEC Admin) ──────────────────────
 // List newbies with search, status filter, and pagination
-router.get('/newbies', requireSecAuth, async (req, res) => {
+router.get('/newbies', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const { search, status, page = 1, limit = 50 } = req.query;
     const where = [];
@@ -1818,7 +1821,7 @@ router.get('/newbies', requireSecAuth, async (req, res) => {
 });
 
 // Push newbie to full membership registration
-router.post('/newbies/:id/push', requireSecAuth, async (req, res) => {
+router.post('/newbies/:id/push', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM newbie_registrations WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Newbie registration not found' });
@@ -1849,7 +1852,7 @@ router.post('/newbies/:id/push', requireSecAuth, async (req, res) => {
 });
 
 // Delete newbie registration
-router.delete('/newbies/:id', requireSecAuth, async (req, res) => {
+router.delete('/newbies/:id', requireSecAuth, requireSecAdmin, async (req, res) => {
   try {
     const [rows] = await secPool.query('SELECT * FROM newbie_registrations WHERE id = ?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Newbie registration not found' });

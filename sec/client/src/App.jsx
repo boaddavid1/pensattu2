@@ -28,6 +28,14 @@ function ProtectedRoute({ children }) {
   return <Layout>{children}</Layout>;
 }
 
+function AdminRoute({ children }) {
+  const { user, loading, isAdmin } = useAuth();
+  if (loading) return <div className="loading">Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
+  return <Layout>{children}</Layout>;
+}
+
 function Lazy({ children }) {
   return <Suspense fallback={<div className="loading">Loading...</div>}>{children}</Suspense>;
 }
@@ -37,19 +45,19 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<ProtectedRoute><Lazy><Dashboard /></Lazy></ProtectedRoute>} />
-      <Route path="/newbies" element={<ProtectedRoute><Lazy><Newbies /></Lazy></ProtectedRoute>} />
+      <Route path="/newbies" element={<AdminRoute><Lazy><Newbies /></Lazy></AdminRoute>} />
       <Route path="/members" element={<ProtectedRoute><Lazy><Members /></Lazy></ProtectedRoute>} />
       <Route path="/members/level/:level" element={<ProtectedRoute><Lazy><LevelMembers /></Lazy></ProtectedRoute>} />
-      <Route path="/members/add" element={<ProtectedRoute><Lazy><AddMember /></Lazy></ProtectedRoute>} />
-      <Route path="/members/:id/edit" element={<ProtectedRoute><Lazy><EditMember /></Lazy></ProtectedRoute>} />
+      <Route path="/members/add" element={<AdminRoute><Lazy><AddMember /></Lazy></AdminRoute>} />
+      <Route path="/members/:id/edit" element={<AdminRoute><Lazy><EditMember /></Lazy></AdminRoute>} />
       <Route path="/members/:id" element={<ProtectedRoute><Lazy><ViewMember /></Lazy></ProtectedRoute>} />
-      <Route path="/attendance" element={<ProtectedRoute><Lazy><Attendance /></Lazy></ProtectedRoute>} />
-      <Route path="/messages" element={<ProtectedRoute><Lazy><Messages /></Lazy></ProtectedRoute>} />
+      <Route path="/attendance" element={<AdminRoute><Lazy><Attendance /></Lazy></AdminRoute>} />
+      <Route path="/messages" element={<AdminRoute><Lazy><Messages /></Lazy></AdminRoute>} />
       <Route path="/halls" element={<ProtectedRoute><Lazy><Halls /></Lazy></ProtectedRoute>} />
       <Route path="/alumni" element={<ProtectedRoute><Lazy><Alumni /></Lazy></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Lazy><Reports /></Lazy></ProtectedRoute>} />
-      <Route path="/export" element={<ProtectedRoute><Lazy><ExportPage /></Lazy></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><Lazy><Settings /></Lazy></ProtectedRoute>} />
+      <Route path="/export" element={<AdminRoute><Lazy><ExportPage /></Lazy></AdminRoute>} />
+      <Route path="/settings" element={<AdminRoute><Lazy><Settings /></Lazy></AdminRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

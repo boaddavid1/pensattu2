@@ -1,9 +1,11 @@
 // Members.jsx — Members grouped by education level in cards (ported from members.php)
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../api/AuthContext.jsx';
 import { secApi } from '../api/secApi.js';
 
 export default function Members() {
+  const { isAdmin } = useAuth();
   const [data, setData] = useState(() => {
     try {
       const cached = sessionStorage.getItem('sec_members_by_level_default');
@@ -294,35 +296,37 @@ export default function Members() {
             <li><a>Members</a></li>
           </ul>
         </div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn-download"
-            onClick={openRollbackModal}
-            style={{ background: '#e74c3c', color: '#fff', border: 'none', cursor: 'pointer' }}
-          >
-            <i className='bx bx-undo'></i> Revert / Restore
-          </button>
-          <button
-            type="button"
-            className="btn-download"
-            onClick={openGraduate400Modal}
-            style={{ background: '#8e44ad', color: '#fff', border: 'none', cursor: 'pointer' }}
-          >
-            <i className='bx bxs-graduation'></i> Graduate Level 400
-          </button>
-          <button
-            type="button"
-            className="btn-download"
-            onClick={openPromoteModal}
-            style={{ background: '#27ae60', color: '#fff', border: 'none', cursor: 'pointer' }}
-          >
-            <i className='bx bx-trending-up'></i> Move to Next Level
-          </button>
-          <Link to="/members/add" className="btn-download">
-            <i className='bx bxs-user-plus'></i> Add Member
-          </Link>
-        </div>
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn-download"
+              onClick={openRollbackModal}
+              style={{ background: '#e74c3c', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              <i className='bx bx-undo'></i> Revert / Restore
+            </button>
+            <button
+              type="button"
+              className="btn-download"
+              onClick={openGraduate400Modal}
+              style={{ background: '#8e44ad', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              <i className='bx bxs-graduation'></i> Graduate Level 400
+            </button>
+            <button
+              type="button"
+              className="btn-download"
+              onClick={openPromoteModal}
+              style={{ background: '#27ae60', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              <i className='bx bx-trending-up'></i> Move to Next Level
+            </button>
+            <Link to="/members/add" className="btn-download">
+              <i className='bx bxs-user-plus'></i> Add Member
+            </Link>
+          </div>
+        )}
       </div>
 
       {error && <div className="error-msg">{error}</div>}
@@ -398,7 +402,7 @@ export default function Members() {
       )}
 
       {/* Promotion Modal */}
-      {showPromoteModal && (
+      {isAdmin && showPromoteModal && (
         <div className="modal-overlay" onClick={() => !promoting && setShowPromoteModal(false)}>
           <div
             className="modal"
@@ -681,7 +685,7 @@ export default function Members() {
       )}
 
       {/* Manual BTech Top-up Modal */}
-      {topupTarget && (
+      {isAdmin && topupTarget && (
         <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => !topupSaving && setTopupTarget(null)}>
           <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -782,7 +786,7 @@ export default function Members() {
       )}
 
       {/* Rollback / Restore Modal */}
-      {showRollbackModal && (
+      {isAdmin && showRollbackModal && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-box" style={{ maxWidth: 560, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -916,7 +920,7 @@ export default function Members() {
       )}
 
       {/* Graduate Level 400 Candidates Modal */}
-      {showGrad400Modal && (
+      {isAdmin && showGrad400Modal && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-box" style={{ maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
