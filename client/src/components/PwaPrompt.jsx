@@ -73,7 +73,7 @@ export default function PwaPrompt() {
           <img src="/pwa-icon.svg" alt="PENSA TTU" />
         </div>
         <h3>Stay connected with PENSA TTU</h3>
-        <p>Get the latest events, announcements, and updates directly on your device.</p>
+        <p>Get the latest events, notices, and updates directly on your device.</p>
         <div className="pwa-prompt-actions">
           {deferredPrompt && (
             <button className="btn btn-primary" onClick={handleInstall}>

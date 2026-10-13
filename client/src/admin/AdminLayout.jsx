@@ -10,7 +10,6 @@ const navItems = [
   { to: '/control-panel/sermons', label: 'Sermons' },
   { to: '/control-panel/team', label: 'Team' },
   { to: '/control-panel/events', label: 'Events' },
-  { to: '/control-panel/announcements', label: 'Announcements' },
   { to: '/control-panel/notices', label: 'Notices' },
   { to: '/control-panel/gallery', label: 'Gallery' },
   { to: '/control-panel/past-questions', label: 'Past Questions' },

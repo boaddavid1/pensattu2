@@ -8,7 +8,6 @@ const statCards = [
   { key: 'sermons', label: 'Sermons', to: '/control-panel/sermons' },
   { key: 'team', label: 'Leadership Team', to: '/control-panel/team' },
   { key: 'events', label: 'Events', to: '/control-panel/events' },
-  { key: 'announcements', label: 'Announcements', to: '/control-panel/announcements' },
   { key: 'notices', label: 'Notices', to: '/control-panel/notices' },
   { key: 'gallery_albums', label: 'Gallery Albums', to: '/control-panel/gallery' },
   { key: 'past_questions', label: 'Past Questions', to: '/control-panel/past-questions' },

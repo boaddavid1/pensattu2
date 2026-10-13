@@ -77,7 +77,6 @@ The Vite dev server proxies `/api/*` requests to the Express backend.
 | POST | `/api/visits` | Plan a visit form |
 | POST | `/api/subscribers` | Newsletter signup |
 | POST | `/api/contact` | Contact form |
-| GET | `/api/announcements` | Announcements feed |
 | GET | `/api/notices` | Notice board feed |
 | GET | `/api/gallery` | Gallery albums & photos |
 
@@ -88,7 +87,7 @@ Visit `/admin` and sign in with the default superadmin account created by `datab
 - **Email:** `admin@pensattu.org`
 - **Password:** `PensaAdmin2026!`
 
-After logging in, you can manage ministries, sermons, leadership team, events, announcements, notices, gallery albums/photos, visitor plans, subscribers, contact messages, and admin users. All admin actions are logged to the `activity_logs` table.
+After logging in, you can manage ministries, sermons, leadership team, events, notices, gallery albums/photos, visitor plans, subscribers, contact messages, and admin users. All admin actions are logged to the `activity_logs` table.
 
 **Important:** Change the default password and rotate the `JWT_SECRET` in production.
 

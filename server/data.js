@@ -323,13 +323,6 @@ export const gallery = [
   { id: 1, title: 'Worship Service', category: 'worship', description: 'Sunday worship', image_url: '/images/pensafallback-bw.png', created_at: '2026-08-23', album_id: 1 },
 ];
 
-export const announcements = [
-  { date: 'Aug 14, 2026', title: 'New Sunday service schedule', body: 'From September, our second service starts at 11:30 AM to give more room for community time between gatherings.' },
-  { date: 'Aug 10, 2026', title: 'Community outreach this Saturday', body: 'We are meeting at the church parking lot at 8:00 AM to distribute supplies in nearby neighborhoods. Everyone is welcome.' },
-  { date: 'Aug 5, 2026', title: 'Youth conference registration open', body: 'PENSA Youth 2026 is happening in October. Early registration is open until the end of the month.' },
-  { date: 'Jul 28, 2026', title: 'Welcome lunch for first-time guests', body: 'If this is your first month with us, join the pastors for lunch after second service this Sunday.' },
-];
-
 export const notices = [
   { id: 1, date: 'Aug 12, 2026', title: 'Office hours update', excerpt: 'Updated office hours for the church office.', body: 'The church office is open Tuesday through Friday, 9:00 AM to 4:00 PM. Appointments outside these hours are available on request.', image_url: '/images/pensafallback-bw.png' },
   { id: 2, date: 'Aug 8, 2026', title: 'Serving team recruitment', excerpt: 'Volunteers needed for ushering, hospitality, and media.', body: 'We are looking for more volunteers in ushering, hospitality, and media for the next quarter. Speak to a team lead this Sunday.', image_url: '/images/pensafallback-bw.png' },
@@ -419,7 +412,6 @@ export const defaultNavigation = {
         is_dropdown: true,
         children: [
           { id: 'sub-events', label: 'Events', path: '/events' },
-          { id: 'sub-announcements', label: 'Announcements', path: '/announcements' },
           { id: 'sub-news', label: 'News', path: '/notice-board' },
         ],
       },

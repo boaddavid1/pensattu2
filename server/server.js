@@ -19,7 +19,7 @@ import cloudinary from './cloudinary.js';
 import {
   ministries, sermons, team, events,
   addVisit, addSubscriber, addContact,
-  announcements, notices, galleryAlbums,
+  notices, galleryAlbums,
   defaultNavigation,
 } from './data.js';
 
@@ -175,17 +175,6 @@ app.post('/api/contact', async (req, res) => {
 });
 
 // Public managed content endpoints
-app.get('/api/announcements', async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      'SELECT DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, content AS body FROM news WHERE category IS NULL OR category <> "Notice" ORDER BY created_at DESC'
-    );
-    res.json(rows);
-  } catch (err) {
-    res.json(announcements);
-  }
-});
-
 app.get('/api/notices', async (req, res) => {
   try {
     const [rows] = await pool.query(

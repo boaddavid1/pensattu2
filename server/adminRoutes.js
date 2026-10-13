@@ -33,7 +33,6 @@ const memory = {
   sermons: data.sermons.map((r) => ({ ...r })),
   team: data.leadership?.map((r) => ({ ...r })) || data.team.map((r) => ({ ...r })),
   events: data.events.map((r) => ({ ...r })),
-  announcements: data.news?.map((r, i) => ({ id: i + 1, title: r.title, body: r.content, published_at: toIso(r.created_at) })) || data.announcements.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
   notices: data.news?.map((r, i) => ({ id: i + 1, title: r.title, body: r.content, published_at: toIso(r.created_at) })) || data.notices.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
   gallery_albums: data.albums?.map((r) => ({ id: r.id, slug: r.id, title: r.name, cover: r.cover_image })) || data.galleryAlbums.map((r) => ({ id: r.id, slug: r.id, title: r.title, cover: r.cover })),
   visits: data.visits,
@@ -118,12 +117,6 @@ const TABLES = {
     columns: ['title', 'event_date', 'event_end_date', 'event_time', 'location', 'description', 'category', 'image_url', 'featured', 'status'],
     required: ['title', 'event_date'],
     orderBy: 'event_date',
-  },
-  announcements: {
-    actualTable: 'news',
-    columns: ['title', 'content', 'excerpt', 'image_url', 'category'],
-    required: ['title', 'content'],
-    orderBy: 'created_at DESC, id DESC',
   },
   notices: {
     actualTable: 'news', // Using news table for notices as well

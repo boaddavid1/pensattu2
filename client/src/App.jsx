@@ -57,7 +57,6 @@ const Leadership = lazy(() => import('./pages/Leadership'));
 const Sermons = lazy(() => import('./pages/Sermons'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Events = lazy(() => import('./pages/Events'));
-const Announcements = lazy(() => import('./pages/Announcements'));
 const NoticeBoard = lazy(() => import('./pages/NoticeBoard'));
 const NoticeDetail = lazy(() => import('./pages/NoticeDetail'));
 const Gallery = lazy(() => import('./pages/Gallery'));
@@ -127,7 +126,7 @@ function AppShell() {
           <Route path="/sermons" element={<Sermons />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/announcements" element={<Announcements />} />
+          <Route path="/announcements" element={<Navigate to="/notice-board" replace />} />
           <Route path="/notice-board" element={<NoticeBoard />} />
           <Route path="/notice-board/:id" element={<NoticeDetail />} />
           <Route path="/gallery" element={<Gallery />} />
@@ -169,7 +168,7 @@ function AdminShell() {
             <Route path="team/year/:year" element={<AdminTeamYear />} />
             <Route path="team/:id/edit" element={<AdminTeamForm />} />
             <Route path="events" element={<AdminCrudPage entity="events" title="Events" />} />
-            <Route path="announcements" element={<AdminCrudPage entity="announcements" title="Announcements" />} />
+            <Route path="announcements" element={<Navigate to="/control-panel/notices" replace />} />
             <Route path="notices" element={<AdminCrudPage entity="notices" title="Notices" />} />
             <Route path="visits" element={<AdminReadonly entity="visits" title="Visit Plans" />} />
             <Route path="subscribers" element={<AdminReadonly entity="subscribers" title="Subscribers" />} />

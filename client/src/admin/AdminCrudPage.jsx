@@ -46,13 +46,6 @@ const fieldConfig = {
     { name: 'featured', label: 'Featured', type: 'select', options: ['0', '1'] },
     { name: 'status', label: 'Status', type: 'select', options: ['upcoming', 'past'], required: true },
   ],
-  announcements: [
-    { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'content', label: 'Body', type: 'textarea', required: true },
-    { name: 'excerpt', label: 'Excerpt', type: 'text' },
-    { name: 'category', label: 'Category', type: 'text' },
-    { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/news' },
-  ],
   notices: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'content', label: 'Body', type: 'textarea', required: true },

@@ -33,7 +33,6 @@ export const defaultNavigation = {
         is_dropdown: true,
         children: [
           { id: 'sub-events', label: 'Events', path: '/events' },
-          { id: 'sub-announcements', label: 'Announcements', path: '/announcements' },
           { id: 'sub-news', label: 'News', path: '/notice-board' },
         ],
       },
