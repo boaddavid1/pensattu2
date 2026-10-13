@@ -57,6 +57,7 @@ export const adminApi = {
 
   listPhotos: (albumId) => request(`/cp/gallery_photos${albumId ? `?album_id=${albumId}` : ''}`),
   addPhoto: (body) => request('/cp/gallery_photos', { method: 'POST', body: JSON.stringify(body) }),
+  updatePhoto: (id, body) => request(`/cp/gallery_photos/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   removePhoto: (id) => request(`/cp/gallery_photos/${id}`, { method: 'DELETE' }),
 
   listUsers: () => request('/cp/users'),

@@ -472,6 +472,36 @@ router.post('/gallery_photos', requireAuth, async (req, res) => {
   }
 });
 
+router.put('/gallery_photos/:id', requireAuth, async (req, res) => {
+  const { album_id, title, category, description, image_url, src, alt, caption } = req.body;
+  const newImg = src || image_url;
+  const newTitle = alt !== undefined ? alt : title;
+  const newDesc = caption !== undefined ? caption : description;
+
+  try {
+    const [existing] = await pool.query('SELECT * FROM gallery WHERE id = ?', [req.params.id]);
+    if (!existing.length) return res.status(404).json({ error: 'Photo not found' });
+    const row = existing[0];
+    const finalAlbumId = album_id !== undefined ? album_id : row.album_id;
+    const finalTitle = newTitle !== undefined ? newTitle : row.title;
+    const finalCat = category !== undefined ? category : row.category;
+    const finalDesc = newDesc !== undefined ? newDesc : row.description;
+    const finalImg = newImg !== undefined ? newImg : row.image_url;
+
+    await pool.query(
+      'UPDATE gallery SET album_id = ?, image_url = ?, title = ?, category = ?, description = ? WHERE id = ?',
+      [finalAlbumId, finalImg, finalTitle, finalCat, finalDesc, req.params.id]
+    );
+    logAction(req.user.id, 'UPDATE', 'gallery', Number(req.params.id));
+    res.json({ id: Number(req.params.id), album_id: finalAlbumId, image_url: finalImg, title: finalTitle, category: finalCat, description: finalDesc });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      return res.json({ id: Number(req.params.id), demo: true, ...req.body });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete('/gallery_photos/:id', requireAuth, async (req, res) => {
   try {
     const [result] = await pool.query('DELETE FROM gallery WHERE id = ?', [req.params.id]);
