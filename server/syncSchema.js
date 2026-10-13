@@ -47,6 +47,8 @@ const TABLES = [
     description TEXT,
     audio_url VARCHAR(500),
     image_url VARCHAR(500),
+    youtube_url VARCHAR(500),
+    tiktok_url VARCHAR(500),
     date_preached DATE,
     is_active BOOLEAN DEFAULT TRUE
   )`,
@@ -275,6 +277,9 @@ const REQUIRED_COLUMNS = [
   { table: 'core_values', column: 'leader_bio', definition: "TEXT" },
   { table: 'core_values', column: 'assistants', definition: "LONGTEXT" },
   { table: 'core_values', column: 'activities', definition: "LONGTEXT" },
+  // sermons
+  { table: 'sermons', column: 'youtube_url', definition: "VARCHAR(500)" },
+  { table: 'sermons', column: 'tiktok_url', definition: "VARCHAR(500)" },
 ];
 
 async function syncColumns() {

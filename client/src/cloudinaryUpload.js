@@ -50,3 +50,36 @@ export async function uploadFileToCloudinary(file, folder = 'pensattu/files') {
   const data = await res.json();
   return data.secure_url;
 }
+
+export async function uploadAudioToCloudinary(file, folder = 'pensattu/sermons/audio') {
+  if (!CLOUD_NAME) {
+    throw new Error('VITE_CLOUDINARY_CLOUD_NAME is not set');
+  }
+
+  const form = new FormData();
+  form.append('file', file);
+  form.append('upload_preset', UPLOAD_PRESET);
+  form.append('folder', folder);
+
+  // Cloudinary processes audio under the video resource type
+  let res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, {
+    method: 'POST',
+    body: form,
+  });
+
+  if (!res.ok) {
+    // Fallback to auto upload endpoint
+    res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+      method: 'POST',
+      body: form,
+    });
+  }
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Cloudinary audio upload failed: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  return data.secure_url;
+}

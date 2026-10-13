@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS sermons (
   description TEXT,
   audio_url VARCHAR(500),
   image_url VARCHAR(500),
+  youtube_url VARCHAR(500),
+  tiktok_url VARCHAR(500),
   date_preached DATE,
   is_active BOOLEAN DEFAULT TRUE
 );

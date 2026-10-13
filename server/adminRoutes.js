@@ -102,9 +102,9 @@ const TABLES = {
   },
   sermons: {
     actualTable: 'sermons',
-    columns: ['title', 'speaker', 'category', 'description', 'audio_url', 'image_url', 'date_preached'],
+    columns: ['title', 'speaker', 'category', 'description', 'audio_url', 'image_url', 'youtube_url', 'tiktok_url', 'date_preached', 'is_active'],
     required: ['title'],
-    orderBy: 'date_preached DESC',
+    orderBy: 'date_preached DESC, id DESC',
   },
   team: {
     actualTable: 'leadership',

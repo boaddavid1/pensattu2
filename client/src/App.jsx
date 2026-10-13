@@ -79,6 +79,7 @@ const AdminUsers = lazy(() => import('./admin/AdminUsers'));
 const AdminPrayers = lazy(() => import('./prayer-admin/AdminPrayers'));
 const AdminRegistrations = lazy(() => import('./admin/AdminRegistrations'));
 const AdminNavigation = lazy(() => import('./admin/AdminNavigation'));
+const AdminSermons = lazy(() => import('./admin/AdminSermons'));
 
 function PageLoader() {
   return <div className="loading">Loading...</div>;
@@ -162,7 +163,7 @@ function AdminShell() {
             <Route path="ministries/:id/edit" element={<AdminMinistryForm />} />
             <Route path="departments" element={<Navigate to="/control-panel/ministries" replace />} />
             <Route path="departments-teams" element={<Navigate to="/control-panel/ministries" replace />} />
-            <Route path="sermons" element={<AdminCrudPage entity="sermons" title="Sermons" />} />
+            <Route path="sermons" element={<AdminSermons />} />
             <Route path="team" element={<AdminCrudPage entity="team" title="Leadership Team" />} />
             <Route path="team/new" element={<AdminTeamForm isNew={true} />} />
             <Route path="team/year/:year" element={<AdminTeamYear />} />
