@@ -12,14 +12,21 @@ const fallback = [
 function getHomeTeam(data) {
   if (!Array.isArray(data) || !data.length) return fallback;
 
-  const senior = data.filter((p) => ['pastor', 'patroness'].includes(p.category));
-  const rest = data.filter((p) => !['pastor', 'patroness'].includes(p.category));
+  const isSenior = (cat) => {
+    if (!cat) return false;
+    const c = String(cat).toLowerCase().trim();
+    return c === 'pastor' || c === 'patroness' || c === 'patron' || c.includes('pastor') || c.includes('patron');
+  };
+
+  const senior = data.filter((p) => isSenior(p.category));
+  const rest = data.filter((p) => !isSenior(p.category));
 
   const years = [...new Set(rest.map((p) => p.academic_year).filter(Boolean))].sort().reverse();
   const currentYear = years[0];
-  const currentYearMembers = currentYear ? rest.filter((p) => p.academic_year === currentYear) : [];
+  const currentYearMembers = currentYear ? rest.filter((p) => p.academic_year === currentYear) : rest;
 
-  return [...senior, ...currentYearMembers].slice(0, 4);
+  const combined = [...senior, ...currentYearMembers];
+  return combined.length > 0 ? combined.slice(0, 4) : data.slice(0, 4);
 }
 
 export default function Team() {

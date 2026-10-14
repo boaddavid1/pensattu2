@@ -107,6 +107,7 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
         if (f.type === 'number') payload[f.name] = Number(payload[f.name]);
         if (!f.required && payload[f.name] === '') payload[f.name] = null;
       });
+      payload.is_active = 1;
       if (isNew) {
         await adminApi.create('team', payload);
       } else {

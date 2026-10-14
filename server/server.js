@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
-import adminRoutes, { getActiveNavigation } from './adminRoutes.js';
+import adminRoutes, { getActiveNavigation, getLeadershipMemory } from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
 import alumniRoutes from './alumniRoutes.js';
@@ -96,10 +96,14 @@ app.get('/api/sermons', async (req, res) => {
 // Leadership
 app.get('/api/team', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM leadership WHERE is_active = 1 ORDER BY display_order');
-    res.json(rows);
+    const [rows] = await pool.query('SELECT * FROM leadership WHERE COALESCE(is_active, 1) = 1 ORDER BY display_order, id');
+    if (rows && rows.length) return res.json(rows);
+    const mem = getLeadershipMemory ? getLeadershipMemory() : [];
+    if (mem && mem.length) return res.json(mem);
+    res.json(rows || []);
   } catch (err) {
-    res.json(team);
+    const mem = getLeadershipMemory ? getLeadershipMemory() : [];
+    res.json(mem && mem.length ? mem : team);
   }
 });
 

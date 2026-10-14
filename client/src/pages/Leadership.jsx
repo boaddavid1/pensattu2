@@ -10,29 +10,45 @@ export default function Leadership() {
   useEffect(() => {
     // Fetch leadership data from API
     api.get('/team')
-      .then(data => setLeadership(data))
-      .catch(err => console.error('Failed to fetch leadership:', err));
+      .then(data => {
+        if (Array.isArray(data)) setLeadership(data);
+        else setLeadership([]);
+      })
+      .catch(err => {
+        console.error('Failed to fetch leadership:', err);
+        setLeadership([]);
+      });
 
     const onKey = (e) => { if (e.key === 'Escape') setModal(null); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const seniorLeaders = leadership.filter((p) => ['pastor', 'patroness'].includes(p.category));
-  const albumMembers = leadership.filter((p) => !['pastor', 'patroness'].includes(p.category));
+  const isSenior = (cat) => {
+    if (!cat) return false;
+    const c = String(cat).toLowerCase().trim();
+    return c === 'pastor' || c === 'patroness' || c === 'patron' || c.includes('pastor') || c.includes('patron');
+  };
+
+  const safeList = Array.isArray(leadership) ? leadership : [];
+  const seniorLeaders = safeList.filter((p) => isSenior(p.category));
+  const albumMembers = safeList.filter((p) => !isSenior(p.category));
 
   const yearGroups = albumMembers.reduce((acc, p) => {
-    const year = p.academic_year || 'Leadership';
+    const year = p.academic_year || 'Current Leadership';
     (acc[year] = acc[year] || []).push(p);
     return acc;
   }, {});
   const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
 
   useEffect(() => {
-    if (sortedYears.length && !selectedYear) setSelectedYear(sortedYears[0]);
+    if (sortedYears.length && (!selectedYear || !yearGroups[selectedYear])) {
+      setSelectedYear(sortedYears[0]);
+    }
   }, [sortedYears.join(','), selectedYear]);
 
-  const selectedLeaders = yearGroups[selectedYear] || [];
+  const activeYear = selectedYear && yearGroups[selectedYear] ? selectedYear : (sortedYears[0] || '');
+  const selectedLeaders = activeYear ? (yearGroups[activeYear] || []) : (albumMembers.length ? albumMembers : safeList);
 
   return (
     <main className="leadership-page">

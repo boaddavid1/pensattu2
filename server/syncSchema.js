@@ -280,6 +280,8 @@ const REQUIRED_COLUMNS = [
   // sermons
   { table: 'sermons', column: 'youtube_url', definition: "VARCHAR(500)" },
   { table: 'sermons', column: 'tiktok_url', definition: "VARCHAR(500)" },
+  // leadership
+  { table: 'leadership', column: 'is_active', definition: "BOOLEAN DEFAULT TRUE" },
 ];
 
 async function syncColumns() {
@@ -324,5 +326,8 @@ export default async function syncSchema() {
     }
   }
   await syncColumns();
+  try {
+    await pool.query('UPDATE leadership SET is_active = 1 WHERE is_active IS NULL');
+  } catch (err) {}
   console.log('Schema sync complete');
 }

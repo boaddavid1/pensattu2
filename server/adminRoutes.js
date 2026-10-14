@@ -108,9 +108,10 @@ const TABLES = {
   },
   team: {
     actualTable: 'leadership',
-    columns: ['name', 'role', 'category', 'academic_year', 'programme', 'hall', 'previous_portfolio', 'description', 'image_url', 'display_order'],
+    columns: ['name', 'role', 'category', 'academic_year', 'programme', 'hall', 'previous_portfolio', 'description', 'image_url', 'display_order', 'is_active'],
     required: ['name', 'role', 'category', 'academic_year'],
-    orderBy: 'display_order',
+    orderBy: 'display_order, id',
+    defaults: { is_active: 1, display_order: 0 },
   },
   events: {
     actualTable: 'events',
@@ -632,6 +633,10 @@ router.post('/navigation/reset', requireAuth, async (req, res) => {
 
 export function getActiveNavigation() {
   return memory.navigation || data.defaultNavigation;
+}
+
+export function getLeadershipMemory() {
+  return memory.team || [];
 }
 
 export default router;
