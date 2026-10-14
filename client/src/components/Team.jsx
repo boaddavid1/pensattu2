@@ -56,7 +56,15 @@ export default function Team() {
         <div className="team-grid">
           {team.slice(0, 4).map((p) => (
             <div className="team-card" key={p.id}>
-              <img src={getImageUrl(p.image_url)} alt={p.name} />
+              <img
+                src={getImageUrl(p.image_url) || '/images/pensafallback-bw.png'}
+                alt={p.name}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/images/pensafallback-bw.png';
+                }}
+              />
               <div className="team-info">
                 <div><h3>{p.name}</h3><span>{p.role}</span></div>
               </div>

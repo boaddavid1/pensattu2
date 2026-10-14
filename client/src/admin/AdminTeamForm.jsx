@@ -43,11 +43,7 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
 
     // Edit mode: use passed item data if available, otherwise fetch from API
     if (passedItem) {
-      const formatted = { ...passedItem };
-      if (formatted.image_url && !formatted.image_url.startsWith('http')) {
-        formatted.image_url = '';
-      }
-      setForm({ ...emptyForm(), ...formatted });
+      setForm({ ...emptyForm(), ...passedItem });
       setLoading(false);
       return;
     }
@@ -59,11 +55,7 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
         try {
           const data = await adminApi.get('team', id);
           if (cancelled) return;
-          const formatted = { ...data };
-          if (formatted.image_url && !formatted.image_url.startsWith('http')) {
-            formatted.image_url = '';
-          }
-          setForm({ ...emptyForm(), ...formatted });
+          setForm({ ...emptyForm(), ...data });
           setLoading(false);
           return;
         } catch (err) {
@@ -82,6 +74,9 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
     return () => { cancelled = true; };
   }, [id, isNew, passedItem]);
 
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState('');
+
   function handleChange(name, value) {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
@@ -89,16 +84,28 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
   async function handleImageUpload(field, e) {
     const file = e.target.files[0];
     if (!file) return;
+    setUploadingImage(true);
+    setImageError('');
+    setError('');
     try {
-      const url = await uploadImageToCloudinary(file, field.folder);
+      const url = await uploadImageToCloudinary(file, field.folder || 'pensattu/team');
       handleChange(field.name, url);
     } catch (err) {
-      setError(err.message);
+      const msg = err.message || 'Failed to upload image. Please try again.';
+      setImageError(msg);
+      setError(msg);
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
     }
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (uploadingImage) {
+      setError('Please wait for the image upload to finish before saving.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -108,6 +115,9 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
         if (!f.required && payload[f.name] === '') payload[f.name] = null;
       });
       payload.is_active = 1;
+      if (!payload.image_url || !String(payload.image_url).trim()) {
+        payload.image_url = '/images/pensafallback-bw.png';
+      }
       if (isNew) {
         await adminApi.create('team', payload);
       } else {
@@ -138,27 +148,94 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
         <div className="admin-form-section">
           <h3 className="admin-form-section-title">Required Information</h3>
           <div className="admin-form-grid">
-            {teamFields.filter((f) => f.required).map((field) => renderField(field, form, handleChange, handleImageUpload))}
+            {teamFields.filter((f) => f.required).map((field) => renderField(field, form, handleChange))}
           </div>
         </div>
 
         <div className="admin-form-section">
           <h3 className="admin-form-section-title">Additional Information</h3>
           <div className="admin-form-grid">
-            {teamFields.filter((f) => !f.required && f.type !== 'image').map((field) => renderField(field, form, handleChange, handleImageUpload))}
+            {teamFields.filter((f) => !f.required && f.type !== 'image').map((field) => renderField(field, form, handleChange))}
           </div>
         </div>
 
         <div className="admin-form-section">
-          <h3 className="admin-form-section-title">Image</h3>
-          <div className="admin-form-grid">
-            {teamFields.filter((f) => f.type === 'image').map((field) => renderField(field, form, handleChange, handleImageUpload))}
+          <h3 className="admin-form-section-title">Photograph</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {imageError && (
+              <div className="admin-error" style={{ margin: 0 }}>
+                {imageError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div style={{ width: '130px', height: '150px', borderRadius: '12px', overflow: 'hidden', background: 'var(--pine-surface, #f4f6f5)', border: '2px dashed var(--line, #e2e8e5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {form.image_url ? (
+                  <img
+                    src={form.image_url}
+                    alt="Preview"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/pensafallback-bw.png';
+                    }}
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--ink-faint, #888)', padding: '10px' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '4px' }}>👤</div>
+                    <span style={{ fontSize: '11px' }}>No photo</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ flex: '1', minWidth: '260px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontWeight: 600, fontSize: '13px' }}>Upload Image from Device (Cloudinary)</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage}
+                    onChange={(e) => handleImageUpload(teamFields.find((f) => f.name === 'image_url'), e)}
+                  />
+                </label>
+
+                {uploadingImage && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--moss, #1a7f5a)', fontSize: '13px', fontWeight: 600 }}>
+                    <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
+                    Uploading photo to Cloudinary... please wait
+                  </div>
+                )}
+
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--ink-soft, #555)' }}>Or enter Image URL / Relative Path</span>
+                  <input
+                    type="text"
+                    placeholder="https://res.cloudinary.com/... or /images/..."
+                    value={form.image_url || ''}
+                    onChange={(e) => handleChange('image_url', e.target.value)}
+                  />
+                </label>
+
+                {form.image_url && (
+                  <div>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      style={{ padding: '4px 10px', fontSize: '12px', color: '#c0392b' }}
+                      onClick={() => handleChange('image_url', '')}
+                    >
+                      ✕ Remove Photo (use fallback)
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="admin-form-actions">
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Saving...' : isNew ? 'Add Team Member' : 'Update Team Member'}
+          <button type="submit" className="btn btn-primary" disabled={saving || uploadingImage}>
+            {uploadingImage ? 'Uploading Image...' : saving ? 'Saving...' : isNew ? 'Add Team Member' : 'Update Team Member'}
           </button>
           <button type="button" className="btn btn-ghost" onClick={() => navigate('/control-panel/team')}>
             Cancel
@@ -169,18 +246,7 @@ export default function AdminTeamForm({ isNew: isNewProp }) {
   );
 }
 
-function renderField(field, form, handleChange, handleImageUpload) {
-  if (field.type === 'image') {
-    return (
-      <label key={field.name}>
-        {field.label}
-        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(field, e)} />
-        {form[field.name] && (
-          <img src={form[field.name]} alt="Preview" className="admin-cover-preview" />
-        )}
-      </label>
-    );
-  }
+function renderField(field, form, handleChange) {
   if (field.type === 'textarea') {
     return (
       <label key={field.name} className="admin-form-full">

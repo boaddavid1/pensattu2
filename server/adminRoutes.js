@@ -111,7 +111,7 @@ const TABLES = {
     columns: ['name', 'role', 'category', 'academic_year', 'programme', 'hall', 'previous_portfolio', 'description', 'image_url', 'display_order', 'is_active'],
     required: ['name', 'role', 'category', 'academic_year'],
     orderBy: 'display_order, id',
-    defaults: { is_active: 1, display_order: 0 },
+    defaults: { is_active: 1, display_order: 0, image_url: '/images/pensafallback-bw.png' },
   },
   events: {
     actualTable: 'events',

@@ -3,15 +3,18 @@ const API_ROOT = API_BASE.replace(/\/api\/?$/, '');
 
 export function getImageUrl(url, options = {}) {
   if (!url) return '';
-  let fullUrl = url;
-  if (/^https?:\/\//i.test(url)) {
-    fullUrl = url;
-  } else if (url.startsWith('/images/')) {
-    fullUrl = url;
-  } else if (url.startsWith('/')) {
-    fullUrl = `${API_ROOT}${url}`;
+  let fullUrl = String(url).trim();
+  if (!fullUrl) return '';
+  if (/^https?:\/\//i.test(fullUrl) || fullUrl.startsWith('data:')) {
+    // keep as is
+  } else if (fullUrl.startsWith('/images/')) {
+    // client public images path
+  } else if (fullUrl.startsWith('images/')) {
+    fullUrl = `/${fullUrl}`;
+  } else if (fullUrl.startsWith('/')) {
+    fullUrl = `${API_ROOT}${fullUrl}`;
   } else {
-    fullUrl = `${API_ROOT}/${url}`;
+    fullUrl = `${API_ROOT}/${fullUrl}`;
   }
 
   // Cloudinary on-the-fly optimization (reduces payload by 80-90%)

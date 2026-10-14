@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminApi } from './adminApi';
+import { getImageUrl } from '../api.js';
 
 export default function AdminTeamYear() {
   const { year } = useParams();
@@ -71,7 +72,14 @@ export default function AdminTeamYear() {
           <div key={p.id} className="admin-crud-card">
             <div className="admin-crud-card-img">
               {p.image_url ? (
-                <img src={p.image_url} alt={p.name} />
+                <img
+                  src={getImageUrl(p.image_url)}
+                  alt={p.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/images/pensafallback-bw.png';
+                  }}
+                />
               ) : (
                 <div className="admin-pq-icon">👤</div>
               )}
