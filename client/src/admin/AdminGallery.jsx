@@ -27,6 +27,19 @@ function normalizePhoto(p) {
   };
 }
 
+function normalizeAlbum(a) {
+  if (!a) return null;
+  return {
+    id: a.id,
+    name: a.name || a.title || 'Untitled Album',
+    title: a.title || a.name || 'Untitled Album',
+    description: a.description || '',
+    cover_image: a.cover_image || a.cover || '/images/pensafallback-bw.png',
+    cover: a.cover || a.cover_image || '/images/pensafallback-bw.png',
+    created_at: a.created_at || '',
+  };
+}
+
 export default function AdminGallery() {
   const [albums, setAlbums] = useState([]);
   const [allPhotos, setAllPhotos] = useState([]);
@@ -105,7 +118,8 @@ export default function AdminGallery() {
         adminApi.list('gallery_albums'),
         adminApi.listPhotos(),
       ]);
-      setAlbums(albumsData || []);
+      const normalizedAlbums = (albumsData || []).map(normalizeAlbum).filter(Boolean);
+      setAlbums(normalizedAlbums);
       setAllPhotos((photosData || []).map(normalizePhoto));
     } catch (err) {
       setError(err.message || 'Failed to load gallery items.');
@@ -140,7 +154,7 @@ export default function AdminGallery() {
   // Album lookup helper
   function getAlbumName(albumId) {
     const found = albums.find((a) => String(a.id) === String(albumId));
-    return found ? found.name : 'Unassigned';
+    return found ? (found.name || found.title || `Album #${found.id}`) : 'Unassigned';
   }
 
   // Filtered Albums
@@ -378,19 +392,23 @@ export default function AdminGallery() {
     setSubmitting(true);
     setError('');
     try {
+      const safeAlbumId = isNaN(Number(photoForm.album_id)) ? photoForm.album_id : Number(photoForm.album_id);
       if (editingPhoto) {
         await adminApi.updatePhoto(editingPhoto.id, {
-          album_id: Number(photoForm.album_id),
+          album_id: safeAlbumId,
           src: photoForm.src,
+          image_url: photoForm.src,
           alt: photoForm.alt.trim(),
+          title: photoForm.alt.trim(),
           category: photoForm.category.trim(),
           caption: photoForm.caption.trim(),
+          description: photoForm.caption.trim(),
         });
         setSuccessMsg('Photo details updated successfully.');
         if (lightboxPhoto && lightboxPhoto.id === editingPhoto.id) {
           setLightboxPhoto({
             ...lightboxPhoto,
-            album_id: Number(photoForm.album_id),
+            album_id: safeAlbumId,
             image_url: photoForm.src,
             title: photoForm.alt.trim(),
             category: photoForm.category.trim(),
@@ -399,11 +417,14 @@ export default function AdminGallery() {
         }
       } else {
         await adminApi.addPhoto({
-          album_id: Number(photoForm.album_id),
+          album_id: safeAlbumId,
           src: photoForm.src,
+          image_url: photoForm.src,
           alt: photoForm.alt.trim(),
+          title: photoForm.alt.trim(),
           category: photoForm.category.trim(),
           caption: photoForm.caption.trim(),
+          description: photoForm.caption.trim(),
         });
         setSuccessMsg('Photo added to album successfully.');
       }
@@ -802,14 +823,29 @@ export default function AdminGallery() {
                   : 'Start uploading high-resolution photos to curate this collection.'}
               </p>
               {!searchQuery && selectedCategory === 'ALL' && (
-                <button
-                  type="button"
-                  className="ag-btn-upload-photo"
-                  onClick={() => openUploadPhoto(currentAlbum.id)}
-                  style={{ marginTop: 8 }}
-                >
-                  Upload First Photo
-                </button>
+                <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <button
+                    type="button"
+                    className="ag-btn-bulk-upload"
+                    onClick={() => openBulkUpload(currentAlbum.id)}
+                    style={{ padding: '9px 18px' }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Bulk Upload Photos
+                  </button>
+                  <button
+                    type="button"
+                    className="ag-btn-upload-photo"
+                    onClick={() => openUploadPhoto(currentAlbum.id)}
+                    style={{ padding: '9px 18px' }}
+                  >
+                    Single Photo
+                  </button>
+                </div>
               )}
             </div>
           ) : (
@@ -1328,7 +1364,7 @@ export default function AdminGallery() {
                     <option value="">Select Album</option>
                     {albums.map((album) => (
                       <option key={album.id} value={album.id}>
-                        {album.name}
+                        {album.name || album.title || `Album #${album.id}`}
                       </option>
                     ))}
                   </select>
@@ -1567,6 +1603,7 @@ export default function AdminGallery() {
           setSuccessMsg(`Bulk upload complete! ${count} photos successfully added to "${albumName}".`);
           await loadData();
         }}
+        onAlbumCreated={loadData}
       />
 
       {/* ─── BULK ACTIONS FLOATING BAR & MODALS FOR EXISTING PHOTOS ─── */}

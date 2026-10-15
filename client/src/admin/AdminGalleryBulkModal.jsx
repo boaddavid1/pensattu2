@@ -35,13 +35,20 @@ export default function AdminGalleryBulkModal({
   defaultAlbumId = null,
   categoriesList = DEFAULT_CATEGORIES,
   onSuccess,
+  onAlbumCreated,
 }) {
   const fileInputRef = useRef(null);
+  const prevOpenRef = useRef(false);
   const [targetAlbumId, setTargetAlbumId] = useState('');
   const [batchCategory, setBatchCategory] = useState('');
   const [batchCaption, setBatchCaption] = useState('');
   const [titleMode, setTitleMode] = useState('filename'); // 'filename' | 'prefix' | 'common'
   const [titlePrefix, setTitlePrefix] = useState('');
+
+  // Quick inline album creation
+  const [showQuickAlbum, setShowQuickAlbum] = useState(false);
+  const [quickAlbumName, setQuickAlbumName] = useState('');
+  const [isCreatingAlbum, setIsCreatingAlbum] = useState(false);
 
   const [queue, setQueue] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -50,20 +57,25 @@ export default function AdminGalleryBulkModal({
   const [errorMessage, setErrorMessage] = useState('');
   const [successSummary, setSuccessSummary] = useState(null);
 
-  // Sync default target album when modal opens
+  // Sync default target album ONLY when modal transitions from closed to open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevOpenRef.current) {
       const initialAlbum = defaultAlbumId || (albums[0]?.id ? String(albums[0].id) : '');
       setTargetAlbumId(initialAlbum ? String(initialAlbum) : '');
       setBatchCategory('');
       setBatchCaption('');
       setTitlePrefix('');
       setTitleMode('filename');
+      setShowQuickAlbum(false);
+      setQuickAlbumName('');
       setQueue([]);
       setErrorMessage('');
       setSuccessSummary(null);
       setIsUploading(false);
+    } else if (isOpen && !targetAlbumId && albums.length > 0) {
+      setTargetAlbumId(String(defaultAlbumId || albums[0].id));
     }
+    prevOpenRef.current = isOpen;
   }, [isOpen, defaultAlbumId, albums]);
 
   // Cleanup object URLs on unmount or when queue clears
@@ -112,9 +124,10 @@ export default function AdminGalleryBulkModal({
         title: computeItemTitle(file, idx),
         category: batchCategory || '',
         caption: batchCaption || '',
-        status: 'pending', // 'pending' | 'uploading' | 'success' | 'error'
+        status: 'pending', // 'pending' | 'uploading' | 'uploaded' | 'success' | 'error'
         cloudinaryUrl: null,
         error: null,
+        dbSaved: false,
       };
     });
 
@@ -217,6 +230,31 @@ export default function AdminGalleryBulkModal({
     }
   }
 
+  // Inline quick album creator
+  async function handleCreateQuickAlbum(e) {
+    if (e) e.preventDefault();
+    if (!quickAlbumName.trim()) return;
+    setIsCreatingAlbum(true);
+    setErrorMessage('');
+    try {
+      const created = await adminApi.create('gallery_albums', {
+        name: quickAlbumName.trim(),
+        description: 'Album created from bulk photo studio',
+        cover_image: '',
+      });
+      if (onAlbumCreated) await onAlbumCreated();
+      if (created?.id) {
+        setTargetAlbumId(String(created.id));
+      }
+      setShowQuickAlbum(false);
+      setQuickAlbumName('');
+    } catch (err) {
+      setErrorMessage(`Failed to create album: ${err.message}`);
+    } finally {
+      setIsCreatingAlbum(false);
+    }
+  }
+
   // Start concurrent bulk upload
   async function handleStartBulkUpload() {
     if (queue.length === 0) {
@@ -224,50 +262,45 @@ export default function AdminGalleryBulkModal({
       return;
     }
     if (!targetAlbumId) {
-      setErrorMessage('Please select a target album.');
+      setErrorMessage('Please select or create a target album.');
       return;
     }
 
     const albumObj = albums.find((a) => String(a.id) === String(targetAlbumId));
-    const albumName = albumObj ? albumObj.name : 'Selected Album';
+    const albumName = albumObj ? (albumObj.name || albumObj.title || 'Selected Album') : 'Selected Album';
 
     setIsUploading(true);
     setErrorMessage('');
     setSuccessSummary(null);
 
-    const pendingItems = queue.filter((item) => item.status !== 'success');
-    const totalToUpload = pendingItems.length;
+    // Filter items that need Cloudinary upload
+    const pendingCloudinaryItems = queue.filter((item) => !item.cloudinaryUrl && !item.dbSaved);
+    const totalToUpload = pendingCloudinaryItems.length;
     let completedCount = 0;
     const CONCURRENCY = 3;
 
-    // Track successfully uploaded items
-    const successPayloads = [];
+    // Track URLs uploaded in this session
+    const uploadedUrls = {};
 
-    // Helper to upload a single item
+    // Helper to upload a single item to Cloudinary
     async function uploadSingleItem(item) {
       updateItem(item.id, { status: 'uploading', error: null });
       try {
         const url = await uploadImageToCloudinary(item.file, 'pensattu/gallery');
+        uploadedUrls[item.id] = url;
         updateItem(item.id, {
-          status: 'success',
+          status: 'uploaded',
           cloudinaryUrl: url,
-        });
-
-        successPayloads.push({
-          album_id: Number(targetAlbumId),
-          src: url,
-          alt: item.title.trim() || formatFilenameToTitle(item.file.name),
-          category: (item.category || batchCategory || '').trim(),
-          caption: (item.caption || batchCaption || '').trim(),
+          error: null,
         });
       } catch (err) {
         updateItem(item.id, {
           status: 'error',
-          error: err.message || 'Upload failed',
+          error: err.message || 'Cloudinary upload failed',
         });
       } finally {
         completedCount++;
-        const percent = Math.round((completedCount / totalToUpload) * 100);
+        const percent = Math.round((completedCount / (totalToUpload || 1)) * 100);
         setUploadProgress({
           completed: completedCount,
           total: totalToUpload,
@@ -277,56 +310,104 @@ export default function AdminGalleryBulkModal({
     }
 
     // Process pool with limit of CONCURRENCY
-    const itemPool = [...pendingItems];
-    async function worker() {
-      while (itemPool.length > 0) {
-        const nextItem = itemPool.shift();
-        if (nextItem) {
-          await uploadSingleItem(nextItem);
+    if (pendingCloudinaryItems.length > 0) {
+      const itemPool = [...pendingCloudinaryItems];
+      async function worker() {
+        while (itemPool.length > 0) {
+          const nextItem = itemPool.shift();
+          if (nextItem) {
+            await uploadSingleItem(nextItem);
+          }
         }
       }
+
+      const workers = Array.from({ length: Math.min(CONCURRENCY, itemPool.length) }, () => worker());
+      await Promise.all(workers);
     }
 
-    const workers = Array.from({ length: Math.min(CONCURRENCY, itemPool.length) }, () => worker());
-    await Promise.all(workers);
+    // Register all ready items into database
+    setQueue((currentQueue) => {
+      const readyItems = currentQueue.filter((item) => (item.cloudinaryUrl || uploadedUrls[item.id]) && !item.dbSaved);
 
-    // If any succeeded, register them in database via bulk API
-    if (successPayloads.length > 0) {
-      try {
-        await adminApi.bulkAddPhotos({ photos: successPayloads });
-        setSuccessSummary({
-          count: successPayloads.length,
-          total: totalToUpload,
-          albumName,
-          failedCount: totalToUpload - successPayloads.length,
+      if (readyItems.length > 0) {
+        const payloads = readyItems.map((item) => {
+          const url = item.cloudinaryUrl || uploadedUrls[item.id];
+          return {
+            album_id: targetAlbumId,
+            src: url,
+            image_url: url,
+            alt: item.title.trim() || formatFilenameToTitle(item.file?.name || 'Photo'),
+            title: item.title.trim() || formatFilenameToTitle(item.file?.name || 'Photo'),
+            category: (item.category || batchCategory || '').trim(),
+            caption: (item.caption || batchCaption || '').trim(),
+            description: (item.caption || batchCaption || '').trim(),
+          };
         });
 
-        if (onSuccess) {
-          onSuccess(successPayloads.length, albumName);
-        }
-      } catch (err) {
-        setErrorMessage(`Photos uploaded to Cloudinary, but failed to save in database: ${err.message}`);
-      }
-    } else {
-      setErrorMessage('None of the photos could be uploaded to Cloudinary. Please check your network or upload preset.');
-    }
+        adminApi
+          .bulkAddPhotos({ photos: payloads })
+          .then(() => {
+            const savedIds = new Set(readyItems.map((i) => i.id));
+            setQueue((q) =>
+              q.map((item) =>
+                savedIds.has(item.id)
+                  ? { ...item, status: 'success', dbSaved: true }
+                  : item
+              )
+            );
+            setSuccessSummary({
+              count: readyItems.length,
+              total: currentQueue.length,
+              albumName,
+              failedCount: currentQueue.length - readyItems.length,
+            });
 
-    setIsUploading(false);
+            if (onSuccess) {
+              onSuccess(readyItems.length, albumName);
+            }
+          })
+          .catch((err) => {
+            setErrorMessage(`Photos uploaded to Cloudinary, but failed to save in database: ${err.message}. You can click "Save Uploaded Photos" to retry.`);
+          })
+          .finally(() => {
+            setIsUploading(false);
+          });
+      } else {
+        const hasErrors = currentQueue.some((i) => i.status === 'error');
+        if (hasErrors) {
+          setErrorMessage('Some photos failed to upload. Check error messages below and click "Retry Failed Photos".');
+        } else if (currentQueue.every((i) => i.dbSaved)) {
+          setSuccessSummary({
+            count: currentQueue.length,
+            total: currentQueue.length,
+            albumName,
+            failedCount: 0,
+          });
+        }
+        setIsUploading(false);
+      }
+
+      return currentQueue;
+    });
   }
 
   // Retry failed items
   function handleRetryFailed() {
+    setErrorMessage('');
     setQueue((prev) =>
       prev.map((item) =>
         item.status === 'error' ? { ...item, status: 'pending', error: null } : item
       )
     );
-    handleStartBulkUpload();
+    setTimeout(() => {
+      handleStartBulkUpload();
+    }, 60);
   }
 
   const totalBytes = queue.reduce((sum, item) => sum + (item.file?.size || 0), 0);
-  const pendingCount = queue.filter((i) => i.status !== 'success').length;
-  const successCount = queue.filter((i) => i.status === 'success').length;
+  const pendingCloudinaryCount = queue.filter((i) => !i.cloudinaryUrl && i.status !== 'error').length;
+  const readyToSaveCount = queue.filter((i) => i.cloudinaryUrl && !i.dbSaved).length;
+  const savedCount = queue.filter((i) => i.dbSaved).length;
   const errorCount = queue.filter((i) => i.status === 'error').length;
 
   return (
@@ -444,23 +525,69 @@ export default function AdminGalleryBulkModal({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
               {/* Target Album Selection */}
               <div>
-                <label className="ag-form-label" style={{ marginBottom: 6 }}>
-                  Target Album *
-                </label>
-                <select
-                  className="ag-form-select"
-                  value={targetAlbumId}
-                  onChange={(e) => setTargetAlbumId(e.target.value)}
-                  disabled={isUploading}
-                  required
-                >
-                  <option value="">Select Target Album</option>
-                  {albums.map((album) => (
-                    <option key={album.id} value={album.id}>
-                      {album.name}
-                    </option>
-                  ))}
-                </select>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <label className="ag-form-label" style={{ margin: 0 }}>
+                    Target Album *
+                  </label>
+                  {!showQuickAlbum && (
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickAlbum(true)}
+                      style={{ background: 'none', border: 'none', color: '#0E4C92', fontSize: 12, cursor: 'pointer', fontWeight: 700 }}
+                      title="Create a new album right now"
+                    >
+                      + New Album
+                    </button>
+                  )}
+                </div>
+
+                {!showQuickAlbum ? (
+                  <select
+                    className="ag-form-select"
+                    value={targetAlbumId}
+                    onChange={(e) => setTargetAlbumId(e.target.value)}
+                    disabled={isUploading}
+                    required
+                  >
+                    <option value="">Select Target Album</option>
+                    {albums.map((album) => (
+                      <option key={album.id} value={album.id}>
+                        {album.name || album.title || `Album #${album.id}`}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      className="ag-form-input"
+                      placeholder="Album title (e.g. Outreach 2026)..."
+                      value={quickAlbumName}
+                      onChange={(e) => setQuickAlbumName(e.target.value)}
+                      disabled={isCreatingAlbum}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCreateQuickAlbum(); } }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="ag-btn-submit"
+                      style={{ padding: '8px 14px', fontSize: 12, whiteSpace: 'nowrap' }}
+                      onClick={handleCreateQuickAlbum}
+                      disabled={!quickAlbumName.trim() || isCreatingAlbum}
+                    >
+                      {isCreatingAlbum ? '...' : 'Create'}
+                    </button>
+                    <button
+                      type="button"
+                      className="ag-btn-cancel"
+                      style={{ padding: '8px 12px', fontSize: 12 }}
+                      onClick={() => { setShowQuickAlbum(false); setQuickAlbumName(''); }}
+                      disabled={isCreatingAlbum}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Title Auto-naming Format */}
@@ -815,34 +942,35 @@ export default function AdminGalleryBulkModal({
 
                       {/* Status Indicator */}
                       <div style={{ textAlign: 'center' }}>
-                        {item.status === 'pending' && (
-                          <span style={{ fontSize: 11.5, background: '#f1f5f9', color: '#475569', padding: '3px 8px', borderRadius: 999, fontWeight: 600 }}>
-                            Ready
+                        {item.dbSaved ? (
+                          <span style={{ fontSize: 11.5, background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: 999, fontWeight: 700 }}>
+                            ✓ Published
                           </span>
-                        )}
-                        {item.status === 'uploading' && (
+                        ) : item.status === 'uploaded' || (item.cloudinaryUrl && !item.dbSaved) ? (
+                          <span style={{ fontSize: 11.5, background: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: 999, fontWeight: 700 }} title="Image uploaded to Cloudinary, ready to save to database">
+                            Cloudinary OK
+                          </span>
+                        ) : item.status === 'uploading' ? (
                           <span style={{ fontSize: 11.5, background: '#dbeafe', color: '#1d4ed8', padding: '3px 8px', borderRadius: 999, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <span className="ag-spinner-dot" /> Uploading...
                           </span>
-                        )}
-                        {item.status === 'success' && (
-                          <span style={{ fontSize: 11.5, background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: 999, fontWeight: 700 }}>
-                            ✓ Uploaded
-                          </span>
-                        )}
-                        {item.status === 'error' && (
+                        ) : item.status === 'error' ? (
                           <span
                             style={{ fontSize: 11.5, background: '#fee2e2', color: '#b91c1c', padding: '3px 8px', borderRadius: 999, fontWeight: 700 }}
                             title={item.error || 'Upload error'}
                           >
                             Failed
                           </span>
+                        ) : (
+                          <span style={{ fontSize: 11.5, background: '#f1f5f9', color: '#475569', padding: '3px 8px', borderRadius: 999, fontWeight: 600 }}>
+                            Ready
+                          </span>
                         )}
                       </div>
 
                       {/* Remove / Action Button */}
                       <div>
-                        {item.status !== 'uploading' && item.status !== 'success' && (
+                        {item.status !== 'uploading' && !item.dbSaved && (
                           <button
                             type="button"
                             onClick={() => removeItem(item.id)}
@@ -897,7 +1025,7 @@ export default function AdminGalleryBulkModal({
                 onClick={handleRetryFailed}
                 style={{ color: '#b91c1c', borderColor: '#b91c1c' }}
               >
-                Retry {errorCount} Failed Photos
+                Retry {errorCount} Failed Photo{errorCount !== 1 ? 's' : ''}
               </button>
             )}
 
@@ -905,7 +1033,7 @@ export default function AdminGalleryBulkModal({
               type="button"
               className="ag-btn-submit"
               onClick={handleStartBulkUpload}
-              disabled={isUploading || queue.length === 0 || pendingCount === 0 || !targetAlbumId}
+              disabled={isUploading || queue.length === 0 || (!readyToSaveCount && !pendingCloudinaryCount) || !targetAlbumId}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -919,13 +1047,20 @@ export default function AdminGalleryBulkModal({
                   <span className="ag-spinner-dot" />
                   Uploading ({uploadProgress.completed}/{uploadProgress.total})...
                 </>
+              ) : readyToSaveCount > 0 && pendingCloudinaryCount === 0 ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Save {readyToSaveCount} Photo{readyToSaveCount !== 1 ? 's' : ''} to Album
+                </>
               ) : (
                 <>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  Upload {pendingCount > 0 ? `${pendingCount} Photo${pendingCount !== 1 ? 's' : ''}` : 'Photos'}
+                  Upload & Save {pendingCloudinaryCount > 0 ? `${pendingCloudinaryCount} Photo${pendingCloudinaryCount !== 1 ? 's' : ''}` : 'Photos'}
                 </>
               )}
             </button>

@@ -58,7 +58,7 @@ export default function AdminGalleryBulkBar({
     try {
       await adminApi.bulkMovePhotos(selectedPhotoIds, targetAlbumId);
       const targetAlbum = albums.find((a) => String(a.id) === String(targetAlbumId));
-      setSuccessMsg(`Successfully moved ${count} photo${count !== 1 ? 's' : ''} to "${targetAlbum?.name || 'Album'}".`);
+      setSuccessMsg(`Successfully moved ${count} photo${count !== 1 ? 's' : ''} to "${targetAlbum?.name || targetAlbum?.title || 'Album'}".`);
       setSelectedPhotoIds([]);
       closeModal();
       if (onRefresh) await onRefresh();
@@ -209,7 +209,7 @@ export default function AdminGalleryBulkBar({
                   >
                     {albums.map((album) => (
                       <option key={album.id} value={album.id}>
-                        {album.name}
+                        {album.name || album.title || `Album #${album.id}`}
                       </option>
                     ))}
                   </select>

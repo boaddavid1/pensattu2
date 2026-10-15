@@ -363,6 +363,18 @@ const REQUIRED_COLUMNS = [
   { table: 'events', column: 'image_url', definition: "VARCHAR(500)" },
   { table: 'events', column: 'featured', definition: "BOOLEAN DEFAULT FALSE" },
   { table: 'events', column: 'status', definition: "VARCHAR(50) DEFAULT 'upcoming'" },
+  // albums
+  { table: 'albums', column: 'name', definition: "VARCHAR(150) NOT NULL DEFAULT 'Untitled Album'" },
+  { table: 'albums', column: 'description', definition: "TEXT" },
+  { table: 'albums', column: 'cover_image', definition: "VARCHAR(500)" },
+  { table: 'albums', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+  // gallery
+  { table: 'gallery', column: 'album_id', definition: "INT NOT NULL DEFAULT 1" },
+  { table: 'gallery', column: 'image_url', definition: "VARCHAR(500)" },
+  { table: 'gallery', column: 'title', definition: "VARCHAR(200)" },
+  { table: 'gallery', column: 'category', definition: "VARCHAR(80)" },
+  { table: 'gallery', column: 'description', definition: "TEXT" },
+  { table: 'gallery', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
 ];
 
 async function syncColumns() {

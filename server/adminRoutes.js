@@ -34,11 +34,58 @@ const memory = {
   team: data.leadership?.map((r) => ({ ...r })) || data.team.map((r) => ({ ...r })),
   events: data.events.map((r) => ({ ...r })),
   notices: data.news?.map((r, i) => ({ id: i + 1, title: r.title, body: r.content, published_at: toIso(r.created_at) })) || data.notices.map((r, i) => ({ id: i + 1, title: r.title, body: r.body, published_at: toIso(r.date) })),
-  gallery_albums: data.albums?.map((r) => ({ id: r.id, slug: r.id, title: r.name, cover: r.cover_image })) || data.galleryAlbums.map((r) => ({ id: r.id, slug: r.id, title: r.title, cover: r.cover })),
+  gallery_albums: [
+    ...(data.albums || []).map((r) => ({
+      id: r.id,
+      name: r.name || r.title || 'Sunday Worship',
+      title: r.name || r.title || 'Sunday Worship',
+      description: r.description || '',
+      cover_image: r.cover_image || r.cover || '/images/pensafallback-bw.png',
+      cover: r.cover_image || r.cover || '/images/pensafallback-bw.png',
+      created_at: r.created_at || '2026-08-23',
+    })),
+    ...(data.galleryAlbums || [])
+      .filter((g) => !(data.albums || []).some((a) => (a.name || a.title || '').toLowerCase() === (g.title || g.name || '').toLowerCase()))
+      .map((r, i) => ({
+        id: r.id || (i + 2),
+        name: r.title || r.name,
+        title: r.title || r.name,
+        description: r.description || '',
+        cover_image: r.cover || r.cover_image || '/images/pensafallback-bw.png',
+        cover: r.cover || r.cover_image || '/images/pensafallback-bw.png',
+        created_at: '2026-08-23',
+      })),
+  ],
   visits: data.visits,
   subscribers: data.subscribers,
   contacts: data.contactMessages || data.contacts,
-  gallery_photos: data.gallery?.map((r) => ({ ...r })) || [],
+  gallery_photos: [
+    ...(data.gallery || []).map((r) => ({
+      id: r.id,
+      album_id: r.album_id,
+      image_url: r.image_url || r.src || '/images/pensafallback-bw.png',
+      src: r.image_url || r.src || '/images/pensafallback-bw.png',
+      title: r.title || r.alt || 'Worship Service',
+      alt: r.title || r.alt || 'Worship Service',
+      category: r.category || 'Worship',
+      description: r.description || r.caption || '',
+      caption: r.description || r.caption || '',
+    })),
+    ...((data.galleryAlbums || []).flatMap((album, aIdx) => {
+      const resolvedAlbumId = album.id === 'worship' ? 1 : album.id;
+      return (album.items || []).map((item, pIdx) => ({
+        id: (aIdx + 1) * 100 + pIdx + 1,
+        album_id: resolvedAlbumId,
+        image_url: item.src || item.image_url || '/images/pensafallback-bw.png',
+        src: item.src || item.image_url || '/images/pensafallback-bw.png',
+        title: item.alt || item.title || '',
+        alt: item.alt || item.title || '',
+        category: item.category || '',
+        description: item.caption || item.description || '',
+        caption: item.caption || item.description || '',
+      }));
+    })),
+  ],
   users: [{ ...DEMO_USER, password_hash: null }],
   navigation: JSON.parse(JSON.stringify(data.defaultNavigation || {})),
   hero_slider: [],
@@ -526,19 +573,77 @@ router.delete('/contacts/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Helpers to safely resolve album ID between slugs, numeric IDs, and creating missing albums
+async function resolveAlbumId(rawAlbumId) {
+  if (rawAlbumId === undefined || rawAlbumId === null || rawAlbumId === '') return 1;
+  const numericId = Number(rawAlbumId);
+  try {
+    if (!isNaN(numericId) && numericId > 0) {
+      const [rows] = await pool.query('SELECT id FROM albums WHERE id = ?', [numericId]);
+      if (rows.length > 0) return rows[0].id;
+    }
+    const [nameRows] = await pool.query('SELECT id FROM albums WHERE name = ? OR name LIKE ?', [String(rawAlbumId), `%${rawAlbumId}%`]);
+    if (nameRows.length > 0) return nameRows[0].id;
+
+    const [firstRows] = await pool.query('SELECT id FROM albums ORDER BY id ASC LIMIT 1');
+    if (firstRows.length > 0) {
+      if (typeof rawAlbumId === 'string' && isNaN(Number(rawAlbumId)) && rawAlbumId.trim()) {
+        const [createResult] = await pool.query('INSERT INTO albums (name) VALUES (?)', [rawAlbumId.trim()]);
+        return createResult.insertId;
+      }
+      return firstRows[0].id;
+    }
+
+    const albumName = (typeof rawAlbumId === 'string' && isNaN(Number(rawAlbumId)) && rawAlbumId.trim()) ? rawAlbumId.trim() : 'General Gallery';
+    const [createResult] = await pool.query('INSERT INTO albums (name) VALUES (?)', [albumName]);
+    return createResult.insertId;
+  } catch (err) {
+    return !isNaN(numericId) && numericId > 0 ? numericId : 1;
+  }
+}
+
+function resolveMemoryAlbumId(rawAlbumId) {
+  if (rawAlbumId === undefined || rawAlbumId === null || rawAlbumId === '') {
+    return memory.gallery_albums?.[0]?.id || 1;
+  }
+  const albumsList = memory.gallery_albums || [];
+  const found = albumsList.find((a) => String(a.id) === String(rawAlbumId) || (a.name && a.name.toLowerCase() === String(rawAlbumId).toLowerCase()));
+  if (found) return found.id;
+  return isNaN(Number(rawAlbumId)) ? rawAlbumId : Number(rawAlbumId);
+}
+
 // Gallery photos nested under album
 router.get('/gallery_photos', requireAuth, async (req, res) => {
+  const albumId = req.query.album_id;
   try {
-    const albumId = req.query.album_id;
     const query = albumId
       ? 'SELECT * FROM gallery WHERE album_id = ? ORDER BY id'
       : 'SELECT * FROM gallery ORDER BY id';
     const params = albumId ? [albumId] : [];
     const [rows] = await pool.query(query, params);
-    res.json(rows);
+    const normalized = rows.map((r) => ({
+      ...r,
+      src: r.image_url || r.src,
+      image_url: r.image_url || r.src,
+      alt: r.title || r.alt || '',
+      title: r.title || r.alt || '',
+      caption: r.description || r.caption || '',
+      description: r.description || r.caption || '',
+    }));
+    res.json(normalized);
   } catch (err) {
     if (isDbUnavailable(err)) {
-      const rows = memoryList('gallery_photos').filter((p) => (albumId ? String(p.album_id) === String(albumId) : true));
+      const rows = memoryList('gallery_photos')
+        .filter((p) => (albumId ? String(p.album_id) === String(albumId) : true))
+        .map((r) => ({
+          ...r,
+          src: r.image_url || r.src,
+          image_url: r.image_url || r.src,
+          alt: r.title || r.alt || '',
+          title: r.title || r.alt || '',
+          caption: r.description || r.caption || '',
+          description: r.description || r.caption || '',
+        }));
       return res.json(rows);
     }
     res.status(500).json({ error: err.message });
@@ -546,20 +651,60 @@ router.get('/gallery_photos', requireAuth, async (req, res) => {
 });
 
 router.post('/gallery_photos', requireAuth, async (req, res) => {
-  const { album_id, src, alt, category, caption } = req.body;
-  if (!album_id || !src) {
+  const { album_id, src, alt, category, caption, image_url, title, description } = req.body;
+  const photoSrc = src || image_url;
+  const photoAlt = alt || title || '';
+  const photoDesc = caption || description || '';
+  if (!album_id || !photoSrc) {
     return res.status(400).json({ error: 'album_id and src required' });
   }
   try {
-    const [result] = await pool.query(
-      'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES (?, ?, ?, ?, ?)',
-      [album_id, src, alt || null, category || null, caption || null]
-    );
+    const resolvedAlbumId = await resolveAlbumId(album_id);
+    let result;
+    try {
+      const [insertRes] = await pool.query(
+        'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES (?, ?, ?, ?, ?)',
+        [resolvedAlbumId, photoSrc, photoAlt || null, category || null, photoDesc || null]
+      );
+      result = insertRes;
+    } catch (insertErr) {
+      const missingCol = extractMissingColumn(insertErr.message);
+      if (missingCol) {
+        await tryAddMissingColumn('gallery', missingCol);
+        const [retryRes] = await pool.query(
+          'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES (?, ?, ?, ?, ?)',
+          [resolvedAlbumId, photoSrc, photoAlt || null, category || null, photoDesc || null]
+        );
+        result = retryRes;
+      } else {
+        throw insertErr;
+      }
+    }
     logAction(req.user.id, 'CREATE', 'gallery', result.insertId);
-    res.status(201).json({ id: result.insertId, album_id, image_url: src, title: alt, category, description: caption });
+    res.status(201).json({
+      id: result.insertId,
+      album_id: resolvedAlbumId,
+      image_url: photoSrc,
+      src: photoSrc,
+      title: photoAlt,
+      alt: photoAlt,
+      category,
+      description: photoDesc,
+      caption: photoDesc,
+    });
   } catch (err) {
     if (isDbUnavailable(err)) {
-      const row = memoryCreate('gallery_photos', { album_id, src, alt, category, caption });
+      const memoryAlbumId = resolveMemoryAlbumId(album_id);
+      const row = memoryCreate('gallery_photos', {
+        album_id: memoryAlbumId,
+        src: photoSrc,
+        image_url: photoSrc,
+        alt: photoAlt,
+        title: photoAlt,
+        category: category || '',
+        caption: photoDesc,
+        description: photoDesc,
+      });
       return res.status(201).json({ demo: true, ...row });
     }
     res.status(500).json({ error: err.message });
@@ -573,24 +718,53 @@ router.post('/gallery_photos/bulk', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'photos array is required and must not be empty' });
   }
 
-  const validPhotos = photos.filter((p) => p && p.album_id && (p.src || p.image_url));
+  const validPhotos = photos.filter((p) => p && p.album_id !== undefined && p.album_id !== null && p.album_id !== '' && (p.src || p.image_url));
   if (validPhotos.length === 0) {
     return res.status(400).json({ error: 'No valid photos provided (album_id and src/image_url required)' });
   }
 
   try {
-    const values = validPhotos.map((p) => [
-      Number(p.album_id),
-      p.src || p.image_url,
-      p.alt || p.title || null,
-      p.category || null,
-      p.caption || p.description || null,
+    const resolvedPhotos = await Promise.all(
+      validPhotos.map(async (p) => {
+        const resolvedAlbumId = await resolveAlbumId(p.album_id);
+        return {
+          album_id: resolvedAlbumId,
+          image_url: p.src || p.image_url,
+          title: p.alt || p.title || null,
+          category: p.category || null,
+          description: p.caption || p.description || null,
+        };
+      })
+    );
+
+    const values = resolvedPhotos.map((p) => [
+      p.album_id,
+      p.image_url,
+      p.title,
+      p.category,
+      p.description,
     ]);
 
-    const [result] = await pool.query(
-      'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES ?',
-      [values]
-    );
+    let result;
+    try {
+      const [insertRes] = await pool.query(
+        'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES ?',
+        [values]
+      );
+      result = insertRes;
+    } catch (insertErr) {
+      const missingCol = extractMissingColumn(insertErr.message);
+      if (missingCol) {
+        await tryAddMissingColumn('gallery', missingCol);
+        const [retryRes] = await pool.query(
+          'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES ?',
+          [values]
+        );
+        result = retryRes;
+      } else {
+        throw insertErr;
+      }
+    }
 
     logAction(req.user.id, 'BULK_CREATE', 'gallery', null, { count: validPhotos.length });
     res.status(201).json({
@@ -601,15 +775,22 @@ router.post('/gallery_photos/bulk', requireAuth, async (req, res) => {
     });
   } catch (err) {
     if (isDbUnavailable(err)) {
-      const createdList = validPhotos.map((p) =>
-        memoryCreate('gallery_photos', {
-          album_id: Number(p.album_id),
-          src: p.src || p.image_url,
-          alt: p.alt || p.title || '',
+      const createdList = validPhotos.map((p) => {
+        const memoryAlbumId = resolveMemoryAlbumId(p.album_id);
+        const img = p.src || p.image_url;
+        const txt = p.alt || p.title || '';
+        const desc = p.caption || p.description || '';
+        return memoryCreate('gallery_photos', {
+          album_id: memoryAlbumId,
+          src: img,
+          image_url: img,
+          alt: txt,
+          title: txt,
           category: p.category || '',
-          caption: p.caption || p.description || '',
-        })
-      );
+          caption: desc,
+          description: desc,
+        });
+      });
       return res.status(201).json({
         demo: true,
         success: true,
@@ -652,16 +833,18 @@ router.post('/gallery_photos/bulk-move', requireAuth, async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query('UPDATE gallery SET album_id = ? WHERE id IN (?)', [album_id, ids]);
-    logAction(req.user.id, 'BULK_MOVE', 'gallery', null, { ids, album_id, count: result.affectedRows });
-    res.json({ success: true, count: result.affectedRows, album_id });
+    const resolvedAlbumId = await resolveAlbumId(album_id);
+    const [result] = await pool.query('UPDATE gallery SET album_id = ? WHERE id IN (?)', [resolvedAlbumId, ids]);
+    logAction(req.user.id, 'BULK_MOVE', 'gallery', null, { ids, album_id: resolvedAlbumId, count: result.affectedRows });
+    res.json({ success: true, count: result.affectedRows, album_id: resolvedAlbumId });
   } catch (err) {
     if (isDbUnavailable(err)) {
+      const memoryAlbumId = resolveMemoryAlbumId(album_id);
       let count = 0;
       ids.forEach((id) => {
-        if (memoryUpdate('gallery_photos', id, { album_id: Number(album_id) })) count++;
+        if (memoryUpdate('gallery_photos', id, { album_id: memoryAlbumId })) count++;
       });
-      return res.json({ success: true, count, album_id, demo: true });
+      return res.json({ success: true, count, album_id: memoryAlbumId, demo: true });
     }
     res.status(500).json({ error: err.message });
   }
@@ -700,7 +883,7 @@ router.put('/gallery_photos/:id', requireAuth, async (req, res) => {
     const [existing] = await pool.query('SELECT * FROM gallery WHERE id = ?', [req.params.id]);
     if (!existing.length) return res.status(404).json({ error: 'Photo not found' });
     const row = existing[0];
-    const finalAlbumId = album_id !== undefined ? album_id : row.album_id;
+    const finalAlbumId = album_id !== undefined ? (await resolveAlbumId(album_id)) : row.album_id;
     const finalTitle = newTitle !== undefined ? newTitle : row.title;
     const finalCat = category !== undefined ? category : row.category;
     const finalDesc = newDesc !== undefined ? newDesc : row.description;
@@ -714,7 +897,15 @@ router.put('/gallery_photos/:id', requireAuth, async (req, res) => {
     res.json({ id: Number(req.params.id), album_id: finalAlbumId, image_url: finalImg, title: finalTitle, category: finalCat, description: finalDesc });
   } catch (err) {
     if (isDbUnavailable(err)) {
-      return res.json({ id: Number(req.params.id), demo: true, ...req.body });
+      const memoryAlbumId = album_id !== undefined ? resolveMemoryAlbumId(album_id) : undefined;
+      const updated = memoryUpdate('gallery_photos', req.params.id, {
+        ...(memoryAlbumId !== undefined ? { album_id: memoryAlbumId } : {}),
+        ...(newImg ? { src: newImg, image_url: newImg } : {}),
+        ...(newTitle !== undefined ? { alt: newTitle, title: newTitle } : {}),
+        ...(category !== undefined ? { category } : {}),
+        ...(newDesc !== undefined ? { caption: newDesc, description: newDesc } : {}),
+      });
+      return res.json({ id: Number(req.params.id), demo: true, ...(updated || req.body) });
     }
     res.status(500).json({ error: err.message });
   }
