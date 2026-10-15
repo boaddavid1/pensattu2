@@ -5,7 +5,15 @@ import './admin.css';
 
 const navItems = [
   { to: '/control-panel/dashboard', label: 'Dashboard' },
-  { to: '/control-panel/pages', label: 'Pages & Content' },
+  {
+    to: '/control-panel/pages',
+    label: 'Pages & Content',
+    children: [
+      { to: '/control-panel/pages/about', label: '📖 About Page' },
+      { to: '/control-panel/pages/home', label: '🏠 Home Page' },
+      { to: '/control-panel/pages/contact', label: '✉️ Contact Page' },
+    ],
+  },
   { to: '/control-panel/navigation', label: 'Navbar & Footer' },
   { to: '/control-panel/ministries', label: 'Departments & Teams' },
   { to: '/control-panel/sermons', label: 'Sermons' },
@@ -85,16 +93,41 @@ export default function AdminLayout({ children }) {
           <button className="admin-menu-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
         </div>
         <nav className="admin-nav">
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={pathname === item.to || pathname.startsWith(item.to + '/') ? 'active' : ''}
-              onClick={() => setMenuOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const hasChildren = item.children && item.children.length > 0;
+            const isParentActive =
+              pathname === item.to || pathname.startsWith(item.to + '/');
+
+            return (
+              <div key={item.to} className="admin-nav-group">
+                <Link
+                  to={item.to}
+                  className={pathname === item.to || (hasChildren && isParentActive) ? 'active' : ''}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <div className="admin-nav-item-row">
+                    <span>{item.label}</span>
+                    {hasChildren && <span className="admin-nav-badge">Pages</span>}
+                  </div>
+                </Link>
+
+                {hasChildren && (
+                  <div className="admin-nav-sub">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.to}
+                        to={child.to}
+                        className={pathname === child.to ? 'active' : ''}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
         <div className="admin-sidebar-foot">
           {user && <div className="admin-user">{user.name} <small>{user.role}</small></div>}

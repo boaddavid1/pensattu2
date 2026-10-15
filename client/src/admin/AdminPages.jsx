@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 import {
@@ -9,7 +10,22 @@ import {
 import './admin-pages.css';
 
 export default function AdminPages() {
-  const [activeTab, setActiveTab] = useState('about'); // 'about' | 'home' | 'contact'
+  const { activeTab: routeTab } = useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(
+    routeTab && ['about', 'home', 'contact'].includes(routeTab) ? routeTab : 'about'
+  );
+
+  useEffect(() => {
+    if (routeTab && ['about', 'home', 'contact'].includes(routeTab)) {
+      setActiveTab(routeTab);
+    }
+  }, [routeTab]);
+
+  function switchTab(tab) {
+    setActiveTab(tab);
+    navigate(`/control-panel/pages/${tab}`);
+  }
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingField, setUploadingField] = useState(null);
@@ -268,21 +284,21 @@ export default function AdminPages() {
           <button
             type="button"
             className={`ap-tab-item ${activeTab === 'about' ? 'active' : ''}`}
-            onClick={() => setActiveTab('about')}
+            onClick={() => switchTab('about')}
           >
             📖 About Page Editor
           </button>
           <button
             type="button"
             className={`ap-tab-item ${activeTab === 'home' ? 'active' : ''}`}
-            onClick={() => setActiveTab('home')}
+            onClick={() => switchTab('home')}
           >
             🏠 Home Page Sections
           </button>
           <button
             type="button"
             className={`ap-tab-item ${activeTab === 'contact' ? 'active' : ''}`}
-            onClick={() => setActiveTab('contact')}
+            onClick={() => switchTab('contact')}
           >
             ✉️ Contact & Visit Page
           </button>
