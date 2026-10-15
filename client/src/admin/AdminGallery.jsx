@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
+import AdminGalleryBulkModal from './AdminGalleryBulkModal';
+import AdminGalleryBulkBar from './AdminGalleryBulkBar';
 import './admin-gallery.css';
 
 const DEFAULT_CATEGORIES = [
@@ -41,6 +43,8 @@ export default function AdminGallery() {
   // Modals state: null | 'createAlbum' | 'editAlbum' | 'uploadPhoto' | 'editPhoto'
   const [activeModal, setActiveModal] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
 
   // Form states
   const [albumForm, setAlbumForm] = useState({ name: '', description: '', cover_image: '' });
@@ -65,17 +69,33 @@ export default function AdminGallery() {
     return () => clearTimeout(timer);
   }, [successMsg]);
 
-  // Keyboard navigation (Escape closes modal/lightbox)
+  // Keyboard navigation (Escape closes modal/lightbox/selection)
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Escape') {
         if (lightboxPhoto) setLightboxPhoto(null);
+        else if (isBulkModalOpen) setIsBulkModalOpen(false);
         else if (activeModal) closeModal();
+        else if (selectedPhotoIds.length > 0) setSelectedPhotoIds([]);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxPhoto, activeModal]);
+  }, [lightboxPhoto, isBulkModalOpen, activeModal, selectedPhotoIds]);
+
+  function openBulkUpload(defaultAlbum = null) {
+    if (defaultAlbum) setSelectedAlbumId(defaultAlbum);
+    setIsBulkModalOpen(true);
+  }
+
+  function toggleSelectPhoto(photoId, e) {
+    if (e) e.stopPropagation();
+    setSelectedPhotoIds((prev) =>
+      prev.includes(photoId)
+        ? prev.filter((id) => id !== photoId)
+        : [...prev, photoId]
+    );
+  }
 
   async function loadData() {
     setLoading(true);
@@ -623,17 +643,30 @@ export default function AdminGallery() {
           </button>
           <button
             type="button"
-            className="ag-btn-upload-photo"
-            onClick={() => openUploadPhoto(selectedAlbumId)}
+            className="ag-btn-bulk-upload"
+            onClick={() => openBulkUpload(selectedAlbumId)}
             disabled={albums.length === 0}
-            title={albums.length === 0 ? 'Create an album first before uploading photos' : 'Upload photo'}
+            title={albums.length === 0 ? 'Create an album first before uploading photos' : 'Bulk upload photos'}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
-            Upload Photo
+            Bulk Upload
+          </button>
+          <button
+            type="button"
+            className="ag-btn-upload-photo"
+            onClick={() => openUploadPhoto(selectedAlbumId)}
+            disabled={albums.length === 0}
+            title={albums.length === 0 ? 'Create an album first before uploading photos' : 'Upload single photo'}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Single Photo
           </button>
         </div>
       </div>
@@ -703,6 +736,19 @@ export default function AdminGallery() {
                 <button
                   type="button"
                   className="ag-banner-action-btn primary"
+                  style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#fff', borderColor: '#38bdf8' }}
+                  onClick={() => openBulkUpload(currentAlbum.id)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Bulk Upload
+                </button>
+                <button
+                  type="button"
+                  className="ag-banner-action-btn primary"
                   onClick={() => openUploadPhoto(currentAlbum.id)}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -769,11 +815,24 @@ export default function AdminGallery() {
           ) : (
             <div className="ag-photos-grid">
               {filteredPhotos.map((photo) => (
-                <div key={photo.id} className="ag-photo-card">
+                <div key={photo.id} className={`ag-photo-card ${selectedPhotoIds.includes(photo.id) ? 'selected' : ''}`}>
                   <div
                     className="ag-photo-thumb-wrap"
                     onClick={() => setLightboxPhoto(photo)}
                   >
+                    <div
+                      className={`ag-photo-select-box ${selectedPhotoIds.includes(photo.id) ? 'checked' : ''}`}
+                      onClick={(e) => toggleSelectPhoto(photo.id, e)}
+                      title={selectedPhotoIds.includes(photo.id) ? 'Deselect photo' : 'Select photo for bulk actions'}
+                    >
+                      {selectedPhotoIds.includes(photo.id) ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(255,255,255,0.4)' }} />
+                      )}
+                    </div>
                     <img
                       src={photo.image_url}
                       alt={photo.title || 'Gallery image'}
@@ -1005,11 +1064,24 @@ export default function AdminGallery() {
           ) : (
             <div className="ag-photos-grid">
               {filteredPhotos.map((photo) => (
-                <div key={photo.id} className="ag-photo-card">
+                <div key={photo.id} className={`ag-photo-card ${selectedPhotoIds.includes(photo.id) ? 'selected' : ''}`}>
                   <div
                     className="ag-photo-thumb-wrap"
                     onClick={() => setLightboxPhoto(photo)}
                   >
+                    <div
+                      className={`ag-photo-select-box ${selectedPhotoIds.includes(photo.id) ? 'checked' : ''}`}
+                      onClick={(e) => toggleSelectPhoto(photo.id, e)}
+                      title={selectedPhotoIds.includes(photo.id) ? 'Deselect photo' : 'Select photo for bulk actions'}
+                    >
+                      {selectedPhotoIds.includes(photo.id) ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(255,255,255,0.4)' }} />
+                      )}
+                    </div>
                     <img
                       src={photo.image_url}
                       alt={photo.title || 'Gallery image'}
@@ -1483,6 +1555,31 @@ export default function AdminGallery() {
           </div>
         </div>
       )}
+
+      {/* ─── BULK PHOTO UPLOAD STUDIO MODAL ─── */}
+      <AdminGalleryBulkModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        albums={albums}
+        defaultAlbumId={selectedAlbumId}
+        categoriesList={categoriesList}
+        onSuccess={async (count, albumName) => {
+          setSuccessMsg(`Bulk upload complete! ${count} photos successfully added to "${albumName}".`);
+          await loadData();
+        }}
+      />
+
+      {/* ─── BULK ACTIONS FLOATING BAR & MODALS FOR EXISTING PHOTOS ─── */}
+      <AdminGalleryBulkBar
+        selectedPhotoIds={selectedPhotoIds}
+        setSelectedPhotoIds={setSelectedPhotoIds}
+        filteredPhotos={filteredPhotos}
+        albums={albums}
+        categoriesList={categoriesList}
+        onRefresh={loadData}
+        setSuccessMsg={setSuccessMsg}
+        setErrorMsg={setError}
+      />
     </div>
   );
 }

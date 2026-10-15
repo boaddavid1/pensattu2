@@ -57,6 +57,10 @@ export const adminApi = {
 
   listPhotos: (albumId) => request(`/cp/gallery_photos${albumId ? `?album_id=${albumId}` : ''}`),
   addPhoto: (body) => request('/cp/gallery_photos', { method: 'POST', body: JSON.stringify(body) }),
+  bulkAddPhotos: (body) => request('/cp/gallery_photos/bulk', { method: 'POST', body: JSON.stringify(body) }),
+  bulkDeletePhotos: (ids) => request('/cp/gallery_photos/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+  bulkMovePhotos: (ids, targetAlbumId) => request('/cp/gallery_photos/bulk-move', { method: 'POST', body: JSON.stringify({ ids, album_id: targetAlbumId }) }),
+  bulkTagPhotos: (ids, category) => request('/cp/gallery_photos/bulk-tag', { method: 'POST', body: JSON.stringify({ ids, category }) }),
   updatePhoto: (id, body) => request(`/cp/gallery_photos/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   removePhoto: (id) => request(`/cp/gallery_photos/${id}`, { method: 'DELETE' }),
 

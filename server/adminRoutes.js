@@ -466,6 +466,130 @@ router.post('/gallery_photos', requireAuth, async (req, res) => {
   }
 });
 
+// Bulk upload gallery photos
+router.post('/gallery_photos/bulk', requireAuth, async (req, res) => {
+  const { photos } = req.body;
+  if (!Array.isArray(photos) || photos.length === 0) {
+    return res.status(400).json({ error: 'photos array is required and must not be empty' });
+  }
+
+  const validPhotos = photos.filter((p) => p && p.album_id && (p.src || p.image_url));
+  if (validPhotos.length === 0) {
+    return res.status(400).json({ error: 'No valid photos provided (album_id and src/image_url required)' });
+  }
+
+  try {
+    const values = validPhotos.map((p) => [
+      Number(p.album_id),
+      p.src || p.image_url,
+      p.alt || p.title || null,
+      p.category || null,
+      p.caption || p.description || null,
+    ]);
+
+    const [result] = await pool.query(
+      'INSERT INTO gallery (album_id, image_url, title, category, description) VALUES ?',
+      [values]
+    );
+
+    logAction(req.user.id, 'BULK_CREATE', 'gallery', null, { count: validPhotos.length });
+    res.status(201).json({
+      success: true,
+      count: validPhotos.length,
+      affectedRows: result.affectedRows,
+      firstInsertId: result.insertId,
+    });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      const createdList = validPhotos.map((p) =>
+        memoryCreate('gallery_photos', {
+          album_id: Number(p.album_id),
+          src: p.src || p.image_url,
+          alt: p.alt || p.title || '',
+          category: p.category || '',
+          caption: p.caption || p.description || '',
+        })
+      );
+      return res.status(201).json({
+        demo: true,
+        success: true,
+        count: createdList.length,
+        photos: createdList,
+      });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk delete gallery photos
+router.post('/gallery_photos/bulk-delete', requireAuth, async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'ids array is required' });
+  }
+
+  try {
+    const [result] = await pool.query('DELETE FROM gallery WHERE id IN (?)', [ids]);
+    logAction(req.user.id, 'BULK_DELETE', 'gallery', null, { ids, count: result.affectedRows });
+    res.json({ success: true, count: result.affectedRows });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      let count = 0;
+      ids.forEach((id) => {
+        if (memoryDelete('gallery_photos', id)) count++;
+      });
+      return res.json({ success: true, count, demo: true });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk move gallery photos to a different album
+router.post('/gallery_photos/bulk-move', requireAuth, async (req, res) => {
+  const { ids, album_id } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0 || !album_id) {
+    return res.status(400).json({ error: 'ids array and album_id are required' });
+  }
+
+  try {
+    const [result] = await pool.query('UPDATE gallery SET album_id = ? WHERE id IN (?)', [album_id, ids]);
+    logAction(req.user.id, 'BULK_MOVE', 'gallery', null, { ids, album_id, count: result.affectedRows });
+    res.json({ success: true, count: result.affectedRows, album_id });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      let count = 0;
+      ids.forEach((id) => {
+        if (memoryUpdate('gallery_photos', id, { album_id: Number(album_id) })) count++;
+      });
+      return res.json({ success: true, count, album_id, demo: true });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk assign category to gallery photos
+router.post('/gallery_photos/bulk-tag', requireAuth, async (req, res) => {
+  const { ids, category } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0 || category === undefined) {
+    return res.status(400).json({ error: 'ids array and category are required' });
+  }
+
+  try {
+    const [result] = await pool.query('UPDATE gallery SET category = ? WHERE id IN (?)', [category, ids]);
+    logAction(req.user.id, 'BULK_TAG', 'gallery', null, { ids, category, count: result.affectedRows });
+    res.json({ success: true, count: result.affectedRows, category });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      let count = 0;
+      ids.forEach((id) => {
+        if (memoryUpdate('gallery_photos', id, { category })) count++;
+      });
+      return res.json({ success: true, count, category, demo: true });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.put('/gallery_photos/:id', requireAuth, async (req, res) => {
   const { album_id, title, category, description, image_url, src, alt, caption } = req.body;
   const newImg = src || image_url;
