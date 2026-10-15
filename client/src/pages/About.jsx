@@ -49,6 +49,10 @@ export default function About() {
             {settings.story_p1 && <p>{settings.story_p1}</p>}
             {settings.story_p2 && <p>{settings.story_p2}</p>}
             {settings.story_p3 && <p>{settings.story_p3}</p>}
+            {Array.isArray(settings.extra_story_paragraphs) &&
+              settings.extra_story_paragraphs.map((p, idx) => (
+                <p key={idx}>{p}</p>
+              ))}
             <Link to={settings.story_btn_link || '/#team'} className="btn btn-dark" style={{ marginTop: '10px' }}>
               {settings.story_btn_text || 'Meet our leadership'} <span className="btn-arrow" style={{ background: 'var(--moss)', color: 'var(--pine-deep)' }}>→</span>
             </Link>
@@ -61,6 +65,120 @@ export default function About() {
           </div>
         </div>
       </section>
+
+      {/* ─── Mission & Vision Statements ─── */}
+      {settings.show_mission_vision !== false && (settings.mission_text || settings.vision_text) && (
+        <section className="about-mv-section" style={{ background: 'var(--paper, #f7f5ee)', padding: '70px 0' }}>
+          <div className="wrap">
+            <div className="about-mv-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px' }}>
+              {settings.vision_text && (
+                <div
+                  className="about-mv-card"
+                  style={{
+                    background: '#fff',
+                    border: '1px solid var(--line, #e3dfd3)',
+                    borderRadius: '24px',
+                    padding: '36px 32px',
+                    boxShadow: '0 8px 24px rgba(10, 46, 92, 0.05)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 14,
+                      background: 'rgba(14, 76, 146, 0.1)',
+                      color: 'var(--pine-deep, #0A2E5C)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 24,
+                      marginBottom: 18,
+                    }}
+                  >
+                    🔭
+                  </div>
+                  <span className="eyebrow" style={{ color: 'var(--moss-deep, #2C6B3F)', marginBottom: 8, display: 'block' }}>
+                    Forward Outlook
+                  </span>
+                  <h3 style={{ fontSize: 24, color: 'var(--pine-deep, #0A2E5C)', marginBottom: 14 }}>
+                    {settings.vision_title || 'Our Vision'}
+                  </h3>
+                  <p style={{ color: 'var(--ink-soft, #555)', lineHeight: 1.7, fontSize: 15 }}>
+                    {settings.vision_text}
+                  </p>
+                </div>
+              )}
+
+              {settings.mission_text && (
+                <div
+                  className="about-mv-card"
+                  style={{
+                    background: '#fff',
+                    border: '1px solid var(--line, #e3dfd3)',
+                    borderRadius: '24px',
+                    padding: '36px 32px',
+                    boxShadow: '0 8px 24px rgba(10, 46, 92, 0.05)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 14,
+                      background: 'rgba(44, 107, 63, 0.1)',
+                      color: 'var(--moss-deep, #2C6B3F)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 24,
+                      marginBottom: 18,
+                    }}
+                  >
+                    🎯
+                  </div>
+                  <span className="eyebrow" style={{ color: 'var(--moss-deep, #2C6B3F)', marginBottom: 8, display: 'block' }}>
+                    Our Purpose
+                  </span>
+                  <h3 style={{ fontSize: 24, color: 'var(--pine-deep, #0A2E5C)', marginBottom: 14 }}>
+                    {settings.mission_title || 'Our Mission'}
+                  </h3>
+                  <p style={{ color: 'var(--ink-soft, #555)', lineHeight: 1.7, fontSize: 15 }}>
+                    {settings.mission_text}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {settings.motto_text && (
+              <div
+                style={{
+                  marginTop: 24,
+                  background: 'linear-gradient(135deg, var(--pine-deep, #0A2E5C) 0%, #153e75 100%)',
+                  borderRadius: 20,
+                  padding: '24px 32px',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 20,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div>
+                  <span style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#E5A93C', fontWeight: 700 }}>
+                    Fellowship Motto
+                  </span>
+                  <div style={{ fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                    "{settings.motto_text}"
+                  </div>
+                </div>
+                <div style={{ fontSize: 28 }}>⚡</div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ─── Core Values ─── */}
       <section className="values">
@@ -134,11 +252,73 @@ export default function About() {
         </div>
       </section>
 
+      {/* ─── Community Photos Showcase ─── */}
+      {settings.show_photos !== false && Array.isArray(settings.about_photos) && settings.about_photos.length > 0 && (
+        <section className="about-photos-section" style={{ background: '#fff', padding: '80px 0' }}>
+          <div className="wrap">
+            <div className="section-head">
+              <span className="eyebrow">{settings.photos_eyebrow || 'Life in fellowship'}</span>
+              <h2>{settings.photos_title || 'Moments from our church family.'}</h2>
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: 20,
+                marginTop: 40,
+              }}
+            >
+              {settings.about_photos.map((photo, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    borderRadius: 20,
+                    overflow: 'hidden',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                    border: '1px solid var(--line, #e3dfd3)',
+                    background: 'var(--paper, #f7f5ee)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div style={{ width: '100%', height: 240, overflow: 'hidden' }}>
+                    <img
+                      src={photo.src || photo.image_url}
+                      alt={photo.caption || 'PENSA TTU fellowship'}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.4s ease',
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
+                      onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    />
+                  </div>
+                  {photo.caption && (
+                    <div style={{ padding: '14px 18px', fontSize: 13.5, color: 'var(--ink-soft, #555)', fontWeight: 500 }}>
+                      {photo.caption}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ─── Call to Action ─── */}
       <section className="cta">
         <div className="wrap">
           <div className="cta-box">
-            <h2>{settings.cta_title || 'Come see it for yourself this Sunday.'}</h2>
+            <div>
+              <h2>{settings.cta_title || 'Come see it for yourself this Sunday.'}</h2>
+              {settings.cta_subtitle && (
+                <p style={{ marginTop: 8, color: 'var(--ink-soft, #555)', fontSize: 15, maxWidth: 440 }}>
+                  {settings.cta_subtitle}
+                </p>
+              )}
+            </div>
             <Link to={settings.cta_btn_link || '/#book'} className="btn btn-dark">
               {settings.cta_btn_text || 'Plan your visit'} <span className="btn-arrow" style={{ background: 'var(--moss)', color: 'var(--pine-deep)' }}>→</span>
             </Link>

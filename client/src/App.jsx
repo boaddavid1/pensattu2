@@ -158,6 +158,9 @@ function AdminShell() {
           <Route path="login" element={<AdminLogin />} />
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="about" element={<AdminPages defaultTab="about" />} />
+            <Route path="home" element={<AdminPages defaultTab="home" />} />
+            <Route path="contact" element={<AdminPages defaultTab="contact" />} />
             <Route path="pages" element={<AdminPages />} />
             <Route path="pages/:activeTab" element={<AdminPages />} />
             <Route path="navigation" element={<AdminNavigation />} />

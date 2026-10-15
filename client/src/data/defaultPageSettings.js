@@ -49,7 +49,26 @@ export const DEFAULT_ABOUT_SETTINGS = {
     { title: 'Community', text: 'We were never meant to walk through life alone — the church is family, not an audience.' },
   ],
 
+  // Mission & Vision Statements
+  show_mission_vision: true,
+  mission_title: 'Our Mission',
+  mission_text: 'To know Christ and to make Him known across our campus, nurturing spirit-filled believers who live out the gospel with integrity, excellence, and godly passion.',
+  vision_title: 'Our Vision',
+  vision_text: 'A vibrant campus community rooted in scripture, alive in worship, and equipped to transform our world for the glory of God.',
+  motto_text: 'Youth Arise, Shine for your Light has Come!',
+
+  // Community Photos Showcase
+  show_photos: true,
+  photos_eyebrow: 'Life in fellowship',
+  photos_title: 'Moments from our church family',
+  about_photos: [
+    { src: '/images/pensa%20(1).JPG', caption: 'Sunday worship in full flow' },
+    { src: '/images/pastor.JPG', caption: 'Pastoral care & fellowship' },
+    { src: '/images/pensafallback-bw.png', caption: 'Community groups gathering' },
+  ],
+
   cta_title: 'Come see it for yourself this Sunday.',
+  cta_subtitle: 'Two services every Sunday at 9:00 AM & 11:00 AM. There is always a seat for you.',
   cta_btn_text: 'Plan your visit',
   cta_btn_link: '/#book',
 };

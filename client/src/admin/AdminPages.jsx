@@ -9,18 +9,25 @@ import {
 } from '../data/defaultPageSettings';
 import './admin-pages.css';
 
-export default function AdminPages() {
+export default function AdminPages({ defaultTab }) {
   const { activeTab: routeTab } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(
-    routeTab && ['about', 'home', 'contact'].includes(routeTab) ? routeTab : 'about'
-  );
+  const initialTab =
+    routeTab && ['about', 'home', 'contact'].includes(routeTab)
+      ? routeTab
+      : defaultTab && ['about', 'home', 'contact'].includes(defaultTab)
+      ? defaultTab
+      : 'about';
+
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
     if (routeTab && ['about', 'home', 'contact'].includes(routeTab)) {
       setActiveTab(routeTab);
+    } else if (defaultTab && ['about', 'home', 'contact'].includes(defaultTab)) {
+      setActiveTab(defaultTab);
     }
-  }, [routeTab]);
+  }, [routeTab, defaultTab]);
 
   function switchTab(tab) {
     setActiveTab(tab);
@@ -31,6 +38,7 @@ export default function AdminPages() {
   const [uploadingField, setUploadingField] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [lastSavedTime, setLastSavedTime] = useState('');
 
   // Page settings state
   const [aboutSettings, setAboutSettings] = useState(DEFAULT_ABOUT_SETTINGS);
@@ -93,6 +101,7 @@ export default function AdminPages() {
         await adminApi.updatePageSettings('home', homeSettings);
         setSuccessMsg('Home page story and reasons updated successfully!');
       }
+      setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     } catch (err) {
       setErrorMsg(err.message || 'Failed to save settings. Please try again.');
     } finally {
@@ -129,7 +138,10 @@ export default function AdminPages() {
     try {
       const url = await uploadImageToCloudinary(file, 'pensattu/pages');
 
-      if (activeTab === 'about') {
+      if (target.startsWith('about_photos_')) {
+        const photoIdx = parseInt(target.replace('about_photos_', ''), 10);
+        updateAboutArrayItem('about_photos', photoIdx, 'src', url);
+      } else if (activeTab === 'about') {
         setAboutSettings((prev) => ({ ...prev, [target]: url }));
       } else if (activeTab === 'contact') {
         setContactSettings((prev) => ({ ...prev, [target]: url }));
@@ -165,6 +177,18 @@ export default function AdminPages() {
     setAboutSettings((prev) => {
       const list = [...(prev[arrayKey] || [])];
       list.splice(index, 1);
+      return { ...prev, [arrayKey]: list };
+    });
+  }
+
+  function moveAboutArrayItem(arrayKey, index, direction) {
+    setAboutSettings((prev) => {
+      const list = [...(prev[arrayKey] || [])];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= list.length) return prev;
+      const temp = list[index];
+      list[index] = list[targetIndex];
+      list[targetIndex] = temp;
       return { ...prev, [arrayKey]: list };
     });
   }
@@ -315,12 +339,89 @@ export default function AdminPages() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          TAB 1: ABOUT PAGE CONTENT EDITOR
+          TAB 1: COMPLETE ABOUT PAGE CONTENT STUDIO
       ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'about' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Section 1: Hero Banner */}
-          <div className="ap-section-card">
+          {/* Quick Jump Section Navigator */}
+          <div className="ap-section-nav">
+            <span className="ap-section-nav-label">Jump to:</span>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-hero')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              1. Hero Banner
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-story')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              2. Our Story
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-mission')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              3. Vision & Mission
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-values')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              4. Core Values
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-stats')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              5. Numbers Strip
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-timeline')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              6. Timeline
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-beliefs')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              7. Beliefs
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-photos')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              8. Photo Showcase
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-sec-cta')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              9. Bottom CTA
+            </button>
+            <a
+              href="/about"
+              target="_blank"
+              rel="noreferrer"
+              className="ap-section-nav-btn"
+              style={{ background: '#0E4C92', color: '#fff', marginLeft: 'auto', textDecoration: 'none' }}
+            >
+              👁️ View Live About Page ↗
+            </a>
+          </div>
+
+          {/* ─── Section 1: Hero Banner ─── */}
+          <div id="ap-sec-hero" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
                 <span>1. Hero Header Banner</span>
@@ -347,7 +448,7 @@ export default function AdminPages() {
                       className="ap-form-input"
                       value={aboutSettings.hero_image || ''}
                       onChange={(e) => setAboutSettings({ ...aboutSettings, hero_image: e.target.value })}
-                      placeholder="Image URL or upload below..."
+                      placeholder="Image URL or click Upload..."
                     />
                     <button
                       type="button"
@@ -362,7 +463,7 @@ export default function AdminPages() {
               </div>
 
               <div className="ap-form-group">
-                <label className="ap-form-label">Main Heading</label>
+                <label className="ap-form-label">Main Heading (H1)</label>
                 <input
                   type="text"
                   className="ap-form-input"
@@ -373,7 +474,7 @@ export default function AdminPages() {
               </div>
 
               <div className="ap-form-group">
-                <label className="ap-form-label">Subtitle / Introductory Paragraph</label>
+                <label className="ap-form-label">Subtitle / Introductory Statement</label>
                 <textarea
                   className="ap-form-textarea"
                   rows={2}
@@ -384,15 +485,15 @@ export default function AdminPages() {
               </div>
 
               {aboutSettings.hero_image && (
-                <div className="ap-image-preview-wrap" style={{ height: 140 }}>
+                <div className="ap-image-preview-wrap" style={{ height: 160 }}>
                   <img src={aboutSettings.hero_image} alt="Hero banner preview" className="ap-image-preview" />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Section 2: Origins Story ("How We Started") */}
-          <div className="ap-section-card">
+          {/* ─── Section 2: Origins Story ("How We Started") ─── */}
+          <div id="ap-sec-story" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
                 <span>2. Origins Story ("How We Started")</span>
@@ -453,6 +554,50 @@ export default function AdminPages() {
                 />
               </div>
 
+              {/* Additional Story Paragraphs */}
+              {Array.isArray(aboutSettings.extra_story_paragraphs) &&
+                aboutSettings.extra_story_paragraphs.map((para, pIdx) => (
+                  <div key={pIdx} className="ap-form-group" style={{ background: '#f8fafc', padding: 12, borderRadius: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#0E4C92' }}>Extra Paragraph #{pIdx + 1}</span>
+                      <button
+                        type="button"
+                        className="ap-remove-item-btn"
+                        onClick={() => {
+                          const updated = [...(aboutSettings.extra_story_paragraphs || [])];
+                          updated.splice(pIdx, 1);
+                          setAboutSettings({ ...aboutSettings, extra_story_paragraphs: updated });
+                        }}
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+                    <textarea
+                      className="ap-form-textarea"
+                      rows={2}
+                      value={para}
+                      onChange={(e) => {
+                        const updated = [...(aboutSettings.extra_story_paragraphs || [])];
+                        updated[pIdx] = e.target.value;
+                        setAboutSettings({ ...aboutSettings, extra_story_paragraphs: updated });
+                      }}
+                      placeholder="Write another story paragraph..."
+                    />
+                  </div>
+                ))}
+
+              <button
+                type="button"
+                className="ap-add-item-btn"
+                onClick={() => {
+                  const updated = [...(aboutSettings.extra_story_paragraphs || []), ''];
+                  setAboutSettings({ ...aboutSettings, extra_story_paragraphs: updated });
+                }}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                + Add Another Story Paragraph
+              </button>
+
               <div className="ap-form-grid-2">
                 <div className="ap-form-group">
                   <label className="ap-form-label">Story Media Image</label>
@@ -462,7 +607,7 @@ export default function AdminPages() {
                       className="ap-form-input"
                       value={aboutSettings.story_image || ''}
                       onChange={(e) => setAboutSettings({ ...aboutSettings, story_image: e.target.value })}
-                      placeholder="Image URL..."
+                      placeholder="Image URL or click Upload..."
                     />
                     <button
                       type="button"
@@ -476,7 +621,7 @@ export default function AdminPages() {
                 </div>
 
                 <div className="ap-form-group">
-                  <label className="ap-form-label">Story Action Button Text & Link</label>
+                  <label className="ap-form-label">Action Button Text & Destination</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
                       type="text"
@@ -490,7 +635,7 @@ export default function AdminPages() {
                       className="ap-form-input"
                       value={aboutSettings.story_btn_link || ''}
                       onChange={(e) => setAboutSettings({ ...aboutSettings, story_btn_link: e.target.value })}
-                      placeholder="/#team"
+                      placeholder="/leadership or /#team"
                     />
                   </div>
                 </div>
@@ -504,11 +649,81 @@ export default function AdminPages() {
             </div>
           </div>
 
-          {/* Section 3: Core Values Cards */}
-          <div className="ap-section-card">
+          {/* ─── Section 3: Vision & Mission Statements ─── */}
+          <div id="ap-sec-mission" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
-                <span>3. Core Values ("What We Value")</span>
+                <span>3. Vision & Mission Statements</span>
+              </h3>
+              <label className="ap-toggle-wrap">
+                <input
+                  type="checkbox"
+                  className="ap-toggle-input"
+                  checked={aboutSettings.show_mission_vision !== false}
+                  onChange={(e) => setAboutSettings({ ...aboutSettings, show_mission_vision: e.target.checked })}
+                />
+                <span>Display on About Page</span>
+              </label>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">🔭 Vision Statement Heading & Text</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    style={{ marginBottom: 6 }}
+                    value={aboutSettings.vision_title || ''}
+                    onChange={(e) => setAboutSettings({ ...aboutSettings, vision_title: e.target.value })}
+                    placeholder="Our Vision"
+                  />
+                  <textarea
+                    className="ap-form-textarea"
+                    rows={3}
+                    value={aboutSettings.vision_text || ''}
+                    onChange={(e) => setAboutSettings({ ...aboutSettings, vision_text: e.target.value })}
+                    placeholder="Description of the church's long-term vision..."
+                  />
+                </div>
+
+                <div className="ap-form-group">
+                  <label className="ap-form-label">🎯 Mission Statement Heading & Text</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    style={{ marginBottom: 6 }}
+                    value={aboutSettings.mission_title || ''}
+                    onChange={(e) => setAboutSettings({ ...aboutSettings, mission_title: e.target.value })}
+                    placeholder="Our Mission"
+                  />
+                  <textarea
+                    className="ap-form-textarea"
+                    rows={3}
+                    value={aboutSettings.mission_text || ''}
+                    onChange={(e) => setAboutSettings({ ...aboutSettings, mission_text: e.target.value })}
+                    placeholder="Description of the church's purpose and mission..."
+                  />
+                </div>
+              </div>
+
+              <div className="ap-form-group">
+                <label className="ap-form-label">⚡ Fellowship Motto / Scripture Slogan</label>
+                <input
+                  type="text"
+                  className="ap-form-input"
+                  value={aboutSettings.motto_text || ''}
+                  onChange={(e) => setAboutSettings({ ...aboutSettings, motto_text: e.target.value })}
+                  placeholder="e.g. Youth Arise, Shine for your Light has Come!"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Section 4: Core Values Cards ─── */}
+          <div id="ap-sec-values" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>4. Core Values ("What We Value")</span>
               </h3>
               <span className="ap-section-badge">{(aboutSettings.values_list || []).length} Values</span>
             </div>
@@ -534,11 +749,33 @@ export default function AdminPages() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 }}>
                 {(aboutSettings.values_list || []).map((val, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>Value #{idx + 1}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>Value #{idx + 1}</span>
+                        <div className="ap-reorder-group">
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            title="Move Up"
+                            disabled={idx === 0}
+                            onClick={() => moveAboutArrayItem('values_list', idx, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            title="Move Down"
+                            disabled={idx === (aboutSettings.values_list || []).length - 1}
+                            onClick={() => moveAboutArrayItem('values_list', idx, 1)}
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         className="ap-remove-item-btn"
@@ -548,10 +785,10 @@ export default function AdminPages() {
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <input
                         type="text"
-                        style={{ width: 60 }}
+                        style={{ width: 60, textAlign: 'center', fontSize: 18 }}
                         className="ap-form-input"
                         placeholder="Icon"
                         value={val.ic || ''}
@@ -560,16 +797,31 @@ export default function AdminPages() {
                       <input
                         type="text"
                         className="ap-form-input"
-                        placeholder="Value title..."
+                        placeholder="Value title (e.g. Scripture Over Trends)"
                         value={val.title || ''}
                         onChange={(e) => updateAboutArrayItem('values_list', idx, 'title', e.target.value)}
                       />
                     </div>
 
+                    {/* Quick Emoji Selector Palette */}
+                    <div className="ap-emoji-palette">
+                      {['📖', '🤝', '🌍', '🌱', '❤️', '🙏', '✝️', '🔥', '💡', '🛡️', '🕊️', '✨', '👥', '⛪', '🌟', '🎯'].map((em) => (
+                        <button
+                          key={em}
+                          type="button"
+                          className={`ap-emoji-chip ${val.ic === em ? 'active' : ''}`}
+                          onClick={() => updateAboutArrayItem('values_list', idx, 'ic', em)}
+                          title={`Select ${em}`}
+                        >
+                          {em}
+                        </button>
+                      ))}
+                    </div>
+
                     <textarea
                       className="ap-form-textarea"
                       rows={2}
-                      placeholder="Description of this value..."
+                      placeholder="Description of this core value..."
                       value={val.text || ''}
                       onChange={(e) => updateAboutArrayItem('values_list', idx, 'text', e.target.value)}
                     />
@@ -580,27 +832,47 @@ export default function AdminPages() {
               <button
                 type="button"
                 className="ap-add-item-btn"
-                onClick={() => addAboutArrayItem('values_list', { ic: '✨', title: 'New Value', text: 'Value description...' })}
+                onClick={() => addAboutArrayItem('values_list', { ic: '✨', title: 'New Core Value', text: 'Description of this value...' })}
               >
                 + Add Another Value Card
               </button>
             </div>
           </div>
 
-          {/* Section 4: Key Stats Numbers Strip */}
-          <div className="ap-section-card">
+          {/* ─── Section 5: Key Numbers & Stats Strip ─── */}
+          <div id="ap-sec-stats" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
-                <span>4. Key Numbers & Stats Strip</span>
+                <span>5. Key Numbers & Stats Strip</span>
               </h3>
               <span className="ap-section-badge">{(aboutSettings.stats_list || []).length} Stats</span>
             </div>
             <div className="ap-section-body">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
                 {(aboutSettings.stats_list || []).map((stat, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#0A2E5C' }}>Stat #{idx + 1}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#0A2E5C' }}>Stat #{idx + 1}</span>
+                        <div className="ap-reorder-group">
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === 0}
+                            onClick={() => moveAboutArrayItem('stats_list', idx, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === (aboutSettings.stats_list || []).length - 1}
+                            onClick={() => moveAboutArrayItem('stats_list', idx, 1)}
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         className="ap-remove-item-btn"
@@ -614,14 +886,14 @@ export default function AdminPages() {
                       type="text"
                       className="ap-form-input"
                       placeholder="e.g. 500+"
-                      style={{ fontSize: 16, fontWeight: 800, color: '#0E4C92' }}
+                      style={{ fontSize: 18, fontWeight: 800, color: '#0E4C92', textAlign: 'center' }}
                       value={stat.value || ''}
                       onChange={(e) => updateAboutArrayItem('stats_list', idx, 'value', e.target.value)}
                     />
                     <input
                       type="text"
                       className="ap-form-input"
-                      placeholder="Label e.g. Members"
+                      placeholder="Label e.g. Regular Attendees"
                       value={stat.label || ''}
                       onChange={(e) => updateAboutArrayItem('stats_list', idx, 'label', e.target.value)}
                     />
@@ -639,11 +911,11 @@ export default function AdminPages() {
             </div>
           </div>
 
-          {/* Section 5: Timeline Journey Milestones */}
-          <div className="ap-section-card">
+          {/* ─── Section 6: Journey Milestones Timeline ─── */}
+          <div id="ap-sec-timeline" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
-                <span>5. Journey Milestones Timeline</span>
+                <span>6. Journey Milestones Timeline</span>
               </h3>
               <span className="ap-section-badge">{(aboutSettings.timeline_list || []).length} Milestones</span>
             </div>
@@ -673,7 +945,27 @@ export default function AdminPages() {
                 {(aboutSettings.timeline_list || []).map((item, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>Milestone #{idx + 1}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>Milestone #{idx + 1}</span>
+                        <div className="ap-reorder-group">
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === 0}
+                            onClick={() => moveAboutArrayItem('timeline_list', idx, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === (aboutSettings.timeline_list || []).length - 1}
+                            onClick={() => moveAboutArrayItem('timeline_list', idx, 1)}
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         className="ap-remove-item-btn"
@@ -686,9 +978,9 @@ export default function AdminPages() {
                     <div style={{ display: 'flex', gap: 10 }}>
                       <input
                         type="text"
-                        style={{ width: 100, fontWeight: 700 }}
+                        style={{ width: 110, fontWeight: 800, color: '#0E4C92' }}
                         className="ap-form-input"
-                        placeholder="Year (e.g. 2014)"
+                        placeholder="Year (2014)"
                         value={item.year || ''}
                         onChange={(e) => updateAboutArrayItem('timeline_list', idx, 'year', e.target.value)}
                       />
@@ -704,7 +996,7 @@ export default function AdminPages() {
                     <textarea
                       className="ap-form-textarea"
                       rows={2}
-                      placeholder="Milestone description story..."
+                      placeholder="Story description of this milestone..."
                       value={item.text || ''}
                       onChange={(e) => updateAboutArrayItem('timeline_list', idx, 'text', e.target.value)}
                     />
@@ -722,11 +1014,11 @@ export default function AdminPages() {
             </div>
           </div>
 
-          {/* Section 6: Beliefs & Convictions */}
-          <div className="ap-section-card">
+          {/* ─── Section 7: Convictions & Beliefs ─── */}
+          <div id="ap-sec-beliefs" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
-                <span>6. Convictions ("What We Believe")</span>
+                <span>7. Convictions ("What We Believe")</span>
               </h3>
               <span className="ap-section-badge">{(aboutSettings.beliefs_list || []).length} Convictions</span>
             </div>
@@ -756,7 +1048,27 @@ export default function AdminPages() {
                 {(aboutSettings.beliefs_list || []).map((item, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>Conviction #{idx + 1}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>Conviction #{idx + 1}</span>
+                        <div className="ap-reorder-group">
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === 0}
+                            onClick={() => moveAboutArrayItem('beliefs_list', idx, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === (aboutSettings.beliefs_list || []).length - 1}
+                            onClick={() => moveAboutArrayItem('beliefs_list', idx, 1)}
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         className="ap-remove-item-btn"
@@ -769,7 +1081,7 @@ export default function AdminPages() {
                     <input
                       type="text"
                       className="ap-form-input"
-                      placeholder="Title (e.g. Scripture, Grace)"
+                      placeholder="Title (e.g. Scripture, Grace, Community)"
                       value={item.title || ''}
                       onChange={(e) => updateAboutArrayItem('beliefs_list', idx, 'title', e.target.value)}
                     />
@@ -777,7 +1089,7 @@ export default function AdminPages() {
                     <textarea
                       className="ap-form-textarea"
                       rows={3}
-                      placeholder="What we believe regarding this doctrine..."
+                      placeholder="Doctrinal conviction statement..."
                       value={item.text || ''}
                       onChange={(e) => updateAboutArrayItem('beliefs_list', idx, 'text', e.target.value)}
                     />
@@ -795,11 +1107,130 @@ export default function AdminPages() {
             </div>
           </div>
 
-          {/* Section 7: Bottom CTA Banner */}
-          <div className="ap-section-card">
+          {/* ─── Section 8: Community Photo Showcase ─── */}
+          <div id="ap-sec-photos" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
-                <span>7. Call to Action Banner</span>
+                <span>8. Community Photo Showcase Gallery</span>
+              </h3>
+              <label className="ap-toggle-wrap">
+                <input
+                  type="checkbox"
+                  className="ap-toggle-input"
+                  checked={aboutSettings.show_photos !== false}
+                  onChange={(e) => setAboutSettings({ ...aboutSettings, show_photos: e.target.checked })}
+                />
+                <span>Display on About Page</span>
+              </label>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Gallery Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={aboutSettings.photos_eyebrow || ''}
+                    onChange={(e) => setAboutSettings({ ...aboutSettings, photos_eyebrow: e.target.value })}
+                    placeholder="e.g. Life in fellowship"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Gallery Title</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={aboutSettings.photos_title || ''}
+                    onChange={(e) => setAboutSettings({ ...aboutSettings, photos_title: e.target.value })}
+                    placeholder="e.g. Moments from our church family"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+                {(aboutSettings.about_photos || []).map((photo, idx) => (
+                  <div key={idx} className="ap-item-card">
+                    <div className="ap-item-card-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>Photo #{idx + 1}</span>
+                        <div className="ap-reorder-group">
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === 0}
+                            onClick={() => moveAboutArrayItem('about_photos', idx, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === (aboutSettings.about_photos || []).length - 1}
+                            onClick={() => moveAboutArrayItem('about_photos', idx, 1)}
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="ap-remove-item-btn"
+                        onClick={() => removeAboutArrayItem('about_photos', idx)}
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        placeholder="Image URL or upload..."
+                        value={photo.src || ''}
+                        onChange={(e) => updateAboutArrayItem('about_photos', idx, 'src', e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="ap-upload-file-btn"
+                        onClick={() => triggerImageUpload(`about_photos_${idx}`)}
+                        disabled={uploadingField === `about_photos_${idx}`}
+                      >
+                        {uploadingField === `about_photos_${idx}` ? '...' : 'Upload'}
+                      </button>
+                    </div>
+
+                    {photo.src && (
+                      <div className="ap-image-preview-wrap" style={{ height: 120 }}>
+                        <img src={photo.src} alt="Showcase preview" className="ap-image-preview" />
+                      </div>
+                    )}
+
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      placeholder="Photo caption (e.g. Sunday worship in full flow)..."
+                      value={photo.caption || ''}
+                      onChange={(e) => updateAboutArrayItem('about_photos', idx, 'caption', e.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="ap-add-item-btn"
+                onClick={() => addAboutArrayItem('about_photos', { src: '', caption: '' })}
+              >
+                + Add Photo to Showcase
+              </button>
+            </div>
+          </div>
+
+          {/* ─── Section 9: Call to Action Banner ─── */}
+          <div id="ap-sec-cta" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>9. Call to Action Banner</span>
               </h3>
               <span className="ap-section-badge">Bottom of Page</span>
             </div>
@@ -812,6 +1243,17 @@ export default function AdminPages() {
                   value={aboutSettings.cta_title || ''}
                   onChange={(e) => setAboutSettings({ ...aboutSettings, cta_title: e.target.value })}
                   placeholder="e.g. Come see it for yourself this Sunday."
+                />
+              </div>
+
+              <div className="ap-form-group">
+                <label className="ap-form-label">CTA Subtitle / Invitation Note</label>
+                <input
+                  type="text"
+                  className="ap-form-input"
+                  value={aboutSettings.cta_subtitle || ''}
+                  onChange={(e) => setAboutSettings({ ...aboutSettings, cta_subtitle: e.target.value })}
+                  placeholder="e.g. Two services every Sunday at 9:00 AM & 11:00 AM. There is always a seat for you."
                 />
               </div>
 
@@ -1255,7 +1697,13 @@ export default function AdminPages() {
       <div className="ap-sticky-footer">
         <div>
           <span style={{ fontSize: 13, fontWeight: 600 }}>Editing: <strong>{activeTab.toUpperCase()} Page</strong></span>
-          <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 12 }}>Changes are stored securely in database</span>
+          {lastSavedTime ? (
+            <span style={{ fontSize: 12, color: '#4ade80', marginLeft: 12, fontWeight: 600 }}>
+              ✓ Saved at {lastSavedTime}
+            </span>
+          ) : (
+            <span style={{ fontSize: 12, opacity: 0.8, marginLeft: 12 }}>Changes are stored securely in database</span>
+          )}
         </div>
 
         <button

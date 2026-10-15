@@ -59,8 +59,11 @@ function isDbUnavailable(err) {
     code === 'etimedout' ||
     code === 'er_bad_db_error' ||
     code === 'er_access_denied_error' ||
+    code === 'er_no_such_table' ||
     code === 'enotfound' ||
     msg.includes('unknown database') ||
+    msg.includes("doesn't exist") ||
+    msg.includes('no such table') ||
     msg.includes('econnrefused') ||
     msg.includes('etimedout') ||
     msg.includes('access denied') ||
@@ -821,22 +824,43 @@ router.put('/page_settings/:page', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'settings object required' });
   }
 
+  // Always keep in-memory cache synchronized immediately
+  if (!memory.page_settings[page]) memory.page_settings[page] = {};
+  Object.assign(memory.page_settings[page], settings);
+
   try {
     for (const [key, val] of Object.entries(settings)) {
       const stringVal = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val ?? '');
-      await pool.query(
-        `INSERT INTO ${tableName} (setting_key, setting_value)
-         VALUES (?, ?)
-         ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
-        [key, stringVal]
-      );
+      try {
+        await pool.query(
+          `INSERT INTO ${tableName} (setting_key, setting_value)
+           VALUES (?, ?)
+           ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
+          [key, stringVal]
+        );
+      } catch (insertErr) {
+        if (insertErr.code === 'ER_NO_SUCH_TABLE' || (insertErr.message && insertErr.message.includes("doesn't exist"))) {
+          await pool.query(`CREATE TABLE IF NOT EXISTS ${tableName} (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            setting_key VARCHAR(100) NOT NULL UNIQUE,
+            setting_value LONGTEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+          )`);
+          await pool.query(
+            `INSERT INTO ${tableName} (setting_key, setting_value)
+             VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
+            [key, stringVal]
+          );
+        } else {
+          throw insertErr;
+        }
+      }
     }
     logAction(req.user.id, 'UPDATE_PAGE_SETTINGS', tableName, null, { keys: Object.keys(settings) });
     res.json({ ok: true, message: `${page} page settings updated successfully`, updated: Object.keys(settings).length });
   } catch (err) {
     if (isDbUnavailable(err)) {
-      if (!memory.page_settings[page]) memory.page_settings[page] = {};
-      Object.assign(memory.page_settings[page], settings);
       return res.json({ ok: true, message: 'Settings saved (fallback mode)', demo: true, updated: Object.keys(settings).length });
     }
     res.status(500).json({ error: err.message });

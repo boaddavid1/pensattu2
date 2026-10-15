@@ -5,6 +5,7 @@ import './admin.css';
 
 const navItems = [
   { to: '/control-panel/dashboard', label: 'Dashboard' },
+  { to: '/control-panel/pages/about', label: '📖 About Page' },
   {
     to: '/control-panel/pages',
     label: 'Pages & Content',
