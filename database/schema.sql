@@ -37,15 +37,31 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Core values (public /api/ministries, admin "ministries" CRUD)
+-- Core values / Ministries (public /api/ministries, admin "ministries" CRUD)
 CREATE TABLE IF NOT EXISTS core_values (
   id INT PRIMARY KEY AUTO_INCREMENT,
   title VARCHAR(200) NOT NULL,
   description TEXT,
   icon VARCHAR(200),
   image_url VARCHAR(500),
+  category VARCHAR(150),
+  meeting VARCHAR(200),
+  venue VARCHAR(200),
+  scripture TEXT,
+  full_description TEXT,
+  responsibilities TEXT,
+  ideal_for TEXT,
+  leader_name VARCHAR(200),
+  leader_role VARCHAR(200),
+  leader_image VARCHAR(500),
+  leader_phone VARCHAR(50),
+  leader_email VARCHAR(150),
+  leader_bio TEXT,
+  assistants LONGTEXT,
+  activities LONGTEXT,
   display_order INT DEFAULT 0,
-  is_active BOOLEAN DEFAULT TRUE
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS sermons (

@@ -96,6 +96,48 @@ function memoryDelete(table, id) {
   return true;
 }
 
+function extractMissingColumn(errMsg) {
+  if (!errMsg) return null;
+  const match = errMsg.match(/Unknown column '([^']+)' in '(?:SET|field list|where clause)'/i);
+  return match ? match[1] : null;
+}
+
+function guessColumnDefinition(colName) {
+  const c = colName.toLowerCase();
+  if (c.includes('image') || c.includes('url') || c.includes('photo') || c.includes('avatar') || c.includes('file') || c.includes('cover')) {
+    return 'VARCHAR(500)';
+  }
+  if (c.includes('phone')) return 'VARCHAR(50)';
+  if (c.includes('email')) return 'VARCHAR(150)';
+  if (c.includes('role') || c.includes('category') || c.includes('programme') || c.includes('hall') || c.includes('venue') || c.includes('meeting')) {
+    return 'VARCHAR(200)';
+  }
+  if (c.includes('order') || c.includes('downloads') || c.includes('year') || c.includes('pages') || c.includes('size')) {
+    return 'INT DEFAULT 0';
+  }
+  if (c.startsWith('is_') || c === 'featured') {
+    return 'BOOLEAN DEFAULT TRUE';
+  }
+  if (c.includes('date')) return 'DATE';
+  if (c.includes('assistants') || c.includes('activities') || c.includes('content') || c.includes('payload')) {
+    return 'LONGTEXT';
+  }
+  if (c.includes('desc') || c.includes('bio') || c.includes('responsibilit') || c.includes('ideal') || c.includes('scripture')) {
+    return 'TEXT';
+  }
+  return 'TEXT';
+}
+
+async function tryAddMissingColumn(actualTable, colName) {
+  try {
+    const def = guessColumnDefinition(colName);
+    await pool.query(`ALTER TABLE \`${actualTable}\` ADD COLUMN \`${colName}\` ${def}`);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 const router = Router();
 
 const TABLES = {
@@ -320,7 +362,7 @@ for (const [table, config] of Object.entries(TABLES)) {
 
   // Create
   router.post(`/${table}`, requireAuth, async (req, res) => {
-    const data = validateColumns(req.body, config.columns);
+    let data = validateColumns(req.body, config.columns);
     // Apply server-side defaults (e.g. notices must be category='Notice' to
     // appear on the public notice board).
     if (config.defaults) {
@@ -331,48 +373,82 @@ for (const [table, config] of Object.entries(TABLES)) {
     for (const field of config.required) {
       if (!data[field]) return res.status(400).json({ error: `Missing required field: ${field}` });
     }
-    try {
-      const cols = Object.keys(data);
-      const vals = Object.values(data);
-      const [result] = await pool.query(
-        `INSERT INTO ${actualTable} (${cols.join(', ')}) VALUES (${placeholders(vals.length)})`,
-        vals
-      );
-      logAction(req.user.id, 'CREATE', actualTable, result.insertId);
-      res.status(201).json({ id: result.insertId, ...data });
-    } catch (err) {
-      if (isDbUnavailable(err)) {
-        const row = memoryCreate(table, data);
-        return res.status(201).json({ demo: true, ...row });
+
+    let attempts = 0;
+    while (attempts < 5) {
+      attempts++;
+      try {
+        const cols = Object.keys(data);
+        const vals = Object.values(data);
+        const [result] = await pool.query(
+          `INSERT INTO ${actualTable} (${cols.join(', ')}) VALUES (${placeholders(vals.length)})`,
+          vals
+        );
+        logAction(req.user.id, 'CREATE', actualTable, result.insertId);
+        return res.status(201).json({ id: result.insertId, ...data });
+      } catch (err) {
+        const missingCol = extractMissingColumn(err.message);
+        if (missingCol && data[missingCol] !== undefined) {
+          // Attempt to add column to database schema
+          const added = await tryAddMissingColumn(actualTable, missingCol);
+          if (added) continue;
+          // If ALTER TABLE failed or not permitted, drop missing column and re-try
+          delete data[missingCol];
+          continue;
+        }
+        if (isDbUnavailable(err)) {
+          const row = memoryCreate(table, data);
+          return res.status(201).json({ demo: true, ...row });
+        }
+        return res.status(500).json({ error: err.message });
       }
-      res.status(500).json({ error: err.message });
     }
+    const row = memoryCreate(table, data);
+    return res.status(201).json({ demo: true, ...row });
   });
 
   // Update
   router.put(`/${table}/:id`, requireAuth, async (req, res) => {
-    const data = validateColumns(req.body, config.columns);
+    let data = validateColumns(req.body, config.columns);
     if (Object.keys(data).length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
     }
-    try {
-      const cols = Object.keys(data);
-      const vals = Object.values(data);
-      const [result] = await pool.query(
-        `UPDATE ${actualTable} SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE id = ?`,
-        [...vals, req.params.id]
-      );
-      if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
-      logAction(req.user.id, 'UPDATE', actualTable, Number(req.params.id), data);
-      res.json({ id: Number(req.params.id), ...data });
-    } catch (err) {
-      if (isDbUnavailable(err)) {
-        const row = memoryUpdate(table, req.params.id, data);
-        if (!row) return res.status(404).json({ error: 'Not found' });
-        return res.json({ demo: true, ...row });
+
+    let attempts = 0;
+    while (attempts < 5) {
+      attempts++;
+      try {
+        const cols = Object.keys(data);
+        const vals = Object.values(data);
+        const [result] = await pool.query(
+          `UPDATE ${actualTable} SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE id = ?`,
+          [...vals, req.params.id]
+        );
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
+        logAction(req.user.id, 'UPDATE', actualTable, Number(req.params.id), data);
+        return res.json({ id: Number(req.params.id), ...data });
+      } catch (err) {
+        const missingCol = extractMissingColumn(err.message);
+        if (missingCol && data[missingCol] !== undefined) {
+          const added = await tryAddMissingColumn(actualTable, missingCol);
+          if (added) continue;
+          delete data[missingCol];
+          if (Object.keys(data).length === 0) {
+            const row = memoryUpdate(table, req.params.id, req.body);
+            return res.json({ demo: true, id: Number(req.params.id), ...(row || req.body) });
+          }
+          continue;
+        }
+        if (isDbUnavailable(err)) {
+          const row = memoryUpdate(table, req.params.id, data);
+          if (!row) return res.status(404).json({ error: 'Not found' });
+          return res.json({ demo: true, ...row });
+        }
+        return res.status(500).json({ error: err.message });
       }
-      res.status(500).json({ error: err.message });
     }
+    const row = memoryUpdate(table, req.params.id, data);
+    return res.json({ demo: true, id: Number(req.params.id), ...(row || data) });
   });
 
   // Delete

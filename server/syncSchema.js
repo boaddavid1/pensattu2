@@ -35,8 +35,24 @@ const TABLES = [
     description TEXT,
     icon VARCHAR(200),
     image_url VARCHAR(500),
+    category VARCHAR(150),
+    meeting VARCHAR(200),
+    venue VARCHAR(200),
+    scripture TEXT,
+    full_description TEXT,
+    responsibilities TEXT,
+    ideal_for TEXT,
+    leader_name VARCHAR(200),
+    leader_role VARCHAR(200),
+    leader_image VARCHAR(500),
+    leader_phone VARCHAR(50),
+    leader_email VARCHAR(150),
+    leader_bio TEXT,
+    assistants LONGTEXT,
+    activities LONGTEXT,
     display_order INT DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )`,
 
   `CREATE TABLE IF NOT EXISTS sermons (
@@ -305,6 +321,10 @@ const REQUIRED_COLUMNS = [
   { table: 'prayer_requests', column: 'prayed_at', definition: "DATETIME DEFAULT NULL" },
   { table: 'prayer_requests', column: 'ip_address', definition: "VARCHAR(45) DEFAULT NULL" },
   // core_values (ministries leadership and details)
+  { table: 'core_values', column: 'image_url', definition: "VARCHAR(500)" },
+  { table: 'core_values', column: 'icon', definition: "VARCHAR(200)" },
+  { table: 'core_values', column: 'display_order', definition: "INT DEFAULT 0" },
+  { table: 'core_values', column: 'is_active', definition: "BOOLEAN DEFAULT TRUE" },
   { table: 'core_values', column: 'category', definition: "VARCHAR(150)" },
   { table: 'core_values', column: 'meeting', definition: "VARCHAR(200)" },
   { table: 'core_values', column: 'venue', definition: "VARCHAR(200)" },
@@ -321,10 +341,28 @@ const REQUIRED_COLUMNS = [
   { table: 'core_values', column: 'assistants', definition: "LONGTEXT" },
   { table: 'core_values', column: 'activities', definition: "LONGTEXT" },
   // sermons
+  { table: 'sermons', column: 'audio_url', definition: "VARCHAR(500)" },
+  { table: 'sermons', column: 'image_url', definition: "VARCHAR(500)" },
   { table: 'sermons', column: 'youtube_url', definition: "VARCHAR(500)" },
   { table: 'sermons', column: 'tiktok_url', definition: "VARCHAR(500)" },
+  { table: 'sermons', column: 'date_preached', definition: "DATE" },
+  { table: 'sermons', column: 'is_active', definition: "BOOLEAN DEFAULT TRUE" },
   // leadership
+  { table: 'leadership', column: 'academic_year', definition: "VARCHAR(20)" },
+  { table: 'leadership', column: 'programme', definition: "VARCHAR(200)" },
+  { table: 'leadership', column: 'hall', definition: "VARCHAR(200)" },
+  { table: 'leadership', column: 'previous_portfolio', definition: "TEXT" },
+  { table: 'leadership', column: 'description', definition: "TEXT" },
+  { table: 'leadership', column: 'image_url', definition: "VARCHAR(500)" },
+  { table: 'leadership', column: 'display_order', definition: "INT DEFAULT 0" },
   { table: 'leadership', column: 'is_active', definition: "BOOLEAN DEFAULT TRUE" },
+  // events
+  { table: 'events', column: 'event_end_date', definition: "DATE" },
+  { table: 'events', column: 'event_time', definition: "VARCHAR(50)" },
+  { table: 'events', column: 'category', definition: "VARCHAR(100)" },
+  { table: 'events', column: 'image_url', definition: "VARCHAR(500)" },
+  { table: 'events', column: 'featured', definition: "BOOLEAN DEFAULT FALSE" },
+  { table: 'events', column: 'status', definition: "VARCHAR(50) DEFAULT 'upcoming'" },
 ];
 
 async function syncColumns() {
