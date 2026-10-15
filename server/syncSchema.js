@@ -213,6 +213,49 @@ const TABLES = [
     setting_value LONGTEXT NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   )`,
+
+  `CREATE TABLE IF NOT EXISTS home_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value LONGTEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS about_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value LONGTEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS contact_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value LONGTEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS hero_slider (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(200),
+    subtitle TEXT,
+    image_url VARCHAR(500),
+    button_text VARCHAR(100),
+    button_link VARCHAR(300),
+    display_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS about_gallery (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(200),
+    description TEXT,
+    image_url VARCHAR(500),
+    display_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
 ];
 
 // Columns that must exist for the public library view to work correctly.

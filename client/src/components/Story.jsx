@@ -1,20 +1,44 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../api';
+import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
 
 export default function Story() {
+  const [settings, setSettings] = useState(DEFAULT_HOME_SETTINGS);
+
+  useEffect(() => {
+    api.get('/home-settings')
+      .then((res) => {
+        if (res && typeof res === 'object' && Object.keys(res).length > 0) {
+          setSettings((prev) => ({ ...prev, ...res }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section id="story">
       <div className="story">
         <div className="story-inner">
           <div className="story-text">
-            <span className="eyebrow">Our story</span>
-            <h2>Built by a small group who kept <em>showing up</em>.</h2>
-            <p>The Pentecost Students and Associates (PENSA), the student wing of the Church of Pentecost worldwide, began over forty (50) years ago with a few dedicated students in tertiary institutions across Ghana. Over the years, it has grown into a vibrant and impactful movement, drawing young men and women to the saving grace of our Lord Jesus Christ.</p>
-            <p>At PENSA TTU – Takoradi Technical University, this vision continues to thrive as a dynamic fellowship committed to spiritual growth, discipleship, and evangelism on campus. The fellowship serves as a strong platform for students to deepen their relationship with God, build Christ-centered character, and influence their academic and social environments with godly values.</p>
-            <Link to="/contact" className="btn btn-primary">read more</Link>
+            <span className="eyebrow">{settings.story_eyebrow || 'Our story'}</span>
+            <h2>{settings.story_title || 'Built by a small group who kept showing up.'}</h2>
+            {settings.story_p1 && <p>{settings.story_p1}</p>}
+            {settings.story_p2 && <p>{settings.story_p2}</p>}
+            <Link to={settings.story_btn_link || '/contact'} className="btn btn-primary">
+              {settings.story_btn_text || 'read more'}
+            </Link>
           </div>
           <div className="story-media">
-            <video controls autoPlay muted loop playsInline poster="/images/pensafallback-bw.png">
-              <source src="/videos/story.mp4" type="video/mp4" />
+            <video
+              controls
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster={settings.story_poster_url || '/images/pensafallback-bw.png'}
+            >
+              <source src={settings.story_video_url || '/videos/story.mp4'} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>

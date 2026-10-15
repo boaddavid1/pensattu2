@@ -41,6 +41,13 @@ const memory = {
   gallery_photos: data.gallery?.map((r) => ({ ...r })) || [],
   users: [{ ...DEMO_USER, password_hash: null }],
   navigation: JSON.parse(JSON.stringify(data.defaultNavigation || {})),
+  hero_slider: [],
+  about_gallery: [],
+  page_settings: {
+    about: {},
+    home: {},
+    contact: {},
+  },
 };
 
 function isDbUnavailable(err) {
@@ -143,6 +150,20 @@ const TABLES = {
     columns: ['title', 'author', 'category', 'description', 'cover_image', 'file_url', 'file_type', 'file_size', 'pages', 'is_readable', 'content', 'is_active'],
     required: ['title', 'file_url'],
     orderBy: 'created_at DESC',
+  },
+  hero_slider: {
+    actualTable: 'hero_slider',
+    columns: ['title', 'subtitle', 'image_url', 'button_text', 'button_link', 'display_order', 'is_active'],
+    required: ['image_url'],
+    orderBy: 'display_order, id',
+    defaults: { display_order: 0, is_active: 1 },
+  },
+  about_gallery: {
+    actualTable: 'about_gallery',
+    columns: ['title', 'description', 'image_url', 'display_order', 'is_active'],
+    required: ['image_url'],
+    orderBy: 'display_order, id',
+    defaults: { display_order: 0, is_active: 1 },
   },
 };
 
@@ -755,12 +776,83 @@ router.post('/navigation/reset', requireAuth, async (req, res) => {
   }
 });
 
+// Page Settings endpoints (about, home, contact)
+const VALID_PAGES = {
+  about: 'about_settings',
+  home: 'home_settings',
+  contact: 'contact_settings',
+};
+
+router.get('/page_settings/:page', requireAuth, async (req, res) => {
+  const page = req.params.page;
+  const tableName = VALID_PAGES[page];
+  if (!tableName) {
+    return res.status(400).json({ error: `Invalid page: ${page}. Supported: about, home, contact` });
+  }
+
+  try {
+    const [rows] = await pool.query(`SELECT setting_key, setting_value FROM ${tableName}`);
+    const settings = {};
+    (rows || []).forEach((row) => {
+      try {
+        settings[row.setting_key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[row.setting_key] = row.setting_value;
+      }
+    });
+    res.json(settings);
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      return res.json(memory.page_settings[page] || {});
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/page_settings/:page', requireAuth, async (req, res) => {
+  const page = req.params.page;
+  const tableName = VALID_PAGES[page];
+  if (!tableName) {
+    return res.status(400).json({ error: `Invalid page: ${page}. Supported: about, home, contact` });
+  }
+
+  const { settings } = req.body;
+  if (!settings || typeof settings !== 'object') {
+    return res.status(400).json({ error: 'settings object required' });
+  }
+
+  try {
+    for (const [key, val] of Object.entries(settings)) {
+      const stringVal = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val ?? '');
+      await pool.query(
+        `INSERT INTO ${tableName} (setting_key, setting_value)
+         VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
+        [key, stringVal]
+      );
+    }
+    logAction(req.user.id, 'UPDATE_PAGE_SETTINGS', tableName, null, { keys: Object.keys(settings) });
+    res.json({ ok: true, message: `${page} page settings updated successfully`, updated: Object.keys(settings).length });
+  } catch (err) {
+    if (isDbUnavailable(err)) {
+      if (!memory.page_settings[page]) memory.page_settings[page] = {};
+      Object.assign(memory.page_settings[page], settings);
+      return res.json({ ok: true, message: 'Settings saved (fallback mode)', demo: true, updated: Object.keys(settings).length });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export function getActiveNavigation() {
   return memory.navigation || data.defaultNavigation;
 }
 
 export function getLeadershipMemory() {
   return memory.team || [];
+}
+
+export function getPageSettingsMemory(page) {
+  return (memory.page_settings && memory.page_settings[page]) || {};
 }
 
 export default router;

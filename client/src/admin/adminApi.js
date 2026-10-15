@@ -78,4 +78,12 @@ export const adminApi = {
   getNavigation: () => request('/cp/navigation'),
   updateNavigation: (body) => request('/cp/navigation', { method: 'PUT', body: JSON.stringify(body) }),
   resetNavigation: () => request('/cp/navigation/reset', { method: 'POST' }),
+
+  // Page Content Settings (About, Home, Contact)
+  getPageSettings: (page) => request(`/cp/page_settings/${page}`),
+  updatePageSettings: (page, settings) => request(`/cp/page_settings/${page}`, { method: 'PUT', body: JSON.stringify({ settings }) }),
+  listHeroSlides: () => request('/cp/hero_slider'),
+  createHeroSlide: (body) => request('/cp/hero_slider', { method: 'POST', body: JSON.stringify(body) }),
+  updateHeroSlide: (id, body) => request(`/cp/hero_slider/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  removeHeroSlide: (id) => request(`/cp/hero_slider/${id}`, { method: 'DELETE' }),
 };

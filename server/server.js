@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
-import adminRoutes, { getActiveNavigation, getLeadershipMemory } from './adminRoutes.js';
+import adminRoutes, { getActiveNavigation, getLeadershipMemory, getPageSettingsMemory } from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
 import alumniRoutes from './alumniRoutes.js';
@@ -227,11 +227,15 @@ app.get('/api/home-settings', async (req, res) => {
     const [rows] = await pool.query('SELECT setting_key, setting_value FROM home_settings');
     const settings = {};
     rows.forEach(row => {
-      settings[row.setting_key] = row.setting_value;
+      try {
+        settings[row.setting_key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[row.setting_key] = row.setting_value;
+      }
     });
     res.json(settings);
   } catch (err) {
-    res.json({});
+    res.json(getPageSettingsMemory ? getPageSettingsMemory('home') : {});
   }
 });
 
@@ -265,11 +269,15 @@ app.get('/api/about-settings', async (req, res) => {
     const [rows] = await pool.query('SELECT setting_key, setting_value FROM about_settings');
     const settings = {};
     rows.forEach(row => {
-      settings[row.setting_key] = row.setting_value;
+      try {
+        settings[row.setting_key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[row.setting_key] = row.setting_value;
+      }
     });
     res.json(settings);
   } catch (err) {
-    res.json({});
+    res.json(getPageSettingsMemory ? getPageSettingsMemory('about') : {});
   }
 });
 
@@ -289,11 +297,15 @@ app.get('/api/contact-settings', async (req, res) => {
     const [rows] = await pool.query('SELECT setting_key, setting_value FROM contact_settings');
     const settings = {};
     rows.forEach(row => {
-      settings[row.setting_key] = row.setting_value;
+      try {
+        settings[row.setting_key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[row.setting_key] = row.setting_value;
+      }
     });
     res.json(settings);
   } catch (err) {
-    res.json({});
+    res.json(getPageSettingsMemory ? getPageSettingsMemory('contact') : {});
   }
 });
 

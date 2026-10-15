@@ -80,6 +80,7 @@ const AdminPrayers = lazy(() => import('./prayer-admin/AdminPrayers'));
 const AdminRegistrations = lazy(() => import('./admin/AdminRegistrations'));
 const AdminNavigation = lazy(() => import('./admin/AdminNavigation'));
 const AdminSermons = lazy(() => import('./admin/AdminSermons'));
+const AdminPages = lazy(() => import('./admin/AdminPages'));
 
 function PageLoader() {
   return <div className="loading">Loading...</div>;
@@ -157,6 +158,8 @@ function AdminShell() {
           <Route path="login" element={<AdminLogin />} />
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="pages" element={<AdminPages />} />
+            <Route path="pages/:activeTab" element={<AdminPages />} />
             <Route path="navigation" element={<AdminNavigation />} />
             <Route path="ministries" element={<AdminCrudPage entity="ministries" title="Departments & Teams" />} />
             <Route path="ministries/new" element={<AdminMinistryForm isNew={true} />} />
