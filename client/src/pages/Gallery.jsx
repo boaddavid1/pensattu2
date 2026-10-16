@@ -107,6 +107,10 @@ export default function Gallery() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const rootAlbums = useMemo(() => {
+    return (albums || []).filter((a) => !a.parent_id);
+  }, [albums]);
+
   return (
     <main>
       <section className="g-hero" id="g-hero" ref={heroRef}>
@@ -146,10 +150,10 @@ export default function Gallery() {
         <div className="wrap">
           <div className="section-head">
             <span className="eyebrow">Browse by album</span>
-            <h2>Four collections, <em>one community</em>.</h2>
+            <h2>{rootAlbums.length > 0 ? `${rootAlbums.length} collections` : 'Explore collections'}, <em>one community</em>.</h2>
           </div>
           <div className="cover-grid">
-            {albums.map((album) => (
+            {rootAlbums.map((album) => (
               <Link className="cover-card" to={`/gallery/${album.id}`} key={album.id}>
                 <div className="cover-img cover-img-wrap">
                   <button
@@ -181,8 +185,15 @@ export default function Gallery() {
                 </div>
                 <div className="cover-body">
                   <h3>{album.title}</h3>
-                  <span>{album.count}</span>
-                  <span className="cover-link">View full album <em className="btn-arrow">→</em></span>
+                  <div className="cover-meta-badges">
+                    <span>{album.count}</span>
+                    {album.sub_albums && album.sub_albums.length > 0 && (
+                      <span className="sub-collection-badge">
+                        📁 {album.sub_albums.length} sub-collection{album.sub_albums.length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                  <span className="cover-link">View collection <em className="btn-arrow">→</em></span>
                 </div>
               </Link>
             ))}

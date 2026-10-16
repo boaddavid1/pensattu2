@@ -20,6 +20,7 @@ export default function AlbumDetail() {
   const photoParam = searchParams.get('photo');
 
   // Instant render from cache or fallback data
+  const [allAlbums, setAllAlbums] = useState(() => getCachedAlbums());
   const [album, setAlbum] = useState(() => {
     const cached = getCachedAlbums();
     return cached.find((a) => String(a.id) === albumId) || null;
@@ -51,18 +52,23 @@ export default function AlbumDetail() {
   // Sync fresh albums from server
   useEffect(() => {
     api.get('/gallery')
-      .then((albums) => {
-        if (Array.isArray(albums) && albums.length > 0) {
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
           try {
-            sessionStorage.setItem('pensa_gallery_cache', JSON.stringify(albums));
+            sessionStorage.setItem('pensa_gallery_cache', JSON.stringify(data));
           } catch {}
-          const found = albums.find((a) => String(a.id) === albumId);
+          setAllAlbums(data);
+          const found = data.find((a) => String(a.id) === albumId);
           if (found) setAlbum(found);
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [albumId]);
+
+  const parentAlbum = album?.parent_id
+    ? (allAlbums || []).find((a) => String(a.id) === String(album.parent_id)) || (album.parent_title ? { id: album.parent_id, title: album.parent_title } : null)
+    : null;
 
   // Deep-linking: open photo if ?photo= query parameter is present
   useEffect(() => {
@@ -206,11 +212,23 @@ export default function AlbumDetail() {
         <div className="wrap">
           <div className="album-hero-content">
             <div>
-              <Link to="/gallery" className="album-back">
-                ← Back to all albums
-              </Link>
+              <nav className="album-breadcrumbs-trail" aria-label="Breadcrumb navigation">
+                <Link to="/gallery" className="album-breadcrumb-link">
+                  Gallery
+                </Link>
+                {parentAlbum && (
+                  <>
+                    <span className="album-breadcrumb-divider">/</span>
+                    <Link to={`/gallery/${parentAlbum.id}`} className="album-breadcrumb-link">
+                      {parentAlbum.title}
+                    </Link>
+                  </>
+                )}
+                <span className="album-breadcrumb-divider">/</span>
+                <span className="album-breadcrumb-active">{album.title}</span>
+              </nav>
               <h1>{album.title}</h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
                 <span
                   style={{
                     background: 'rgba(255, 255, 255, 0.16)',
@@ -224,6 +242,22 @@ export default function AlbumDetail() {
                 >
                   {items.length} photo{items.length !== 1 ? 's' : ''}
                 </span>
+                {album.sub_albums && album.sub_albums.length > 0 && (
+                  <span
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.22)',
+                      border: '1px solid rgba(52, 211, 153, 0.4)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#6ee7b7',
+                      padding: '4px 12px',
+                      borderRadius: 999,
+                      fontSize: 12.5,
+                      fontFamily: 'JetBrains Mono, monospace',
+                    }}
+                  >
+                    📁 {album.sub_albums.length} sub-album{album.sub_albums.length !== 1 ? 's' : ''}
+                  </span>
+                )}
                 {album.description && (
                   <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: 13 }}>
                     {album.description}
@@ -255,11 +289,43 @@ export default function AlbumDetail() {
         </div>
       </section>
 
+      {/* Sub-Collections in this Album (if any) */}
+      {album.sub_albums && album.sub_albums.length > 0 && (
+        <section className="album-subcollections-section">
+          <div className="wrap">
+            <div className="section-head" style={{ marginBottom: 24, paddingTop: 36 }}>
+              <span className="eyebrow">Nested Collections</span>
+              <h2 style={{ fontSize: 'clamp(22px, 2.5vw, 30px)' }}>
+                Sub-albums inside <em>{album.title}</em>
+              </h2>
+            </div>
+            <div className="cover-grid" style={{ marginBottom: 44 }}>
+              {album.sub_albums.map((sub) => (
+                <Link className="cover-card" to={`/gallery/${sub.id}`} key={sub.id}>
+                  <div className="cover-img cover-img-wrap">
+                    <img
+                      src={getImageUrl(sub.cover, { width: 550, quality: 'auto' })}
+                      alt={`${sub.title} cover`}
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="cover-body">
+                    <h3>{sub.title}</h3>
+                    <span>{sub.count || `${sub.items?.length || 0} photos`}</span>
+                    <span className="cover-link">View sub-album <em className="btn-arrow">→</em></span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Album Photos Masonry Grid */}
       <div className="wrap album-content">
         {items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
-            <p>No photos in this album yet.</p>
+            <p>{album.sub_albums && album.sub_albums.length > 0 ? 'No direct photos in this parent folder yet. Browse sub-albums above.' : 'No photos in this album yet.'}</p>
             <Link to="/gallery" className="cover-link">← Browse other albums</Link>
           </div>
         ) : (

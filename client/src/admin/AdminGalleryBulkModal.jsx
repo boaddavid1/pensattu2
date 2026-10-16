@@ -551,11 +551,18 @@ export default function AdminGalleryBulkModal({
                     required
                   >
                     <option value="">Select Target Album</option>
-                    {albums.map((album) => (
-                      <option key={album.id} value={album.id}>
-                        {album.name || album.title || `Album #${album.id}`}
-                      </option>
-                    ))}
+                    {albums.map((album) => {
+                      const parentName = album.parent_id
+                        ? albums.find((a) => String(a.id) === String(album.parent_id))?.name
+                        : null;
+                      return (
+                        <option key={album.id} value={album.id}>
+                          {album.parent_id
+                            ? `  ↳ ${album.name || album.title || `Album #${album.id}`} (Inside: ${parentName || 'Parent'})`
+                            : (album.name || album.title || `Album #${album.id}`)}
+                        </option>
+                      );
+                    })}
                   </select>
                 ) : (
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

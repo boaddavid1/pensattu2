@@ -748,3 +748,76 @@
   .lightbox-title { max-width: 180px; }
 }
 
+/* ===== HIERARCHICAL SUB-ALBUMS & BREADCRUMBS ===== */
+
+.cover-meta-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.cover-meta-badges > span:not(.sub-collection-badge) {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.sub-collection-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(14, 76, 146, 0.08);
+  border: 1px solid rgba(14, 76, 146, 0.2);
+  color: #0E4C92;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+/* Album Detail Breadcrumb Trail */
+.album-breadcrumbs-trail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+.album-breadcrumb-link {
+  color: rgba(247, 245, 238, 0.85);
+  transition: color 0.2s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.album-breadcrumb-link:hover {
+  color: #ffffff;
+}
+
+.album-breadcrumb-divider {
+  color: rgba(255, 255, 255, 0.45);
+  user-select: none;
+}
+
+.album-breadcrumb-active {
+  color: #ffffff;
+  font-weight: 700;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sub-Collections Section */
+.album-subcollections-section {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0 30px;
+}
+
+

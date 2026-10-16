@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
-import adminRoutes, { getActiveNavigation, getLeadershipMemory, getPageSettingsMemory } from './adminRoutes.js';
+import adminRoutes, { getActiveNavigation, getLeadershipMemory, getPageSettingsMemory, getGalleryAlbumsMemory, getGalleryPhotosMemory } from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
 import alumniRoutes from './alumniRoutes.js';
@@ -225,16 +225,79 @@ app.get('/api/notices/:id', async (req, res) => {
 app.get('/api/gallery', async (req, res) => {
   res.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
   try {
-    const [albums] = await pool.query('SELECT id, name AS title, description, cover_image AS cover FROM albums ORDER BY id');
-    const [photos] = await pool.query('SELECT id, album_id, image_url AS src, title AS alt, category, description AS caption FROM gallery ORDER BY id');
-    const albumsWithItems = albums.map((album) => ({
-      ...album,
-      count: `${photos.filter((p) => p.album_id === album.id).length} photos`,
-      items: photos.filter((p) => p.album_id === album.id),
-    }));
-    res.json(albumsWithItems);
+    let albums = [];
+    try {
+      const [rows] = await pool.query(
+        'SELECT id, name AS title, name, description, cover_image AS cover, cover_image, parent_id FROM albums ORDER BY id'
+      );
+      albums = rows;
+    } catch {
+      const [rows] = await pool.query(
+        'SELECT id, name AS title, name, description, cover_image AS cover, cover_image FROM albums ORDER BY id'
+      );
+      albums = rows.map((r) => ({ ...r, parent_id: null }));
+    }
+
+    const [photos] = await pool.query(
+      'SELECT id, album_id, image_url AS src, title AS alt, category, description AS caption FROM gallery ORDER BY id'
+    );
+
+    const albumsMap = {};
+    albums.forEach((album) => {
+      const albumPhotos = photos.filter((p) => String(p.album_id) === String(album.id));
+      albumsMap[album.id] = {
+        ...album,
+        id: album.id,
+        title: album.title || album.name || 'Untitled Album',
+        name: album.name || album.title || 'Untitled Album',
+        cover: album.cover || album.cover_image || '/images/pensafallback-bw.png',
+        cover_image: album.cover_image || album.cover || '/images/pensafallback-bw.png',
+        parent_id: album.parent_id ? Number(album.parent_id) : null,
+        count: `${albumPhotos.length} photo${albumPhotos.length !== 1 ? 's' : ''}`,
+        items: albumPhotos,
+        sub_albums: [],
+      };
+    });
+
+    // Nest sub_albums into their respective parent album
+    Object.values(albumsMap).forEach((album) => {
+      if (album.parent_id && albumsMap[album.parent_id]) {
+        albumsMap[album.parent_id].sub_albums.push(album);
+        album.parent_title = albumsMap[album.parent_id].title;
+      }
+    });
+
+    res.json(Object.values(albumsMap));
   } catch (err) {
-    res.json(galleryAlbums);
+    const memAlbums = (getGalleryAlbumsMemory ? getGalleryAlbumsMemory() : []) || [];
+    const memPhotos = (getGalleryPhotosMemory ? getGalleryPhotosMemory() : []) || [];
+    const sourceAlbums = memAlbums.length > 0 ? memAlbums : (galleryAlbums || []);
+
+    const albumsMap = {};
+    sourceAlbums.forEach((album) => {
+      const albumPhotos = memPhotos.filter((p) => String(p.album_id) === String(album.id));
+      albumsMap[album.id] = {
+        ...album,
+        id: album.id,
+        title: album.title || album.name || 'Untitled Album',
+        name: album.name || album.title || 'Untitled Album',
+        cover: album.cover || album.cover_image || '/images/pensafallback-bw.png',
+        cover_image: album.cover_image || album.cover || '/images/pensafallback-bw.png',
+        parent_id: album.parent_id || null,
+        count: `${albumPhotos.length} photo${albumPhotos.length !== 1 ? 's' : ''}`,
+        items: albumPhotos.length > 0 ? albumPhotos : (album.items || []),
+        sub_albums: [],
+      };
+    });
+
+    Object.values(albumsMap).forEach((album) => {
+      if (album.parent_id && albumsMap[album.parent_id]) {
+        albumsMap[album.parent_id].sub_albums.push(album);
+        album.parent_title = albumsMap[album.parent_id].title;
+      }
+    });
+
+    res.json(Object.values(albumsMap));
   }
 });
 

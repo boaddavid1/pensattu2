@@ -36,6 +36,7 @@ function normalizeAlbum(a) {
     description: a.description || '',
     cover_image: a.cover_image || a.cover || '/images/pensafallback-bw.png',
     cover: a.cover || a.cover_image || '/images/pensafallback-bw.png',
+    parent_id: a.parent_id ? Number(a.parent_id) : null,
     created_at: a.created_at || '',
   };
 }
@@ -49,6 +50,7 @@ export default function AdminGallery() {
 
   // Navigation & Filtering
   const [viewMode, setViewMode] = useState('albums'); // 'albums' | 'allPhotos'
+  const [albumFilter, setAlbumFilter] = useState('all'); // 'all' | 'root' | 'sub'
   const [selectedAlbumId, setSelectedAlbumId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -60,7 +62,7 @@ export default function AdminGallery() {
   const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
 
   // Form states
-  const [albumForm, setAlbumForm] = useState({ name: '', description: '', cover_image: '' });
+  const [albumForm, setAlbumForm] = useState({ name: '', description: '', cover_image: '', parent_id: '' });
   const [editingAlbum, setEditingAlbum] = useState(null);
   const [photoForm, setPhotoForm] = useState({ album_id: '', src: '', alt: '', category: '', caption: '' });
   const [editingPhoto, setEditingPhoto] = useState(null);
@@ -157,15 +159,80 @@ export default function AdminGallery() {
     return found ? (found.name || found.title || `Album #${found.id}`) : 'Unassigned';
   }
 
-  // Filtered Albums
+  // Sub-albums mapping: parent_id -> list of sub-albums
+  const subAlbumsMap = useMemo(() => {
+    const map = {};
+    albums.forEach((a) => {
+      if (a.parent_id) {
+        if (!map[a.parent_id]) map[a.parent_id] = [];
+        map[a.parent_id].push(a);
+      }
+    });
+    return map;
+  }, [albums]);
+
+  // Direct sub-albums of current selected album
+  const currentSubAlbums = useMemo(() => {
+    if (!selectedAlbumId) return [];
+    return albums.filter((a) => String(a.parent_id) === String(selectedAlbumId));
+  }, [albums, selectedAlbumId]);
+
+  // Current album's parent album (if nested)
+  const currentParentAlbum = useMemo(() => {
+    if (!currentAlbum?.parent_id) return null;
+    return albums.find((a) => String(a.id) === String(currentAlbum.parent_id)) || null;
+  }, [albums, currentAlbum]);
+
+  // Complete ancestor breadcrumb trail for selected album
+  const albumBreadcrumbs = useMemo(() => {
+    if (!currentAlbum) return [];
+    const trail = [currentAlbum];
+    let curr = currentAlbum;
+    const visited = new Set([curr.id]);
+    while (curr?.parent_id) {
+      const parent = albums.find((a) => String(a.id) === String(curr.parent_id));
+      if (!parent || visited.has(parent.id)) break;
+      visited.add(parent.id);
+      trail.unshift(parent);
+      curr = parent;
+    }
+    return trail;
+  }, [albums, currentAlbum]);
+
+  // Set of album IDs that are descendants of the currently editing album (prevent circular references)
+  const editingDescendantIds = useMemo(() => {
+    if (!editingAlbum) return new Set();
+    const set = new Set([editingAlbum.id]);
+    let added = true;
+    while (added) {
+      added = false;
+      albums.forEach((a) => {
+        if (a.parent_id && set.has(a.parent_id) && !set.has(a.id)) {
+          set.add(a.id);
+          added = true;
+        }
+      });
+    }
+    return set;
+  }, [editingAlbum, albums]);
+
+  // Filtered Albums for Albums view
   const filteredAlbums = useMemo(() => {
-    if (!searchQuery.trim()) return albums;
+    let list = albums;
+    if (albumFilter === 'root') {
+      list = list.filter((a) => !a.parent_id);
+    } else if (albumFilter === 'sub') {
+      list = list.filter((a) => Boolean(a.parent_id));
+    }
+
+    if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
-    return albums.filter((a) =>
+    return list.filter((a) =>
       (a.name || '').toLowerCase().includes(q) ||
-      (a.description || '').toLowerCase().includes(q)
+      (a.description || '').toLowerCase().includes(q) ||
+      (a.parent_id && getAlbumName(a.parent_id).toLowerCase().includes(q))
     );
-  }, [albums, searchQuery]);
+  }, [albums, searchQuery, albumFilter]);
 
   // Filtered Photos for current view
   const filteredPhotos = useMemo(() => {
@@ -209,8 +276,13 @@ export default function AdminGallery() {
   }, [albums, allPhotos]);
 
   // Modal open helpers
-  function openCreateAlbum() {
-    setAlbumForm({ name: '', description: '', cover_image: '' });
+  function openCreateAlbum(defaultParentId = null) {
+    setAlbumForm({
+      name: '',
+      description: '',
+      cover_image: '',
+      parent_id: defaultParentId ? String(defaultParentId) : '',
+    });
     setEditingAlbum(null);
     setActiveModal('createAlbum');
   }
@@ -222,6 +294,7 @@ export default function AdminGallery() {
       name: album.name || '',
       description: album.description || '',
       cover_image: album.cover_image || '',
+      parent_id: album.parent_id ? String(album.parent_id) : '',
     });
     setActiveModal('editAlbum');
   }
@@ -330,12 +403,17 @@ export default function AdminGallery() {
     }
     setSubmitting(true);
     setError('');
+    const parentIdVal = albumForm.parent_id && !isNaN(Number(albumForm.parent_id)) && Number(albumForm.parent_id) > 0
+      ? Number(albumForm.parent_id)
+      : null;
+
     try {
       if (editingAlbum) {
         await adminApi.update('gallery_albums', editingAlbum.id, {
           name: albumForm.name.trim(),
           description: albumForm.description.trim(),
           cover_image: albumForm.cover_image || null,
+          parent_id: parentIdVal,
         });
         setSuccessMsg(`Album "${albumForm.name}" updated successfully.`);
       } else {
@@ -343,8 +421,13 @@ export default function AdminGallery() {
           name: albumForm.name.trim(),
           description: albumForm.description.trim(),
           cover_image: albumForm.cover_image || null,
+          parent_id: parentIdVal,
         });
-        setSuccessMsg(`Album "${albumForm.name}" created successfully.`);
+        setSuccessMsg(
+          parentIdVal
+            ? `Sub-album "${albumForm.name}" created inside "${getAlbumName(parentIdVal)}".`
+            : `Album "${albumForm.name}" created successfully.`
+        );
         if (created?.id) setSelectedAlbumId(created.id);
       }
       closeModal();
@@ -601,21 +684,41 @@ export default function AdminGallery() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <nav className="ag-breadcrumbs-bar" aria-label="Breadcrumb navigation">
             <button
               type="button"
               className="ag-back-btn"
               onClick={() => { setSelectedAlbumId(null); setSearchQuery(''); }}
+              title="Return to all collections"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
-              Back to All Albums
+              Collections
             </button>
-            <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
-              Viewing Album: <strong style={{ color: '#0A2E5C' }}>{currentAlbum?.name}</strong>
-            </span>
-          </div>
+            {albumBreadcrumbs.map((crumb, idx) => {
+              const isLast = idx === albumBreadcrumbs.length - 1;
+              return (
+                <span key={crumb.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <span className="ag-breadcrumb-sep">/</span>
+                  {isLast ? (
+                    <span className="ag-breadcrumb-current" title={crumb.name}>
+                      {crumb.name}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="ag-breadcrumb-crumb-btn"
+                      onClick={() => { setSelectedAlbumId(crumb.id); setSearchQuery(''); }}
+                      title={`Go to ${crumb.name}`}
+                    >
+                      {crumb.name}
+                    </button>
+                  )}
+                </span>
+              );
+            })}
+          </nav>
         )}
 
         <div className="ag-search-wrapper">
@@ -735,6 +838,19 @@ export default function AdminGallery() {
             <div className="ag-album-banner-overlay" />
             <div className="ag-album-banner-content">
               <div className="ag-album-banner-info">
+                {currentParentAlbum && (
+                  <div
+                    className="ag-banner-parent-tag"
+                    onClick={() => { setSelectedAlbumId(currentParentAlbum.id); setSearchQuery(''); }}
+                    title={`Parent collection: ${currentParentAlbum.name}`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 14 4 9 9 4" />
+                      <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+                    </svg>
+                    Sub-album of <strong>{currentParentAlbum.name}</strong>
+                  </div>
+                )}
                 <h2>{currentAlbum.name}</h2>
                 {currentAlbum.description ? (
                   <p>{currentAlbum.description}</p>
@@ -750,10 +866,32 @@ export default function AdminGallery() {
                     </svg>
                     {filteredPhotos.length} photo{filteredPhotos.length !== 1 ? 's' : ''}
                   </span>
+                  {currentSubAlbums.length > 0 && (
+                    <span className="ag-album-meta-badge subalbums">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                      </svg>
+                      {currentSubAlbums.length} sub-album{currentSubAlbums.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="ag-album-banner-actions">
+                <button
+                  type="button"
+                  className="ag-banner-action-btn primary"
+                  style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', borderColor: '#34d399' }}
+                  onClick={() => openCreateAlbum(currentAlbum.id)}
+                  title="Create a nested sub-album inside this album"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    <line x1="12" y1="11" x2="12" y2="17" />
+                    <line x1="9" y1="14" x2="15" y2="14" />
+                  </svg>
+                  + Sub-Album
+                </button>
                 <button
                   type="button"
                   className="ag-banner-action-btn primary"
@@ -803,6 +941,86 @@ export default function AdminGallery() {
               </div>
             </div>
           </div>
+
+          {/* Nested Sub-Albums in Selected Album */}
+          {currentSubAlbums.length > 0 && (
+            <div className="ag-subalbums-section">
+              <div className="ag-subalbums-header">
+                <div className="ag-subalbums-title-wrap">
+                  <div className="ag-subalbums-icon-circle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="ag-subalbums-heading">Sub-Albums in this Collection</h3>
+                    <p className="ag-subalbums-subheading">
+                      {currentSubAlbums.length} nested collection{currentSubAlbums.length !== 1 ? 's' : ''} inside "{currentAlbum.name}"
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="ag-btn-add-subalbum-mini"
+                  onClick={() => openCreateAlbum(currentAlbum.id)}
+                  title="Create new sub-album"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Add Sub-Album
+                </button>
+              </div>
+
+              <div className="ag-subalbums-grid">
+                {currentSubAlbums.map((sub) => {
+                  const pCount = albumPhotoCounts[sub.id] || 0;
+                  const nestedCount = (subAlbumsMap[sub.id] || []).length;
+                  return (
+                    <div
+                      key={sub.id}
+                      className="ag-subalbum-card"
+                      onClick={() => { setSelectedAlbumId(sub.id); setSearchQuery(''); }}
+                    >
+                      <div className="ag-subalbum-cover">
+                        {sub.cover_image ? (
+                          <img src={sub.cover_image} alt={sub.name} loading="lazy" />
+                        ) : (
+                          <div className="ag-subalbum-placeholder">
+                            <span>{sub.name ? sub.name[0].toUpperCase() : 'A'}</span>
+                          </div>
+                        )}
+                        <span className="ag-subalbum-photo-count">
+                          {pCount} photo{pCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="ag-subalbum-content">
+                        <h4 className="ag-subalbum-title" title={sub.name}>
+                          {sub.name}
+                        </h4>
+                        <p className="ag-subalbum-desc" title={sub.description}>
+                          {sub.description || 'No description provided.'}
+                        </p>
+                        <div className="ag-subalbum-footer">
+                          {nestedCount > 0 ? (
+                            <span className="ag-subalbum-nested-tag">
+                              📁 {nestedCount} sub-collection{nestedCount !== 1 ? 's' : ''}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 11, color: '#94a3b8' }}>Direct sub-album</span>
+                          )}
+                          <span className="ag-subalbum-open-btn">
+                            Open &rarr;
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Photos Grid in Selected Album */}
           {filteredPhotos.length === 0 ? (
@@ -937,6 +1155,41 @@ export default function AdminGallery() {
       {/* Mode 2: Albums & Collections Grid Overview */}
       {!selectedAlbumId && viewMode === 'albums' && (
         <>
+          {/* Albums Hierarchy View Filter Chips */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#72849a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Filter Collections:
+              </span>
+              <button
+                type="button"
+                className={`ag-chip-tag ${albumFilter === 'all' ? 'selected' : ''}`}
+                onClick={() => setAlbumFilter('all')}
+              >
+                All Collections ({albums.length})
+              </button>
+              <button
+                type="button"
+                className={`ag-chip-tag ${albumFilter === 'root' ? 'selected' : ''}`}
+                onClick={() => setAlbumFilter('root')}
+              >
+                Top-Level Albums ({albums.filter((a) => !a.parent_id).length})
+              </button>
+              <button
+                type="button"
+                className={`ag-chip-tag ${albumFilter === 'sub' ? 'selected' : ''}`}
+                onClick={() => setAlbumFilter('sub')}
+              >
+                Nested Sub-Albums ({albums.filter((a) => a.parent_id).length})
+              </button>
+            </div>
+            {albumFilter !== 'all' && (
+              <span style={{ fontSize: 12, color: '#64748b' }}>
+                Showing {filteredAlbums.length} of {albums.length} collections
+              </span>
+            )}
+          </div>
+
           {filteredAlbums.length === 0 ? (
             <div className="ag-empty-state">
               <div className="ag-empty-icon">
@@ -971,6 +1224,7 @@ export default function AdminGallery() {
             <div className="ag-albums-grid">
               {filteredAlbums.map((album) => {
                 const count = albumPhotoCounts[album.id] || 0;
+                const subCount = (subAlbumsMap[album.id] || []).length;
                 return (
                   <div key={album.id} className="ag-album-card">
                     <div
@@ -998,6 +1252,18 @@ export default function AdminGallery() {
                         </svg>
                         {count} photo{count !== 1 ? 's' : ''}
                       </span>
+
+                      {album.parent_id && (
+                        <span className="ag-album-parent-badge" title={`Parent collection: ${getAlbumName(album.parent_id)}`}>
+                          ↳ Inside: {getAlbumName(album.parent_id)}
+                        </span>
+                      )}
+
+                      {subCount > 0 && (
+                        <span className="ag-album-subcount-badge">
+                          📁 {subCount} sub-album{subCount !== 1 ? 's' : ''}
+                        </span>
+                      )}
 
                       <div className="ag-album-card-overlay-btn">
                         <span className="ag-view-collection-chip">
@@ -1033,6 +1299,18 @@ export default function AdminGallery() {
                         </button>
 
                         <div className="ag-album-actions-group">
+                          <button
+                            type="button"
+                            className="ag-icon-btn"
+                            onClick={(e) => { e.stopPropagation(); openCreateAlbum(album.id); }}
+                            title={`Add a sub-album inside "${album.name}"`}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                              <line x1="12" y1="11" x2="12" y2="17" />
+                              <line x1="9" y1="14" x2="15" y2="14" />
+                            </svg>
+                          </button>
                           <button
                             type="button"
                             className="ag-icon-btn"
@@ -1234,6 +1512,30 @@ export default function AdminGallery() {
 
                 <div className="ag-form-group">
                   <label className="ag-form-label">
+                    Parent Album
+                    <span className="ag-form-label-opt">Optional (leave empty for main album)</span>
+                  </label>
+                  <select
+                    className="ag-form-select"
+                    value={albumForm.parent_id || ''}
+                    onChange={(e) => setAlbumForm({ ...albumForm, parent_id: e.target.value })}
+                  >
+                    <option value="">None (Top-Level Collection)</option>
+                    {albums
+                      .filter((a) => !editingDescendantIds.has(a.id))
+                      .map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.parent_id ? `  ↳ ${a.name} (Sub-album)` : a.name}
+                        </option>
+                      ))}
+                  </select>
+                  <p style={{ fontSize: 11.5, color: '#64748b', margin: '4px 0 0' }}>
+                    Nest this album inside another collection, or keep it as an independent top-level album.
+                  </p>
+                </div>
+
+                <div className="ag-form-group">
+                  <label className="ag-form-label">
                     Description
                     <span className="ag-form-label-opt">Optional</span>
                   </label>
@@ -1361,10 +1663,12 @@ export default function AdminGallery() {
                     onChange={(e) => setPhotoForm({ ...photoForm, album_id: e.target.value })}
                     required
                   >
-                    <option value="">Select Album</option>
+                    <option value="">Select Target Album</option>
                     {albums.map((album) => (
                       <option key={album.id} value={album.id}>
-                        {album.name || album.title || `Album #${album.id}`}
+                        {album.parent_id
+                          ? `  ↳ ${album.name || `Album #${album.id}`} (Inside: ${getAlbumName(album.parent_id)})`
+                          : (album.name || `Album #${album.id}`)}
                       </option>
                     ))}
                   </select>

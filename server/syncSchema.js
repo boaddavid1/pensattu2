@@ -113,7 +113,9 @@ const TABLES = [
     name VARCHAR(150) NOT NULL,
     description TEXT,
     cover_image VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    parent_id INT NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES albums(id) ON DELETE SET NULL
   )`,
 
   `CREATE TABLE IF NOT EXISTS gallery (
@@ -367,6 +369,7 @@ const REQUIRED_COLUMNS = [
   { table: 'albums', column: 'name', definition: "VARCHAR(150) NOT NULL DEFAULT 'Untitled Album'" },
   { table: 'albums', column: 'description', definition: "TEXT" },
   { table: 'albums', column: 'cover_image', definition: "VARCHAR(500)" },
+  { table: 'albums', column: 'parent_id', definition: "INT NULL DEFAULT NULL" },
   { table: 'albums', column: 'created_at', definition: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
   // gallery
   { table: 'gallery', column: 'album_id', definition: "INT NOT NULL DEFAULT 1" },

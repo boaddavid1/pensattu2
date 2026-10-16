@@ -43,6 +43,7 @@ const memory = {
       description: r.description || '',
       cover_image: r.cover_image || r.cover || '/images/pensafallback-bw.png',
       cover: r.cover_image || r.cover || '/images/pensafallback-bw.png',
+      parent_id: r.parent_id || null,
       created_at: r.created_at || '2026-08-23',
     })),
     ...(data.galleryAlbums || [])
@@ -54,6 +55,7 @@ const memory = {
         description: r.description || '',
         cover_image: r.cover || r.cover_image || '/images/pensafallback-bw.png',
         cover: r.cover || r.cover_image || '/images/pensafallback-bw.png',
+        parent_id: r.parent_id || null,
         created_at: '2026-08-23',
       })),
   ],
@@ -228,7 +230,7 @@ const TABLES = {
   },
   gallery_albums: {
     actualTable: 'albums',
-    columns: ['name', 'description', 'cover_image'],
+    columns: ['name', 'description', 'cover_image', 'parent_id'],
     required: ['name'],
     orderBy: 'id',
   },
@@ -427,6 +429,11 @@ for (const [table, config] of Object.entries(TABLES)) {
   // Create
   router.post(`/${table}`, requireAuth, async (req, res) => {
     let data = validateColumns(req.body, config.columns);
+    if (table === 'gallery_albums' && 'parent_id' in data) {
+      data.parent_id = (data.parent_id !== undefined && data.parent_id !== null && String(data.parent_id).trim() !== '' && String(data.parent_id) !== '0')
+        ? (!isNaN(Number(data.parent_id)) ? Number(data.parent_id) : String(data.parent_id))
+        : null;
+    }
     // Apply server-side defaults (e.g. notices must be category='Notice' to
     // appear on the public notice board).
     if (config.defaults) {
@@ -474,6 +481,11 @@ for (const [table, config] of Object.entries(TABLES)) {
   // Update
   router.put(`/${table}/:id`, requireAuth, async (req, res) => {
     let data = validateColumns(req.body, config.columns);
+    if (table === 'gallery_albums' && 'parent_id' in data) {
+      data.parent_id = (data.parent_id !== undefined && data.parent_id !== null && String(data.parent_id).trim() !== '' && String(data.parent_id) !== '0')
+        ? (!isNaN(Number(data.parent_id)) ? Number(data.parent_id) : String(data.parent_id))
+        : null;
+    }
     if (Object.keys(data).length === 0) {
       return res.status(400).json({ error: 'No fields to update' });
     }
@@ -518,12 +530,20 @@ for (const [table, config] of Object.entries(TABLES)) {
   // Delete
   router.delete(`/${table}/:id`, requireAuth, async (req, res) => {
     try {
+      if (table === 'gallery_albums') {
+        await pool.query('UPDATE albums SET parent_id = NULL WHERE parent_id = ?', [req.params.id]).catch(() => {});
+      }
       const [result] = await pool.query(`DELETE FROM ${actualTable} WHERE id = ?`, [req.params.id]);
       if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
       logAction(req.user.id, 'DELETE', actualTable, Number(req.params.id));
       res.json({ message: 'Deleted' });
     } catch (err) {
       if (isDbUnavailable(err)) {
+        if (table === 'gallery_albums') {
+          (memory.gallery_albums || []).forEach((a) => {
+            if (String(a.parent_id) === String(req.params.id)) a.parent_id = null;
+          });
+        }
         const ok = memoryDelete(table, req.params.id);
         if (!ok) return res.status(404).json({ error: 'Not found' });
         return res.json({ message: 'Deleted', demo: true });
@@ -1157,6 +1177,14 @@ export function getActiveNavigation() {
 
 export function getLeadershipMemory() {
   return memory.team || [];
+}
+
+export function getGalleryAlbumsMemory() {
+  return memory.gallery_albums || [];
+}
+
+export function getGalleryPhotosMemory() {
+  return memory.gallery_photos || [];
 }
 
 export function getPageSettingsMemory(page) {
