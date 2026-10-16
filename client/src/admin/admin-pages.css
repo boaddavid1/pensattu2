@@ -4,7 +4,17 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  max-width: 1140px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
   animation: apFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-pages-container *,
+.admin-pages-container *::before,
+.admin-pages-container *::after {
+  box-sizing: border-box;
 }
 
 @keyframes apFadeIn {
@@ -170,6 +180,15 @@
   overflow: hidden;
   box-shadow: 0 4px 18px rgba(10, 46, 92, 0.04);
   margin-bottom: 20px;
+  scroll-margin-top: 135px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ap-section-card:hover {
+  border-color: rgba(14, 76, 146, 0.18);
+  box-shadow: 0 6px 24px rgba(10, 46, 92, 0.06);
 }
 
 .ap-section-header {
@@ -213,19 +232,32 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ─── Form Fields ─── */
 .ap-form-grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .ap-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ap-form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ap-form-label {
@@ -313,18 +345,28 @@
 .ap-item-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   position: relative;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ap-item-card:hover {
+  border-color: #cbd5e1;
+  background: #fbfcfe;
 }
 
 .ap-item-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .ap-remove-item-btn {
@@ -337,6 +379,11 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.ap-remove-item-btn:hover {
+  color: #dc2626;
+  text-decoration: underline;
 }
 
 .ap-add-item-btn {
@@ -357,6 +404,151 @@
 
 .ap-add-item-btn:hover {
   background: #e6effa;
+  border-color: #0a3b72;
+}
+
+/* ─── Flex Row Helpers (Zero Overflow) ─── */
+.ap-input-with-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ap-input-with-btn .ap-form-input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.ap-input-with-btn .ap-upload-file-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.ap-input-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ap-icon-input {
+  width: 52px !important;
+  height: 42px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 20px;
+  padding: 0 !important;
+  border-radius: 9px;
+}
+
+.ap-input-with-icon .ap-form-input:not(.ap-icon-input) {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.ap-timeline-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ap-timeline-year-input {
+  width: 110px !important;
+  flex-shrink: 0;
+  font-weight: 800;
+  color: #0E4C92;
+}
+
+.ap-timeline-input-row .ap-form-input:not(.ap-timeline-year-input) {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+/* ─── Distinct Pillar Card for Vision & Mission ─── */
+.ap-mission-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* ─── Responsive Card Grids for Array Items ─── */
+.ap-cards-grid-values {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ap-cards-grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ap-cards-grid-beliefs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ap-cards-grid-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ─── CTA Preview Banner ─── */
+.ap-cta-preview-banner {
+  background: linear-gradient(135deg, #0A2E5C 0%, #0E4C92 100%);
+  border-radius: 12px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 16px rgba(10, 46, 92, 0.15);
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .ap-cta-preview-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.ap-cta-preview-btn {
+  background: #c4f092;
+  color: #0A2E5C;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ─── Sticky Bottom Bar ─── */
@@ -379,10 +571,10 @@
 /* ─── Quick Jump Section Navigator ─── */
 .ap-section-nav {
   position: sticky;
-  top: 10px;
-  z-index: 50;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
+  top: 72px;
+  z-index: 850;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
   border: 1px solid rgba(14, 76, 146, 0.15);
   border-radius: 14px;
   padding: 8px 12px;
@@ -391,10 +583,17 @@
   gap: 8px;
   overflow-x: auto;
   box-shadow: 0 4px 20px rgba(10, 46, 92, 0.08);
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(14, 76, 146, 0.2) transparent;
+  width: 100%;
+  box-sizing: border-box;
 }
 .ap-section-nav::-webkit-scrollbar {
-  display: none;
+  height: 4px;
+}
+.ap-section-nav::-webkit-scrollbar-thumb {
+  background: rgba(14, 76, 146, 0.2);
+  border-radius: 4px;
 }
 .ap-section-nav-label {
   font-size: 11px;

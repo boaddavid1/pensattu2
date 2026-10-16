@@ -507,7 +507,7 @@ export default function AdminPages({ defaultTab }) {
                 </div>
                 <div className="ap-form-group">
                   <label className="ap-form-label">Hero Background Image</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div className="ap-input-with-btn">
                     <input
                       type="text"
                       className="ap-form-input"
@@ -622,9 +622,9 @@ export default function AdminPages({ defaultTab }) {
               {/* Additional Story Paragraphs */}
               {Array.isArray(aboutSettings.extra_story_paragraphs) &&
                 aboutSettings.extra_story_paragraphs.map((para, pIdx) => (
-                  <div key={pIdx} className="ap-form-group" style={{ background: '#f8fafc', padding: 12, borderRadius: 10 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#0E4C92' }}>Extra Paragraph #{pIdx + 1}</span>
+                  <div key={pIdx} className="ap-item-card">
+                    <div className="ap-item-card-header">
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0E4C92' }}>Extra Paragraph #{pIdx + 1}</span>
                       <button
                         type="button"
                         className="ap-remove-item-btn"
@@ -666,7 +666,7 @@ export default function AdminPages({ defaultTab }) {
               <div className="ap-form-grid-2">
                 <div className="ap-form-group">
                   <label className="ap-form-label">Story Media Image</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div className="ap-input-with-btn">
                     <input
                       type="text"
                       className="ap-form-input"
@@ -685,22 +685,25 @@ export default function AdminPages({ defaultTab }) {
                   </div>
                 </div>
 
-                <div className="ap-form-group">
-                  <label className="ap-form-label">Action Button Text & Destination</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                <div className="ap-form-grid-2">
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Action Button Text</label>
                     <input
                       type="text"
                       className="ap-form-input"
                       value={aboutSettings.story_btn_text || ''}
                       onChange={(e) => setAboutSettings({ ...aboutSettings, story_btn_text: e.target.value })}
-                      placeholder="Button text..."
+                      placeholder="e.g. Meet our leadership"
                     />
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Button Destination Link</label>
                     <input
                       type="text"
                       className="ap-form-input"
                       value={aboutSettings.story_btn_link || ''}
                       onChange={(e) => setAboutSettings({ ...aboutSettings, story_btn_link: e.target.value })}
-                      placeholder="/leadership or /#team"
+                      placeholder="e.g. /#team or /contact"
                     />
                   </div>
                 </div>
@@ -732,42 +735,58 @@ export default function AdminPages({ defaultTab }) {
             </div>
             <div className="ap-section-body">
               <div className="ap-form-grid-2">
-                <div className="ap-form-group">
-                  <label className="ap-form-label">🔭 Vision Statement Heading & Text</label>
-                  <input
-                    type="text"
-                    className="ap-form-input"
-                    style={{ marginBottom: 6 }}
-                    value={aboutSettings.vision_title || ''}
-                    onChange={(e) => setAboutSettings({ ...aboutSettings, vision_title: e.target.value })}
-                    placeholder="Our Vision"
-                  />
-                  <textarea
-                    className="ap-form-textarea"
-                    rows={3}
-                    value={aboutSettings.vision_text || ''}
-                    onChange={(e) => setAboutSettings({ ...aboutSettings, vision_text: e.target.value })}
-                    placeholder="Description of the church's long-term vision..."
-                  />
+                <div className="ap-mission-box">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#0A2E5C', fontWeight: 700, fontSize: 14 }}>
+                    <span style={{ fontSize: 18 }}>🔭</span>
+                    <span>Vision Statement</span>
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Vision Heading</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={aboutSettings.vision_title || ''}
+                      onChange={(e) => setAboutSettings({ ...aboutSettings, vision_title: e.target.value })}
+                      placeholder="Our Vision"
+                    />
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Vision Statement Text</label>
+                    <textarea
+                      className="ap-form-textarea"
+                      rows={3}
+                      value={aboutSettings.vision_text || ''}
+                      onChange={(e) => setAboutSettings({ ...aboutSettings, vision_text: e.target.value })}
+                      placeholder="Description of the church's long-term vision..."
+                    />
+                  </div>
                 </div>
 
-                <div className="ap-form-group">
-                  <label className="ap-form-label">🎯 Mission Statement Heading & Text</label>
-                  <input
-                    type="text"
-                    className="ap-form-input"
-                    style={{ marginBottom: 6 }}
-                    value={aboutSettings.mission_title || ''}
-                    onChange={(e) => setAboutSettings({ ...aboutSettings, mission_title: e.target.value })}
-                    placeholder="Our Mission"
-                  />
-                  <textarea
-                    className="ap-form-textarea"
-                    rows={3}
-                    value={aboutSettings.mission_text || ''}
-                    onChange={(e) => setAboutSettings({ ...aboutSettings, mission_text: e.target.value })}
-                    placeholder="Description of the church's purpose and mission..."
-                  />
+                <div className="ap-mission-box">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#0A2E5C', fontWeight: 700, fontSize: 14 }}>
+                    <span style={{ fontSize: 18 }}>🎯</span>
+                    <span>Mission Statement</span>
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Mission Heading</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={aboutSettings.mission_title || ''}
+                      onChange={(e) => setAboutSettings({ ...aboutSettings, mission_title: e.target.value })}
+                      placeholder="Our Mission"
+                    />
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Mission Statement Text</label>
+                    <textarea
+                      className="ap-form-textarea"
+                      rows={3}
+                      value={aboutSettings.mission_text || ''}
+                      onChange={(e) => setAboutSettings({ ...aboutSettings, mission_text: e.target.value })}
+                      placeholder="Description of the church's purpose and mission..."
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -814,7 +833,7 @@ export default function AdminPages({ defaultTab }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 }}>
+              <div className="ap-cards-grid-values">
                 {(aboutSettings.values_list || []).map((val, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
@@ -850,11 +869,10 @@ export default function AdminPages({ defaultTab }) {
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div className="ap-input-with-icon">
                       <input
                         type="text"
-                        style={{ width: 60, textAlign: 'center', fontSize: 18 }}
-                        className="ap-form-input"
+                        className="ap-form-input ap-icon-input"
                         placeholder="Icon"
                         value={val.ic || ''}
                         onChange={(e) => updateAboutArrayItem('values_list', idx, 'ic', e.target.value)}
@@ -913,7 +931,7 @@ export default function AdminPages({ defaultTab }) {
               <span className="ap-section-badge">{(aboutSettings.stats_list || []).length} Stats</span>
             </div>
             <div className="ap-section-body">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+              <div className="ap-cards-grid-stats">
                 {(aboutSettings.stats_list || []).map((stat, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
@@ -1040,11 +1058,10 @@ export default function AdminPages({ defaultTab }) {
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 10 }}>
+                    <div className="ap-timeline-input-row">
                       <input
                         type="text"
-                        style={{ width: 110, fontWeight: 800, color: '#0E4C92' }}
-                        className="ap-form-input"
+                        className="ap-form-input ap-timeline-year-input"
                         placeholder="Year (2014)"
                         value={item.year || ''}
                         onChange={(e) => updateAboutArrayItem('timeline_list', idx, 'year', e.target.value)}
@@ -1109,7 +1126,7 @@ export default function AdminPages({ defaultTab }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+              <div className="ap-cards-grid-beliefs">
                 {(aboutSettings.beliefs_list || []).map((item, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
@@ -1212,7 +1229,7 @@ export default function AdminPages({ defaultTab }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+              <div className="ap-cards-grid-photos">
                 {(aboutSettings.about_photos || []).map((photo, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
@@ -1246,7 +1263,7 @@ export default function AdminPages({ defaultTab }) {
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="ap-input-with-btn">
                       <input
                         type="text"
                         className="ap-form-input"
@@ -1265,7 +1282,7 @@ export default function AdminPages({ defaultTab }) {
                     </div>
 
                     {photo.src && (
-                      <div className="ap-image-preview-wrap" style={{ height: 120 }}>
+                      <div className="ap-image-preview-wrap" style={{ height: 130 }}>
                         <img src={photo.src} alt="Showcase preview" className="ap-image-preview" />
                       </div>
                     )}
@@ -1334,7 +1351,7 @@ export default function AdminPages({ defaultTab }) {
                   />
                 </div>
                 <div className="ap-form-group">
-                  <label className="ap-form-label">Button Link</label>
+                  <label className="ap-form-label">Button Destination Link</label>
                   <input
                     type="text"
                     className="ap-form-input"
@@ -1342,6 +1359,21 @@ export default function AdminPages({ defaultTab }) {
                     onChange={(e) => setAboutSettings({ ...aboutSettings, cta_btn_link: e.target.value })}
                     placeholder="/#book or /contact"
                   />
+                </div>
+              </div>
+
+              {/* Live CTA Mini-Preview Banner */}
+              <div className="ap-cta-preview-banner">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', marginBottom: 4 }}>
+                    {aboutSettings.cta_title || 'Come see it for yourself this Sunday.'}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.4 }}>
+                    {aboutSettings.cta_subtitle || 'Two services every Sunday. There is always a seat for you.'}
+                  </div>
+                </div>
+                <div className="ap-cta-preview-btn">
+                  {aboutSettings.cta_btn_text || 'Plan your visit'} →
                 </div>
               </div>
             </div>
