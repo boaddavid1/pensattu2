@@ -22,6 +22,7 @@ import {
   notices, galleryAlbums,
   defaultNavigation,
 } from './data.js';
+import { calculateEventStatus, syncEventsDatabaseStatus } from './eventStatusHelper.js';
 
 dotenv.config();
 
@@ -112,15 +113,31 @@ app.get('/api/events', async (req, res) => {
   try {
     const past = req.query.past === '1' || req.query.past === 'true';
     const today = new Date().toISOString().split('T')[0];
+
+    // Automatically sync event statuses in database and memory
+    await syncEventsDatabaseStatus(pool, events).catch(() => {});
+
     const [rows] = await pool.query(
       past
-        ? 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) < ? ORDER BY event_date DESC LIMIT 8'
-        : 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) >= ? ORDER BY event_date ASC LIMIT 8',
+        ? 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) < ? ORDER BY event_date DESC LIMIT 12'
+        : 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) >= ? ORDER BY (CASE WHEN status = "ongoing" THEN 0 ELSE 1 END), event_date ASC LIMIT 16',
       [today]
     );
-    res.json(rows);
+
+    const enhanced = (rows || []).map((ev) => ({
+      ...ev,
+      status: calculateEventStatus(ev),
+    }));
+
+    res.json(enhanced);
   } catch (err) {
-    res.json(events);
+    const fallback = (events || []).map((ev) => ({
+      ...ev,
+      status: calculateEventStatus(ev),
+    }));
+    const past = req.query.past === '1' || req.query.past === 'true';
+    const filtered = fallback.filter((ev) => (past ? ev.status === 'past' : ev.status !== 'past'));
+    res.json(filtered.length ? filtered : fallback);
   }
 });
 
@@ -794,4 +811,9 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  // Initial sync & recurring 5-minute background check to transition upcoming -> ongoing -> past
+  syncEventsDatabaseStatus(pool, events).catch(() => {});
+  setInterval(() => {
+    syncEventsDatabaseStatus(pool, events).catch(() => {});
+  }, 5 * 60 * 1000);
 });

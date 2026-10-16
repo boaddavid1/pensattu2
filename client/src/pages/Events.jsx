@@ -12,6 +12,57 @@ const fallbackPast = [
   { day: '29', month: 'JUN', year: '2026', title: 'Sunday Fellowship', img: '/images/pensafallback-bw.png' },
 ];
 
+/**
+ * Determine event status: 'upcoming' | 'ongoing' | 'past'
+ */
+function computeStatus(ev) {
+  if (ev.status === 'cancelled') return 'cancelled';
+  if (!ev.event_date) return ev.status || 'upcoming';
+
+  const now = new Date();
+  const nowY = now.getFullYear();
+  const nowM = String(now.getMonth() + 1).padStart(2, '0');
+  const nowD = String(now.getDate()).padStart(2, '0');
+  const todayYMD = `${nowY}-${nowM}-${nowD}`;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const startD = new Date(ev.event_date);
+  if (isNaN(startD)) return ev.status || 'upcoming';
+  const startYMD = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}-${String(startD.getDate()).padStart(2, '0')}`;
+
+  const endD = ev.event_end_date ? new Date(ev.event_end_date) : startD;
+  const endYMD = isNaN(endD)
+    ? startYMD
+    : `${endD.getFullYear()}-${String(endD.getMonth() + 1).padStart(2, '0')}-${String(endD.getDate()).padStart(2, '0')}`;
+
+  // 1. Strictly in the future
+  if (todayYMD < startYMD) return 'upcoming';
+
+  // 2. Strictly in the past
+  if (todayYMD > endYMD) return 'past';
+
+  // 3. Today is within event dates!
+  // If today is the final day, check if end time has passed
+  if (todayYMD === endYMD && ev.event_time) {
+    const parts = ev.event_time.split(/\s*[-–]|(?:\s+to\s+)\s*/i);
+    if (parts.length >= 2) {
+      const match = parts[1].trim().match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+      if (match) {
+        let h = parseInt(match[1], 10);
+        const m = match[2] ? parseInt(match[2], 10) : 0;
+        const mer = match[3]?.toLowerCase();
+        if (mer === 'pm' && h < 12) h += 12;
+        if (mer === 'am' && h === 12) h = 0;
+        const endMinutes = h * 60 + m;
+        if (currentMinutes > endMinutes) return 'past';
+      }
+    }
+  }
+
+  // Date of event has arrived -> ONGOING
+  return 'ongoing';
+}
+
 function parseEvent(ev) {
   const startDate = ev.event_date ? new Date(ev.event_date) : null;
   const endDate = ev.event_end_date ? new Date(ev.event_end_date) : startDate;
@@ -23,8 +74,11 @@ function parseEvent(ev) {
   const timeParts = (ev.event_time || '').split(/\s*[-–]\s*/);
   const startTime = timeParts[0] || ev.event_time || '';
   const endTime = timeParts[1] || '';
+  const status = computeStatus(ev);
+
   return {
     ...ev,
+    status,
     startDay,
     startMonth,
     endDay,
@@ -39,13 +93,17 @@ function parseEvent(ev) {
 
 export default function Events() {
   const [activeEvent, setActiveEvent] = useState(null);
-  const [upcoming, setUpcoming] = useState([]);
+  const [eventsList, setEventsList] = useState([]);
   const [past, setPast] = useState(fallbackPast);
   const [loading, setLoading] = useState(true);
 
+  // Split into ongoing and upcoming
+  const ongoingEvents = useMemo(() => eventsList.filter((e) => e.status === 'ongoing'), [eventsList]);
+  const upcomingEvents = useMemo(() => eventsList.filter((e) => e.status !== 'ongoing'), [eventsList]);
+
   const timeline = useMemo(() => {
     const groups = {};
-    upcoming.forEach((ev) => {
+    eventsList.forEach((ev) => {
       if (!ev.event_date) return;
       const start = new Date(ev.event_date);
       const end = ev.event_end_date ? new Date(ev.event_end_date) : start;
@@ -60,7 +118,7 @@ export default function Events() {
         const day = String(date.getDate()).padStart(2, '0');
         const key = `${label}|${date.getFullYear()}-${date.getMonth()}`;
         groups[key] = groups[key] || { month: label, dates: [] };
-        groups[key].dates.push({ weekday, day });
+        groups[key].dates.push({ weekday, day, isOngoing: ev.status === 'ongoing' });
       }
     });
     return Object.values(groups).sort((a, b) => {
@@ -68,12 +126,12 @@ export default function Events() {
       const [by, bm] = b.month.split(' ').reverse();
       return new Date(`${am} 1, ${ay}`) - new Date(`${bm} 1, ${by}`);
     });
-  }, [upcoming]);
+  }, [eventsList]);
 
   useEffect(() => {
     api.get('/events')
-      .then((data) => setUpcoming((Array.isArray(data) ? data : []).map(parseEvent)))
-      .catch(() => setUpcoming([]));
+      .then((data) => setEventsList((Array.isArray(data) ? data : []).map(parseEvent)))
+      .catch(() => setEventsList([]));
 
     api.get('/events?past=1')
       .then((data) => {
@@ -114,6 +172,46 @@ export default function Events() {
         </div>
       </section>
 
+      {/* ── ONGOING / HAPPENING NOW SECTION (Shown when an event is live today) ── */}
+      {ongoingEvents.length > 0 && (
+        <section className="ongoing-events-section">
+          <div className="wrap">
+            <div className="ongoing-header">
+              <span className="live-pill">
+                <span className="live-pulse-dot" /> LIVE NOW
+              </span>
+              <h2>Happening <em>Today</em>.</h2>
+              <p>These gatherings are currently ongoing. Come and be part of what God is doing right now!</p>
+            </div>
+
+            <div className="ongoing-events-grid">
+              {ongoingEvents.map((ev) => (
+                <article
+                  className="upcoming-event-card ongoing-event-card"
+                  key={ev.id}
+                  onClick={() => setActiveEvent(ev)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') setActiveEvent(ev); }}
+                >
+                  <div className="upcoming-event-img">
+                    <span className="event-card-status-badge ongoing">
+                      <span className="live-pulse-dot" /> Ongoing Now
+                    </span>
+                    <img src={ev.img} alt={ev.title} />
+                    <div className="upcoming-event-overlay">
+                      <h3>{ev.title}</h3>
+                      <span className="upcoming-event-range">{formatRange(ev)}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── CALENDAR TIMELINE ── */}
       <section className="timeline-section">
         <div className="wrap">
           <div className="section-head">
@@ -135,9 +233,15 @@ export default function Events() {
                   </div>
                   <div className="timeline-dates">
                     {group.dates.map((d, i) => (
-                      <div className="timeline-date-card" key={group.month + i}>
+                      <div
+                        className={`timeline-date-card ${d.isOngoing ? 'ongoing-day' : ''}`}
+                        key={group.month + i}
+                        style={d.isOngoing ? { border: '2px solid #22c55e', background: '#f0fdf4' } : undefined}
+                      >
                         <span className="timeline-weekday">{d.weekday}</span>
-                        <span className="timeline-day">{d.day}</span>
+                        <span className="timeline-day" style={d.isOngoing ? { color: '#15803d' } : undefined}>
+                          {d.day}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -148,6 +252,7 @@ export default function Events() {
         </div>
       </section>
 
+      {/* ── UPCOMING EVENTS SECTION ── */}
       <section className="upcoming-events">
         <div className="wrap">
           <div className="section-head">
@@ -156,11 +261,11 @@ export default function Events() {
           </div>
           {loading ? (
             <p>Loading events...</p>
-          ) : upcoming.length === 0 ? (
+          ) : upcomingEvents.length === 0 && ongoingEvents.length === 0 ? (
             <p>No upcoming events right now.</p>
           ) : (
             <div className="upcoming-events-grid">
-              {upcoming.map((ev) => (
+              {upcomingEvents.map((ev) => (
                 <article
                   className="upcoming-event-card"
                   key={ev.id}
@@ -170,6 +275,9 @@ export default function Events() {
                   onKeyDown={(e) => { if (e.key === 'Enter') setActiveEvent(ev); }}
                 >
                   <div className="upcoming-event-img">
+                    <span className="event-card-status-badge upcoming">
+                      Upcoming
+                    </span>
                     <img src={ev.img} alt={ev.title} />
                     <div className="upcoming-event-overlay">
                       <h3>{ev.title}</h3>
@@ -183,6 +291,7 @@ export default function Events() {
         </div>
       </section>
 
+      {/* ── PAST EVENTS ARCHIVE ── */}
       <section className="past-events">
         <div className="wrap">
           <div className="section-head">
@@ -205,6 +314,7 @@ export default function Events() {
         </div>
       </section>
 
+      {/* ── EVENT DETAILS MODAL ── */}
       {activeEvent && (
         <div className="event-modal-backdrop" onClick={() => setActiveEvent(null)}>
           <div className="event-modal" onClick={(e) => e.stopPropagation()}>
@@ -213,12 +323,25 @@ export default function Events() {
               <img src={activeEvent.img} alt={activeEvent.title} />
             </div>
             <div className="event-modal-body">
-              <span className="event-modal-range">{formatRange(activeEvent)}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+                {activeEvent.status === 'ongoing' ? (
+                  <span className="event-modal-status-pill ongoing">
+                    <span className="live-pulse-dot" /> Ongoing Now
+                  </span>
+                ) : activeEvent.status === 'past' ? (
+                  <span className="event-modal-status-pill past">Past Event</span>
+                ) : (
+                  <span className="event-modal-status-pill upcoming">Upcoming Event</span>
+                )}
+                <span className="event-modal-range">{formatRange(activeEvent)}</span>
+              </div>
               <h3>{activeEvent.title}</h3>
               <p>{activeEvent.body}</p>
-              <div className="event-cal-meta">
-                <span>📍 {activeEvent.location}</span>
-              </div>
+              {activeEvent.location && (
+                <div className="event-cal-meta">
+                  <span>📍 {activeEvent.location}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

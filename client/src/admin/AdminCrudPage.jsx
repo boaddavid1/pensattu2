@@ -44,7 +44,7 @@ const fieldConfig = {
     { name: 'category', label: 'Category', type: 'text' },
     { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/events' },
     { name: 'featured', label: 'Featured', type: 'select', options: ['0', '1'] },
-    { name: 'status', label: 'Status', type: 'select', options: ['upcoming', 'past'], required: true },
+    { name: 'status', label: 'Status', type: 'select', options: ['upcoming', 'ongoing', 'past'], required: true },
   ],
   notices: [
     { name: 'title', label: 'Title', type: 'text', required: true },
@@ -251,6 +251,30 @@ export default function AdminCrudPage({ entity, title }) {
     }
     if (f.type === 'date' || f.name.includes('date') || f.name.includes('_at')) {
       return formatDate(value);
+    }
+    if (f.name === 'status') {
+      const val = String(value || '').toLowerCase();
+      if (val === 'ongoing') {
+        return (
+          <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: 999, fontWeight: 700, fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} /> Ongoing
+          </span>
+        );
+      }
+      if (val === 'upcoming') {
+        return (
+          <span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '3px 10px', borderRadius: 999, fontWeight: 600, fontSize: 11.5 }}>
+            Upcoming
+          </span>
+        );
+      }
+      if (val === 'past' || val === 'completed') {
+        return (
+          <span style={{ background: '#f1f5f9', color: '#64748b', padding: '3px 10px', borderRadius: 999, fontWeight: 600, fontSize: 11.5 }}>
+            Past
+          </span>
+        );
+      }
     }
     if (f.type === 'textarea') {
       return <span className="admin-cell-text">{(value || '').slice(0, 60) + ((value || '').length > 60 ? '...' : '')}</span>;

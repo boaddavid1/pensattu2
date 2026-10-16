@@ -1124,3 +1124,165 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
   .map-frame { min-height: 220px; }
   .map-frame iframe { min-height: 220px; }
 }
+
+/* ===== ONGOING & UPCOMING EVENT STATUS STYLES ===== */
+
+.live-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: livePulseDot 1.6s infinite;
+}
+
+@keyframes livePulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.75); }
+  70% { transform: scale(1); box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.event-card-status-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 3;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.event-card-status-badge.ongoing {
+  background: #15803d;
+  color: #fff;
+  border: 1px solid rgba(187, 247, 208, 0.4);
+}
+
+.event-card-status-badge.upcoming {
+  background: rgba(10, 46, 92, 0.75);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Ongoing Events Section */
+.ongoing-events-section {
+  background: linear-gradient(180deg, #071526 0%, #0d2746 100%);
+  padding: 80px 0 90px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.ongoing-header {
+  margin-bottom: 40px;
+}
+
+.ongoing-header .live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  color: #4ade80;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.ongoing-header h2 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(30px, 4vw, 44px);
+  color: #fff;
+  margin: 0 0 10px;
+}
+
+.ongoing-header h2 em {
+  color: var(--moss);
+  font-style: normal;
+}
+
+.ongoing-header p {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15.5px;
+  margin: 0;
+  max-width: 560px;
+}
+
+.ongoing-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.ongoing-event-card {
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+}
+
+.ongoing-event-card:hover {
+  border-color: #4ade80;
+  box-shadow: 0 16px 44px rgba(34, 197, 94, 0.25);
+}
+
+/* Event Modal Status Pills */
+.event-modal-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.event-modal-status-pill.ongoing {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.event-modal-status-pill.upcoming {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.event-modal-status-pill.past {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.feature-ongoing-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dcfce7;
+  color: #15803d;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+

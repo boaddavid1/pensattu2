@@ -45,7 +45,14 @@ export default function Feature() {
               <div className="feature-row" key={e.id}>
                 <div className="ic">{fmtDay(e.event_date)}</div>
                 <div>
-                  <h4>{e.title}</h4>
+                  <h4>
+                    {e.title}
+                    {e.status === 'ongoing' && (
+                      <span className="feature-ongoing-tag">
+                        <span className="live-pulse-dot" /> ONGOING
+                      </span>
+                    )}
+                  </h4>
                   <p>
                     {fmtDate(e.event_date, e.event_end_date)} · {e.event_time} · {e.location}
                   </p>

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import pool from './db.js';
 import * as data from './data.js';
 import { comparePassword, generateToken, requireAuth, requireSuperAdmin } from './auth.js';
+import { calculateEventStatus, syncEventsDatabaseStatus } from './eventStatusHelper.js';
 
 const DEMO_USER = {
   id: 1,
@@ -382,11 +383,27 @@ for (const [table, config] of Object.entries(TABLES)) {
 
   // List
   router.get(`/${table}`, requireAuth, async (req, res) => {
+    if (table === 'events') {
+      await syncEventsDatabaseStatus(pool, memory.events).catch(() => {});
+    }
     try {
       const [rows] = await pool.query(`SELECT * FROM ${actualTable} ORDER BY ${config.orderBy}`);
+      if (table === 'events') {
+        const enhanced = (rows || []).map((r) => ({
+          ...r,
+          status: calculateEventStatus(r),
+        }));
+        return res.json(enhanced);
+      }
       res.json(rows);
     } catch (err) {
-      if (isDbUnavailable(err)) return res.json(memoryList(table));
+      if (isDbUnavailable(err)) {
+        const list = memoryList(table);
+        if (table === 'events') {
+          return res.json(list.map((r) => ({ ...r, status: calculateEventStatus(r) })));
+        }
+        return res.json(list);
+      }
       res.status(500).json({ error: err.message });
     }
   });
