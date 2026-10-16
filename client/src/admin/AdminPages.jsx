@@ -141,6 +141,12 @@ export default function AdminPages({ defaultTab }) {
       if (target.startsWith('about_photos_')) {
         const photoIdx = parseInt(target.replace('about_photos_', ''), 10);
         updateAboutArrayItem('about_photos', photoIdx, 'src', url);
+      } else if (target.startsWith('hero_slides_')) {
+        const slideIdx = parseInt(target.replace('hero_slides_', ''), 10);
+        updateHomeArrayItem('hero_slides', slideIdx, 'img', url);
+      } else if (target.startsWith('steps_list_')) {
+        const stepIdx = parseInt(target.replace('steps_list_', ''), 10);
+        updateHomeArrayItem('steps_list', stepIdx, 'img', url);
       } else if (activeTab === 'about') {
         setAboutSettings((prev) => ({ ...prev, [target]: url }));
       } else if (activeTab === 'contact') {
@@ -190,6 +196,65 @@ export default function AdminPages({ defaultTab }) {
       list[index] = list[targetIndex];
       list[targetIndex] = temp;
       return { ...prev, [arrayKey]: list };
+    });
+  }
+
+  // Array item helpers for Home Page
+  function updateHomeArrayItem(arrayKey, index, key, value) {
+    setHomeSettings((prev) => {
+      const list = [...(prev[arrayKey] || DEFAULT_HOME_SETTINGS[arrayKey] || [])];
+      list[index] = { ...list[index], [key]: value };
+      return { ...prev, [arrayKey]: list };
+    });
+  }
+
+  function addHomeArrayItem(arrayKey, emptyTemplate) {
+    setHomeSettings((prev) => ({
+      ...prev,
+      [arrayKey]: [...(prev[arrayKey] || DEFAULT_HOME_SETTINGS[arrayKey] || []), emptyTemplate],
+    }));
+  }
+
+  function removeHomeArrayItem(arrayKey, index) {
+    setHomeSettings((prev) => {
+      const list = [...(prev[arrayKey] || DEFAULT_HOME_SETTINGS[arrayKey] || [])];
+      list.splice(index, 1);
+      return { ...prev, [arrayKey]: list };
+    });
+  }
+
+  function moveHomeArrayItem(arrayKey, index, direction) {
+    setHomeSettings((prev) => {
+      const list = [...(prev[arrayKey] || DEFAULT_HOME_SETTINGS[arrayKey] || [])];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= list.length) return prev;
+      const temp = list[index];
+      list[index] = list[targetIndex];
+      list[targetIndex] = temp;
+      return { ...prev, [arrayKey]: list };
+    });
+  }
+
+  function updateHomeTrailItem(index, value) {
+    setHomeSettings((prev) => {
+      const list = [...(prev.trail_items || DEFAULT_HOME_SETTINGS.trail_items || [])];
+      list[index] = value;
+      return { ...prev, trail_items: list };
+    });
+  }
+
+  function addHomeTrailItem(value = 'New Highlight') {
+    setHomeSettings((prev) => ({
+      ...prev,
+      trail_items: [...(prev.trail_items || DEFAULT_HOME_SETTINGS.trail_items || []), value],
+    }));
+  }
+
+  function removeHomeTrailItem(index) {
+    setHomeSettings((prev) => {
+      const list = [...(prev.trail_items || DEFAULT_HOME_SETTINGS.trail_items || [])];
+      list.splice(index, 1);
+      return { ...prev, trail_items: list };
     });
   }
 
@@ -1287,98 +1352,366 @@ export default function AdminPages({ defaultTab }) {
       {/* ══════════════════════════════════════════════════════════════
           TAB 2: HOME PAGE SECTIONS
       ══════════════════════════════════════════════════════════════ */}
+      {/* ══════════════════════════════════════════════════════════════
+          TAB 2: COMPLETE HOME PAGE CMS STUDIO
+      ══════════════════════════════════════════════════════════════ */}
       {activeTab === 'home' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Section 1: Story Section */}
-          <div className="ap-section-card">
+          {/* Quick Jump Section Navigator for Home */}
+          <div className="ap-section-nav">
+            <span className="ap-section-nav-label">Jump to:</span>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-hero')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              1. Hero Slider
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-trail')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              2. Ticker Strip
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-why')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              3. Why Section
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-story')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              4. Story & Video
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-leadership')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              5. Leadership
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-steps')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              6. Weekly Steps
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-events')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              7. Upcoming Events
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-ministries')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              8. Ministries
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-testi')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              9. Testimonial & Hours
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-blog')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              10. Pulpit & Sermons
+            </button>
+            <button
+              type="button"
+              className="ap-section-nav-btn"
+              onClick={() => document.getElementById('ap-home-newsletter')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              11. Newsletter
+            </button>
+            <a
+              href="/"
+              target="_blank"
+              rel="noreferrer"
+              className="ap-section-nav-btn"
+              style={{ background: '#0E4C92', color: '#fff', marginLeft: 'auto', textDecoration: 'none' }}
+            >
+              👁️ View Live Home Page ↗
+            </a>
+          </div>
+
+          {/* ─── Section 1: Hero Banner & Slides ─── */}
+          <div id="ap-home-hero" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
-                <span>1. Home Story Section</span>
+                <span>1. Hero Banner & Carousel Slides</span>
               </h3>
-              <span className="ap-section-badge">Movement Story</span>
+              <span className="ap-section-badge">
+                {(homeSettings.hero_slides || DEFAULT_HOME_SETTINGS.hero_slides || []).length} Slides
+              </span>
             </div>
             <div className="ap-section-body">
-              <div className="ap-form-grid-2">
-                <div className="ap-form-group">
-                  <label className="ap-form-label">Story Eyebrow</label>
-                  <input
-                    type="text"
-                    className="ap-form-input"
-                    value={homeSettings.story_eyebrow || ''}
-                    onChange={(e) => setHomeSettings({ ...homeSettings, story_eyebrow: e.target.value })}
-                  />
-                </div>
-                <div className="ap-form-group">
-                  <label className="ap-form-label">Story Main Heading</label>
-                  <input
-                    type="text"
-                    className="ap-form-input"
-                    value={homeSettings.story_title || ''}
-                    onChange={(e) => setHomeSettings({ ...homeSettings, story_title: e.target.value })}
-                  />
-                </div>
-              </div>
-
               <div className="ap-form-group">
-                <label className="ap-form-label">Story Paragraph 1</label>
-                <textarea
-                  className="ap-form-textarea"
-                  rows={3}
-                  value={homeSettings.story_p1 || ''}
-                  onChange={(e) => setHomeSettings({ ...homeSettings, story_p1: e.target.value })}
-                />
-              </div>
-
-              <div className="ap-form-group">
-                <label className="ap-form-label">Story Paragraph 2</label>
-                <textarea
-                  className="ap-form-textarea"
-                  rows={3}
-                  value={homeSettings.story_p2 || ''}
-                  onChange={(e) => setHomeSettings({ ...homeSettings, story_p2: e.target.value })}
+                <label className="ap-form-label">Hero Eyebrow (Small top tag)</label>
+                <input
+                  type="text"
+                  className="ap-form-input"
+                  value={homeSettings.hero_eyebrow || ''}
+                  onChange={(e) => setHomeSettings({ ...homeSettings, hero_eyebrow: e.target.value })}
+                  placeholder="e.g. A church home in Accra"
                 />
               </div>
 
               <div className="ap-form-grid-2">
                 <div className="ap-form-group">
-                  <label className="ap-form-label">Video File URL</label>
+                  <label className="ap-form-label">Primary Button Label</label>
                   <input
                     type="text"
                     className="ap-form-input"
-                    value={homeSettings.story_video_url || ''}
-                    onChange={(e) => setHomeSettings({ ...homeSettings, story_video_url: e.target.value })}
-                    placeholder="/videos/story.mp4 or Cloudinary video URL"
+                    value={homeSettings.hero_btn1_text || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, hero_btn1_text: e.target.value })}
+                    placeholder="About us"
                   />
                 </div>
                 <div className="ap-form-group">
-                  <label className="ap-form-label">Video Poster Image</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.story_poster_url || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, story_poster_url: e.target.value })}
-                      placeholder="/images/pensafallback-bw.png"
-                    />
-                    <button
-                      type="button"
-                      className="ap-upload-file-btn"
-                      onClick={() => triggerImageUpload('story_poster_url')}
-                      disabled={uploadingField === 'story_poster_url'}
-                    >
-                      {uploadingField === 'story_poster_url' ? 'Uploading...' : 'Upload'}
-                    </button>
-                  </div>
+                  <label className="ap-form-label">Primary Button Link</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.hero_btn1_link || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, hero_btn1_link: e.target.value })}
+                    placeholder="/about"
+                  />
                 </div>
+              </div>
+
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Secondary Button Label</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.hero_btn2_text || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, hero_btn2_text: e.target.value })}
+                    placeholder="Explore Ministries"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Secondary Button Link</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.hero_btn2_link || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, hero_btn2_link: e.target.value })}
+                    placeholder="/ministries"
+                  />
+                </div>
+              </div>
+
+              {/* Slide items list */}
+              <div style={{ marginTop: 16 }}>
+                <label className="ap-form-label" style={{ fontSize: 13, marginBottom: 10 }}>
+                  Carousel Slides (Images, animated typing headlines & descriptions)
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {(homeSettings.hero_slides || DEFAULT_HOME_SETTINGS.hero_slides || []).map((slide, idx) => (
+                    <div key={idx} className="ap-item-card">
+                      <div className="ap-item-card-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>
+                            Slide #{idx + 1}
+                          </span>
+                          <div className="ap-reorder-group">
+                            <button
+                              type="button"
+                              className="ap-reorder-btn"
+                              disabled={idx === 0}
+                              onClick={() => moveHomeArrayItem('hero_slides', idx, -1)}
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className="ap-reorder-btn"
+                              disabled={idx === (homeSettings.hero_slides || DEFAULT_HOME_SETTINGS.hero_slides || []).length - 1}
+                              onClick={() => moveHomeArrayItem('hero_slides', idx, 1)}
+                            >
+                              ↓
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="ap-remove-item-btn"
+                          onClick={() => removeHomeArrayItem('hero_slides', idx)}
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+
+                      <div className="ap-form-grid-2">
+                        <div className="ap-form-group">
+                          <label className="ap-form-label">Slide Background Image URL</label>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <input
+                              type="text"
+                              className="ap-form-input"
+                              value={slide.img || ''}
+                              onChange={(e) => updateHomeArrayItem('hero_slides', idx, 'img', e.target.value)}
+                              placeholder="/images/slide1.webp or Cloudinary URL"
+                            />
+                            <button
+                              type="button"
+                              className="ap-upload-file-btn"
+                              onClick={() => triggerImageUpload(`hero_slides_${idx}`)}
+                              disabled={uploadingField === `hero_slides_${idx}`}
+                            >
+                              {uploadingField === `hero_slides_${idx}` ? 'Uploading...' : 'Upload'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="ap-form-group">
+                          <label className="ap-form-label">Image Alt Description</label>
+                          <input
+                            type="text"
+                            className="ap-form-input"
+                            value={slide.alt || ''}
+                            onChange={(e) => updateHomeArrayItem('hero_slides', idx, 'alt', e.target.value)}
+                            placeholder="Alt text describing the slide photo"
+                          />
+                        </div>
+                      </div>
+
+                      {slide.img && (
+                        <div className="ap-image-preview-wrap" style={{ height: 110, marginBottom: 10 }}>
+                          <img src={slide.img} alt="Slide preview" className="ap-image-preview" />
+                        </div>
+                      )}
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 0.8fr', gap: 10 }}>
+                        <div className="ap-form-group">
+                          <label className="ap-form-label">Headline Prefix</label>
+                          <input
+                            type="text"
+                            className="ap-form-input"
+                            value={slide.pre ?? ''}
+                            onChange={(e) => updateHomeArrayItem('hero_slides', idx, 'pre', e.target.value)}
+                            placeholder="e.g. Faith that gives your heart room to "
+                          />
+                        </div>
+                        <div className="ap-form-group">
+                          <label className="ap-form-label">Highlighted Word (Accented)</label>
+                          <input
+                            type="text"
+                            className="ap-form-input"
+                            value={slide.em ?? ''}
+                            onChange={(e) => updateHomeArrayItem('hero_slides', idx, 'em', e.target.value)}
+                            placeholder="e.g. breathe"
+                          />
+                        </div>
+                        <div className="ap-form-group">
+                          <label className="ap-form-label">Suffix</label>
+                          <input
+                            type="text"
+                            className="ap-form-input"
+                            value={slide.post ?? ''}
+                            onChange={(e) => updateHomeArrayItem('hero_slides', idx, 'post', e.target.value)}
+                            placeholder="."
+                          />
+                        </div>
+                      </div>
+
+                      <div className="ap-form-group" style={{ marginTop: 8 }}>
+                        <label className="ap-form-label">Slide Description Text</label>
+                        <textarea
+                          className="ap-form-textarea"
+                          rows={2}
+                          value={slide.desc || ''}
+                          onChange={(e) => updateHomeArrayItem('hero_slides', idx, 'desc', e.target.value)}
+                          placeholder="Subtitle description for this slide..."
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="ap-add-item-btn"
+                  style={{ marginTop: 12 }}
+                  onClick={() => addHomeArrayItem('hero_slides', {
+                    img: '/images/pensafallback-bw.png',
+                    alt: 'New fellowship slide',
+                    pre: 'Welcome to our ',
+                    em: 'family',
+                    post: '.',
+                    desc: 'A church where you belong and grow in Christ.',
+                  })}
+                >
+                  + Add New Hero Slide
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Section 2: Why Section */}
-          <div className="ap-section-card">
+          {/* ─── Section 2: Marquee Ticker Strip ─── */}
+          <div id="ap-home-trail" className="ap-section-card">
             <div className="ap-section-header">
               <h3 className="ap-section-title">
-                <span>2. Why PENSA TTU Section</span>
+                <span>2. Marquee Ticker Strip</span>
+              </h3>
+              <span className="ap-section-badge">Continuous Scroll</span>
+            </div>
+            <div className="ap-section-body">
+              <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+                These keywords and tags continuously scroll across the horizontal banner below the hero section.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+                {(homeSettings.trail_items || DEFAULT_HOME_SETTINGS.trail_items || []).map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={item}
+                      onChange={(e) => updateHomeTrailItem(idx, e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="ap-remove-item-btn"
+                      style={{ padding: '8px 10px' }}
+                      onClick={() => removeHomeTrailItem(idx)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="ap-add-item-btn"
+                style={{ marginTop: 14 }}
+                onClick={() => addHomeTrailItem('New Fellowship Tag')}
+              >
+                + Add Ticker Tag
+              </button>
+            </div>
+          </div>
+
+          {/* ─── Section 3: Why PENSA TTU ─── */}
+          <div id="ap-home-why" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>3. Why PENSA TTU Section</span>
               </h3>
               <span className="ap-section-badge">Reasons & Media</span>
             </div>
@@ -1433,6 +1766,11 @@ export default function AdminPages({ defaultTab }) {
                       {uploadingField === 'why_image_tall' ? 'Uploading...' : 'Upload'}
                     </button>
                   </div>
+                  {homeSettings.why_image_tall && (
+                    <div className="ap-image-preview-wrap" style={{ height: 100, marginTop: 8 }}>
+                      <img src={homeSettings.why_image_tall} alt="Tall preview" className="ap-image-preview" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="ap-form-group">
@@ -1453,49 +1791,734 @@ export default function AdminPages({ defaultTab }) {
                       {uploadingField === 'why_image_short' ? 'Uploading...' : 'Upload'}
                     </button>
                   </div>
+                  {homeSettings.why_image_short && (
+                    <div className="ap-image-preview-wrap" style={{ height: 100, marginTop: 8 }}>
+                      <img src={homeSettings.why_image_short} alt="Short preview" className="ap-image-preview" />
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-                <label className="ap-form-label">Three Reasons List</label>
-                {(homeSettings.why_reasons || []).map((r, idx) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
+                <label className="ap-form-label">Reasons Cards List</label>
+                {(homeSettings.why_reasons || DEFAULT_HOME_SETTINGS.why_reasons || []).map((r, idx) => (
                   <div key={idx} className="ap-item-card">
+                    <div className="ap-item-card-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>
+                          Reason #{idx + 1}
+                        </span>
+                        <div className="ap-reorder-group">
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === 0}
+                            onClick={() => moveHomeArrayItem('why_reasons', idx, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === (homeSettings.why_reasons || DEFAULT_HOME_SETTINGS.why_reasons || []).length - 1}
+                            onClick={() => moveHomeArrayItem('why_reasons', idx, 1)}
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="ap-remove-item-btn"
+                        onClick={() => removeHomeArrayItem('why_reasons', idx)}
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+
                     <div style={{ display: 'flex', gap: 10 }}>
                       <input
                         type="text"
-                        style={{ width: 60, fontWeight: 700 }}
+                        style={{ width: 70, fontWeight: 700 }}
                         className="ap-form-input"
+                        placeholder="01"
                         value={r.num || `0${idx + 1}`}
-                        onChange={(e) => {
-                          const updated = [...(homeSettings.why_reasons || [])];
-                          updated[idx] = { ...updated[idx], num: e.target.value };
-                          setHomeSettings({ ...homeSettings, why_reasons: updated });
-                        }}
+                        onChange={(e) => updateHomeArrayItem('why_reasons', idx, 'num', e.target.value)}
                       />
                       <input
                         type="text"
                         className="ap-form-input"
+                        placeholder="Reason Title"
                         value={r.title || ''}
-                        onChange={(e) => {
-                          const updated = [...(homeSettings.why_reasons || [])];
-                          updated[idx] = { ...updated[idx], title: e.target.value };
-                          setHomeSettings({ ...homeSettings, why_reasons: updated });
-                        }}
+                        onChange={(e) => updateHomeArrayItem('why_reasons', idx, 'title', e.target.value)}
                       />
                     </div>
                     <textarea
                       className="ap-form-textarea"
                       rows={2}
+                      placeholder="Reason explanation..."
                       value={r.text || ''}
-                      onChange={(e) => {
-                        const updated = [...(homeSettings.why_reasons || [])];
-                        updated[idx] = { ...updated[idx], text: e.target.value };
-                        setHomeSettings({ ...homeSettings, why_reasons: updated });
-                      }}
+                      onChange={(e) => updateHomeArrayItem('why_reasons', idx, 'text', e.target.value)}
                     />
                   </div>
                 ))}
+
+                <button
+                  type="button"
+                  className="ap-add-item-btn"
+                  onClick={() => addHomeArrayItem('why_reasons', {
+                    num: `0${(homeSettings.why_reasons || DEFAULT_HOME_SETTINGS.why_reasons || []).length + 1}`,
+                    title: 'New Reason',
+                    text: 'Description of why PENSA TTU is special...',
+                  })}
+                >
+                  + Add Reason Card
+                </button>
               </div>
+            </div>
+          </div>
+
+          {/* ─── Section 4: Our Story Video & Text ─── */}
+          <div id="ap-home-story" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>4. Home Story Section & Video</span>
+              </h3>
+              <span className="ap-section-badge">Movement Story</span>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Story Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.story_eyebrow || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, story_eyebrow: e.target.value })}
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Story Main Heading</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.story_title || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, story_title: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="ap-form-group">
+                <label className="ap-form-label">Story Paragraph 1</label>
+                <textarea
+                  className="ap-form-textarea"
+                  rows={3}
+                  value={homeSettings.story_p1 || ''}
+                  onChange={(e) => setHomeSettings({ ...homeSettings, story_p1: e.target.value })}
+                />
+              </div>
+
+              <div className="ap-form-group">
+                <label className="ap-form-label">Story Paragraph 2</label>
+                <textarea
+                  className="ap-form-textarea"
+                  rows={3}
+                  value={homeSettings.story_p2 || ''}
+                  onChange={(e) => setHomeSettings({ ...homeSettings, story_p2: e.target.value })}
+                />
+              </div>
+
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Button Text</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.story_btn_text || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, story_btn_text: e.target.value })}
+                    placeholder="read more"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Button Link</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.story_btn_link || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, story_btn_link: e.target.value })}
+                    placeholder="/contact"
+                  />
+                </div>
+              </div>
+
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Video File URL</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.story_video_url || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, story_video_url: e.target.value })}
+                    placeholder="/videos/story.mp4 or direct video link"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Video Poster Image</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.story_poster_url || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, story_poster_url: e.target.value })}
+                      placeholder="/images/pensafallback-bw.png"
+                    />
+                    <button
+                      type="button"
+                      className="ap-upload-file-btn"
+                      onClick={() => triggerImageUpload('story_poster_url')}
+                      disabled={uploadingField === 'story_poster_url'}
+                    >
+                      {uploadingField === 'story_poster_url' ? 'Uploading...' : 'Upload'}
+                    </button>
+                  </div>
+                  {homeSettings.story_poster_url && (
+                    <div className="ap-image-preview-wrap" style={{ height: 100, marginTop: 8 }}>
+                      <img src={homeSettings.story_poster_url} alt="Poster preview" className="ap-image-preview" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Section 5: Leadership Section Header ─── */}
+          <div id="ap-home-leadership" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>5. Leadership Section Heading</span>
+              </h3>
+              <span className="ap-section-badge">Homepage Banner</span>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Leadership Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.leadership_eyebrow || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, leadership_eyebrow: e.target.value })}
+                    placeholder="Our leadership"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Leadership Title</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.leadership_title || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, leadership_title: e.target.value })}
+                    placeholder="Leading with Vision, Integrity, and Purpose"
+                  />
+                </div>
+              </div>
+              <p style={{ fontSize: 12.5, color: '#777', marginTop: 4 }}>
+                💡 Tip: Individual pastors and executives shown on this list are managed under the <strong>Team</strong> section in the admin sidebar.
+              </p>
+            </div>
+          </div>
+
+          {/* ─── Section 6: Weekly Activities / Steps Journey ─── */}
+          <div id="ap-home-steps" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>6. Weekly Activities / Fellowship Steps</span>
+              </h3>
+              <span className="ap-section-badge">
+                {(homeSettings.steps_list || DEFAULT_HOME_SETTINGS.steps_list || []).length} Days
+              </span>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Section Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.steps_eyebrow || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, steps_eyebrow: e.target.value })}
+                    placeholder="weekly activities"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Main Heading</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.steps_title || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, steps_title: e.target.value })}
+                    placeholder="Our Weekly Journey of Faith and Service"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+                <label className="ap-form-label">Weekly Activity Cards</label>
+                {(homeSettings.steps_list || DEFAULT_HOME_SETTINGS.steps_list || []).map((step, idx) => (
+                  <div key={idx} className="ap-item-card">
+                    <div className="ap-item-card-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A2E5C' }}>
+                          Activity #{idx + 1}
+                        </span>
+                        <div className="ap-reorder-group">
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === 0}
+                            onClick={() => moveHomeArrayItem('steps_list', idx, -1)}
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="ap-reorder-btn"
+                            disabled={idx === (homeSettings.steps_list || DEFAULT_HOME_SETTINGS.steps_list || []).length - 1}
+                            onClick={() => moveHomeArrayItem('steps_list', idx, 1)}
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="ap-remove-item-btn"
+                        onClick={() => removeHomeArrayItem('steps_list', idx)}
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
+
+                    <div className="ap-form-grid-2">
+                      <div className="ap-form-group">
+                        <label className="ap-form-label">Day Tag (e.g. mondays, sundays)</label>
+                        <input
+                          type="text"
+                          className="ap-form-input"
+                          value={step.tag || ''}
+                          onChange={(e) => updateHomeArrayItem('steps_list', idx, 'tag', e.target.value)}
+                          placeholder="e.g. mondays"
+                        />
+                      </div>
+                      <div className="ap-form-group">
+                        <label className="ap-form-label">Activity Title</label>
+                        <input
+                          type="text"
+                          className="ap-form-input"
+                          value={step.title || ''}
+                          onChange={(e) => updateHomeArrayItem('steps_list', idx, 'title', e.target.value)}
+                          placeholder="e.g. DEPARTMENTAL PRAYERS"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="ap-form-group">
+                      <label className="ap-form-label">Card Image URL</label>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input
+                          type="text"
+                          className="ap-form-input"
+                          value={step.img || ''}
+                          onChange={(e) => updateHomeArrayItem('steps_list', idx, 'img', e.target.value)}
+                          placeholder="/images/pensafallback-bw.png"
+                        />
+                        <button
+                          type="button"
+                          className="ap-upload-file-btn"
+                          onClick={() => triggerImageUpload(`steps_list_${idx}`)}
+                          disabled={uploadingField === `steps_list_${idx}`}
+                        >
+                          {uploadingField === `steps_list_${idx}` ? 'Uploading...' : 'Upload'}
+                        </button>
+                      </div>
+                      {step.img && (
+                        <div className="ap-image-preview-wrap" style={{ height: 90, marginTop: 8 }}>
+                          <img src={step.img} alt="Activity preview" className="ap-image-preview" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="ap-form-group">
+                      <label className="ap-form-label">Description</label>
+                      <textarea
+                        className="ap-form-textarea"
+                        rows={2}
+                        value={step.text || ''}
+                        onChange={(e) => updateHomeArrayItem('steps_list', idx, 'text', e.target.value)}
+                        placeholder="Description of this weekly event..."
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  className="ap-add-item-btn"
+                  onClick={() => addHomeArrayItem('steps_list', {
+                    tag: 'thursdays',
+                    title: 'BIBLE STUDY HOUR',
+                    text: 'Diving deep into scripture with fellowship and prayer.',
+                    img: '/images/pensafallback-bw.png',
+                  })}
+                >
+                  + Add Weekly Activity Card
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Section 7: Upcoming Events Feature Header ─── */}
+          <div id="ap-home-events" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>7. Upcoming Events Section Header</span>
+              </h3>
+              <span className="ap-section-badge">Events Callout</span>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Events Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.events_eyebrow || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, events_eyebrow: e.target.value })}
+                    placeholder="Upcoming Events"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Events Title</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.events_title || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, events_title: e.target.value })}
+                    placeholder="What's happening next."
+                  />
+                </div>
+              </div>
+
+              <div className="ap-form-group">
+                <label className="ap-form-label">"More Events" Link Text</label>
+                <input
+                  type="text"
+                  className="ap-form-input"
+                  value={homeSettings.events_more_link_text || ''}
+                  onChange={(e) => setHomeSettings({ ...homeSettings, events_more_link_text: e.target.value })}
+                  placeholder="More upcoming events"
+                />
+              </div>
+              <p style={{ fontSize: 12.5, color: '#777', marginTop: 4 }}>
+                💡 Tip: Individual events, dates, and flyers are created under the <strong>Events</strong> section in the admin sidebar.
+              </p>
+            </div>
+          </div>
+
+          {/* ─── Section 8: Ministries & Teams Showcase ─── */}
+          <div id="ap-home-ministries" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>8. Ministries & Teams Showcase</span>
+              </h3>
+              <span className="ap-section-badge">Involvement</span>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Section Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.ministries_eyebrow || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, ministries_eyebrow: e.target.value })}
+                    placeholder="Get involved"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Main Heading</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.ministries_title || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, ministries_title: e.target.value })}
+                    placeholder="Ministries & Teams built around how you are wired."
+                  />
+                </div>
+              </div>
+
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Action Button Text</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.ministries_btn_text || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, ministries_btn_text: e.target.value })}
+                    placeholder="See all ministries & teams"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Action Button Link</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.ministries_btn_link || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, ministries_btn_link: e.target.value })}
+                    placeholder="/ministries"
+                  />
+                </div>
+              </div>
+              <p style={{ fontSize: 12.5, color: '#777', marginTop: 4 }}>
+                💡 Tip: Individual department cards and team profiles are managed under <strong>Departments & Teams</strong> in the admin sidebar.
+              </p>
+            </div>
+          </div>
+
+          {/* ─── Section 9: Testimonial & Sunday Service Schedule ─── */}
+          <div id="ap-home-testi" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>9. Member Testimonial & Sunday Service Card</span>
+              </h3>
+              <span className="ap-section-badge">Quote & Schedule</span>
+            </div>
+            <div className="ap-section-body">
+              <div style={{ background: '#f8fafd', border: '1px solid #d0e0f5', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                <h4 style={{ fontSize: 14, color: '#0E4C92', margin: '0 0 12px', fontWeight: 700 }}>
+                  📅 Left Side: Sunday Service Badge & Photo
+                </h4>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Service / Congregation Image</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_media_img || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_media_img: e.target.value })}
+                      placeholder="/images/pensafallback-bw.png"
+                    />
+                    <button
+                      type="button"
+                      className="ap-upload-file-btn"
+                      onClick={() => triggerImageUpload('testi_media_img')}
+                      disabled={uploadingField === 'testi_media_img'}
+                    >
+                      {uploadingField === 'testi_media_img' ? 'Uploading...' : 'Upload'}
+                    </button>
+                  </div>
+                  {homeSettings.testi_media_img && (
+                    <div className="ap-image-preview-wrap" style={{ height: 100, marginTop: 8 }}>
+                      <img src={homeSettings.testi_media_img} alt="Service preview" className="ap-image-preview" />
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Service Times (e.g. 6:30 AM - 9:30 AM)</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_service_time || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_time: e.target.value })}
+                      placeholder="6:30 AM - 9:30 AM"
+                    />
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Service Frequency (e.g. Every Sunday)</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_service_day || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_day: e.target.value })}
+                      placeholder="Every Sunday"
+                    />
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Service Mode (e.g. In person & online)</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_service_type || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_type: e.target.value })}
+                      placeholder="In person & online"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 12, padding: 16 }}>
+                <h4 style={{ fontSize: 14, color: '#333', margin: '0 0 12px', fontWeight: 700 }}>
+                  💬 Right Side: Member Testimonial Quote
+                </h4>
+
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Testimonial Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.testi_eyebrow || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, testi_eyebrow: e.target.value })}
+                    placeholder="What our members say"
+                  />
+                </div>
+
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Quote Text</label>
+                  <textarea
+                    className="ap-form-textarea"
+                    rows={3}
+                    value={homeSettings.testi_quote || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, testi_quote: e.target.value })}
+                    placeholder="Enter inspiring quote from a student or member..."
+                  />
+                </div>
+
+                <div className="ap-form-grid-2">
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Author Name</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_author_name || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_name: e.target.value })}
+                      placeholder="e.g. Ama Boateng"
+                    />
+                  </div>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Author Subtitle / Role</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_author_title || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_title: e.target.value })}
+                      placeholder="e.g. Member since 2023, East Legon"
+                    />
+                  </div>
+                </div>
+
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Author Avatar Photo</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_author_img || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_img: e.target.value })}
+                      placeholder="/images/pensafallback-bw.png"
+                    />
+                    <button
+                      type="button"
+                      className="ap-upload-file-btn"
+                      onClick={() => triggerImageUpload('testi_author_img')}
+                      disabled={uploadingField === 'testi_author_img'}
+                    >
+                      {uploadingField === 'testi_author_img' ? 'Uploading...' : 'Upload'}
+                    </button>
+                  </div>
+                  {homeSettings.testi_author_img && (
+                    <div className="ap-image-preview-wrap" style={{ height: 80, width: 80, borderRadius: '50%', overflow: 'hidden', marginTop: 8 }}>
+                      <img src={homeSettings.testi_author_img} alt="Author preview" className="ap-image-preview" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Section 10: Pulpit & Sermons Header ─── */}
+          <div id="ap-home-blog" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>10. From The Pulpit / Sermons Header</span>
+              </h3>
+              <span className="ap-section-badge">Messages Showcase</span>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Section Eyebrow</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.blog_eyebrow || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, blog_eyebrow: e.target.value })}
+                    placeholder="From the pulpit"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Main Heading</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.blog_title || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, blog_title: e.target.value })}
+                    placeholder="Messages & reflections from our community."
+                  />
+                </div>
+              </div>
+              <p style={{ fontSize: 12.5, color: '#777', marginTop: 4 }}>
+                💡 Tip: Individual sermons, speakers, and YouTube links are managed under the <strong>Sermons</strong> section in the admin sidebar.
+              </p>
+            </div>
+          </div>
+
+          {/* ─── Section 11: Newsletter Encouragement Box ─── */}
+          <div id="ap-home-newsletter" className="ap-section-card">
+            <div className="ap-section-header">
+              <h3 className="ap-section-title">
+                <span>11. Newsletter Encouragement Box</span>
+              </h3>
+              <span className="ap-section-badge">Subscribers CTA</span>
+            </div>
+            <div className="ap-section-body">
+              <div className="ap-form-group">
+                <label className="ap-form-label">Box Headline</label>
+                <input
+                  type="text"
+                  className="ap-form-input"
+                  value={homeSettings.newsletter_title || ''}
+                  onChange={(e) => setHomeSettings({ ...homeSettings, newsletter_title: e.target.value })}
+                  placeholder="Get weekly encouragement — a short note every Friday."
+                />
+              </div>
+
+              <div className="ap-form-grid-2">
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Input Placeholder Text</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.newsletter_placeholder || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, newsletter_placeholder: e.target.value })}
+                    placeholder="Your email address"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label">Submit Button Text</label>
+                  <input
+                    type="text"
+                    className="ap-form-input"
+                    value={homeSettings.newsletter_btn_text || ''}
+                    onChange={(e) => setHomeSettings({ ...homeSettings, newsletter_btn_text: e.target.value })}
+                    placeholder="Subscribe"
+                  />
+                </div>
+              </div>
+              <p style={{ fontSize: 12.5, color: '#777', marginTop: 4 }}>
+                💡 Tip: Visitors who enter their email here will appear under the <strong>Subscribers</strong> tab in the admin sidebar.
+              </p>
             </div>
           </div>
         </div>

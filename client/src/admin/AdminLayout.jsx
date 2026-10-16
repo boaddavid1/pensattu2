@@ -5,13 +5,12 @@ import './admin.css';
 
 const navItems = [
   { to: '/control-panel/dashboard', label: 'Dashboard' },
-  { to: '/control-panel/pages/about', label: '📖 About Page' },
   {
     to: '/control-panel/pages',
     label: 'Pages & Content',
     children: [
-      { to: '/control-panel/pages/about', label: '📖 About Page' },
-      { to: '/control-panel/pages/home', label: '🏠 Home Page' },
+      { to: '/control-panel/pages/about', label: '📖 About Page Studio' },
+      { to: '/control-panel/pages/home', label: '🏠 Home Page Studio' },
       { to: '/control-panel/pages/contact', label: '✉️ Contact Page' },
     ],
   },

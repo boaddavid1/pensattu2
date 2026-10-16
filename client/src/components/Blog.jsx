@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, getImageUrl } from '../api.js';
+import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
 
 const fallback = [
   { id: 1, title: 'What it means to belong before you believe', category: 'Sermon', duration: '32 min', image_url: '/images/pensafallback-bw.png' },
@@ -9,10 +10,21 @@ const fallback = [
 
 export default function Blog() {
   const [sermons, setSermons] = useState(fallback);
+  const [eyebrow, setEyebrow] = useState(DEFAULT_HOME_SETTINGS.blog_eyebrow);
+  const [title, setTitle] = useState(DEFAULT_HOME_SETTINGS.blog_title);
 
   useEffect(() => {
     api.get('/sermons')
       .then((data) => { if (Array.isArray(data) && data.length) setSermons(data); })
+      .catch(() => {});
+
+    api.get('/home-settings')
+      .then((res) => {
+        if (res && typeof res === 'object') {
+          if (res.blog_eyebrow) setEyebrow(res.blog_eyebrow);
+          if (res.blog_title) setTitle(res.blog_title);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -20,8 +32,8 @@ export default function Blog() {
     <section className="blog" id="blog">
       <div className="wrap">
         <div className="section-head center">
-          <span className="eyebrow">From the pulpit</span>
-          <h2>Messages & reflections from <em>our community</em>.</h2>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
         </div>
         <div className="blog-grid">
           {sermons.map((s) => (

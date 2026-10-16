@@ -1,22 +1,39 @@
+import { useEffect, useState } from 'react';
+import { api, getImageUrl } from '../api.js';
+import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
+
 export default function Steps() {
-  const steps = [
-    { tag: 'mondays', title: 'DEPARTMENTAL PRAYERS', text: 'Tell us you are coming so we can save you a seat and a warm welcome.', img: '/images/pensafallback-bw.png' },
-    { tag: 'wednesdays', title: 'MAKERS SERVICE', text: 'Join us at 9AM or 11AM, in person or streaming from wherever you are.', img: '/images/pensafallback-bw.png' },
-    { tag: 'fridays', title: 'INTERCESSORY PRAYERS', text: 'Our greeters will meet you at the door — no dress code, no pressure.', img: '/images/pensafallback-bw.png' },
-    { tag: 'sundays', title: 'SUNDAY SERVICE', text: 'Connect with a community group and start putting down roots.', img: '/images/pensafallback-bw.png' },
-  ];
+  const [eyebrow, setEyebrow] = useState(DEFAULT_HOME_SETTINGS.steps_eyebrow);
+  const [title, setTitle] = useState(DEFAULT_HOME_SETTINGS.steps_title);
+  const [steps, setSteps] = useState(DEFAULT_HOME_SETTINGS.steps_list);
+
+  useEffect(() => {
+    api.get('/home-settings')
+      .then((res) => {
+        if (res && typeof res === 'object') {
+          if (res.steps_eyebrow) setEyebrow(res.steps_eyebrow);
+          if (res.steps_title) setTitle(res.steps_title);
+          if (Array.isArray(res.steps_list) && res.steps_list.length > 0) {
+            setSteps(res.steps_list);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <section className="steps" id="how">
       <div className="wrap">
         <div className="section-head center">
-          <span className="eyebrow">weekly activities</span>
-          <h2>Our Weekly Journey of <span style={{ color: 'var(--moss)' }}>Faith and Service</span></h2>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
         </div>
         <div className="step-grid">
           {steps.map((s, i) => (
             <div className="step" key={i}>
-              <div className="step-media"><img src={s.img} alt={s.title} /></div>
+              <div className="step-media">
+                <img src={getImageUrl(s.img || '/images/pensafallback-bw.png')} alt={s.title} />
+              </div>
               <span className="step-tag">{s.tag}</span>
               <h3>{s.title}</h3>
               <p>{s.text}</p>

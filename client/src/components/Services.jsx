@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getImageUrl } from '../api.js';
+import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
 
 const fallback = [
   { id: 1, title: 'Worship & Music', description: 'Musicians, singers and sound volunteers shaping every Sunday\'s atmosphere.', image_url: '/images/pensafallback-bw.png' },
@@ -11,10 +12,25 @@ const fallback = [
 
 export default function Services() {
   const [departments, setDepartments] = useState(fallback);
+  const [eyebrow, setEyebrow] = useState(DEFAULT_HOME_SETTINGS.ministries_eyebrow);
+  const [title, setTitle] = useState(DEFAULT_HOME_SETTINGS.ministries_title);
+  const [btnText, setBtnText] = useState(DEFAULT_HOME_SETTINGS.ministries_btn_text);
+  const [btnLink, setBtnLink] = useState(DEFAULT_HOME_SETTINGS.ministries_btn_link);
 
   useEffect(() => {
     api.get('/ministries')
       .then((data) => { if (Array.isArray(data) && data.length) setDepartments(data); })
+      .catch(() => {});
+
+    api.get('/home-settings')
+      .then((res) => {
+        if (res && typeof res === 'object') {
+          if (res.ministries_eyebrow) setEyebrow(res.ministries_eyebrow);
+          if (res.ministries_title) setTitle(res.ministries_title);
+          if (res.ministries_btn_text) setBtnText(res.ministries_btn_text);
+          if (res.ministries_btn_link) setBtnLink(res.ministries_btn_link);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -23,10 +39,10 @@ export default function Services() {
       <div className="wrap">
         <div className="services-top">
           <div className="section-head" style={{ marginBottom: 0 }}>
-            <span className="eyebrow">Get involved</span>
-            <h2>Ministries &amp; Teams built around <em>how you are wired</em>.</h2>
+            <span className="eyebrow">{eyebrow}</span>
+            <h2>{title}</h2>
           </div>
-          <Link to="/ministries" className="btn btn-ghost">See all ministries &amp; teams</Link>
+          <Link to={btnLink} className="btn btn-ghost">{btnText}</Link>
         </div>
         <div className="service-grid">
           {departments.map((m) => (

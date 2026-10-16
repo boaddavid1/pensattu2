@@ -108,15 +108,66 @@ export const DEFAULT_CONTACT_SETTINGS = {
 };
 
 export const DEFAULT_HOME_SETTINGS = {
-  story_eyebrow: 'Our story',
-  story_title: 'Built by a small group who kept showing up.',
-  story_p1: 'The Pentecost Students and Associates (PENSA), the student wing of the Church of Pentecost worldwide, began over forty (50) years ago with a few dedicated students in tertiary institutions across Ghana. Over the years, it has grown into a vibrant and impactful movement, drawing young men and women to the saving grace of our Lord Jesus Christ.',
-  story_p2: 'At PENSA TTU – Takoradi Technical University, this vision continues to thrive as a dynamic fellowship committed to spiritual growth, discipleship, and evangelism on campus. The fellowship serves as a strong platform for students to deepen their relationship with God, build Christ-centered character, and influence their academic and social environments with godly values.',
-  story_btn_text: 'read more',
-  story_btn_link: '/contact',
-  story_video_url: '/videos/story.mp4',
-  story_poster_url: '/images/pensafallback-bw.png',
+  // 1. Hero Section
+  hero_eyebrow: 'A church home in Accra',
+  hero_slides: [
+    {
+      img: '/images/slide1.webp',
+      alt: 'PENSA TTU members celebrating at Supernatural Encounter',
+      pre: 'Faith that gives your heart room to ',
+      em: 'breathe',
+      post: '.',
+      desc: 'PENSA TTU is a community built around honest worship, real friendship, and a Word that meets you where you are — whether this is your first Sunday or your five hundredth.',
+    },
+    {
+      img: '/images/wecare.png',
+      alt: 'We care for you at PENSA TTU',
+      pre: 'We ',
+      em: 'care',
+      post: ' for you.',
+      desc: 'A community where everyone is welcomed, supported, and loved — because nobody should do life alone.',
+    },
+    {
+      img: '/images/slide.png',
+      alt: 'PENSA TTU community in worship',
+      pre: 'Together we ',
+      em: 'rise',
+      post: '.',
+      desc: 'A family of believers growing in faith, serving with love, and shining the light of Christ on campus and beyond.',
+    },
+    {
+      img: '/images/slide1.png',
+      alt: 'PENSA TTU gathering of students',
+      pre: 'Young hearts, ',
+      em: 'bold',
+      post: ' faith.',
+      desc: 'Empowering students to live with purpose, lead with integrity, and impact their generation for Christ.',
+    },
+    {
+      img: '/images/slid.png',
+      alt: 'PENSA TTU students united in Christ',
+      pre: 'One family, ',
+      em: 'one',
+      post: ' mission.',
+      desc: 'Bound by love and driven by purpose — together we grow, serve, and shine for Christ on campus.',
+    },
+  ],
+  hero_btn1_text: 'About us',
+  hero_btn1_link: '/about',
+  hero_btn2_text: 'Explore Ministries',
+  hero_btn2_link: '/ministries',
 
+  // 2. Trail Ticker
+  trail_items: [
+    'Sunday Worship',
+    'Community Groups',
+    'Departments & Teams',
+    'Prayer Nights',
+    'Outreach',
+    'Bible Study',
+  ],
+
+  // 3. Why Section
   why_eyebrow: 'Why PENSA TTU',
   why_title: 'Three reasons this becomes home.',
   why_desc: 'We are not trying to be the biggest church in Accra — just a place where people are known, the teaching is honest, and there is always a seat for one more.',
@@ -127,4 +178,59 @@ export const DEFAULT_HOME_SETTINGS = {
     { num: '02', title: 'Community Groups', text: 'Small groups meeting weekly across Accra — real conversation, real accountability.' },
     { num: '03', title: 'Youth & Kids Department', text: 'Age-appropriate teaching and a safe, joyful space for the next generation.' },
   ],
+
+  // 4. Story Section
+  story_eyebrow: 'Our story',
+  story_title: 'Built by a small group who kept showing up.',
+  story_p1: 'The Pentecost Students and Associates (PENSA), the student wing of the Church of Pentecost worldwide, began over forty (50) years ago with a few dedicated students in tertiary institutions across Ghana. Over the years, it has grown into a vibrant and impactful movement, drawing young men and women to the saving grace of our Lord Jesus Christ.',
+  story_p2: 'At PENSA TTU – Takoradi Technical University, this vision continues to thrive as a dynamic fellowship committed to spiritual growth, discipleship, and evangelism on campus. The fellowship serves as a strong platform for students to deepen their relationship with God, build Christ-centered character, and influence their academic and social environments with godly values.',
+  story_btn_text: 'read more',
+  story_btn_link: '/contact',
+  story_video_url: '/videos/story.mp4',
+  story_poster_url: '/images/pensafallback-bw.png',
+
+  // 5. Leadership Section
+  leadership_eyebrow: 'Our leadership',
+  leadership_title: 'Leading with Vision, Integrity, and Purpose',
+
+  // 6. Weekly Activities / Steps Section
+  steps_eyebrow: 'weekly activities',
+  steps_title: 'Our Weekly Journey of Faith and Service',
+  steps_list: [
+    { tag: 'mondays', title: 'DEPARTMENTAL PRAYERS', text: 'Tell us you are coming so we can save you a seat and a warm welcome.', img: '/images/pensafallback-bw.png' },
+    { tag: 'wednesdays', title: 'MAKERS SERVICE', text: 'Join us at 9AM or 11AM, in person or streaming from wherever you are.', img: '/images/pensafallback-bw.png' },
+    { tag: 'fridays', title: 'INTERCESSORY PRAYERS', text: 'Our greeters will meet you at the door — no dress code, no pressure.', img: '/images/pensafallback-bw.png' },
+    { tag: 'sundays', title: 'SUNDAY SERVICE', text: 'Connect with a community group and start putting down roots.', img: '/images/pensafallback-bw.png' },
+  ],
+
+  // 7. Upcoming Events Feature
+  events_eyebrow: 'Upcoming Events',
+  events_title: "What's happening next.",
+  events_more_link_text: 'More upcoming events',
+
+  // 8. Ministries & Teams Showcase
+  ministries_eyebrow: 'Get involved',
+  ministries_title: 'Ministries & Teams built around how you are wired.',
+  ministries_btn_text: 'See all ministries & teams',
+  ministries_btn_link: '/ministries',
+
+  // 9. Testimonial & Service Schedule
+  testi_eyebrow: 'What our members say',
+  testi_quote: '"I walked in not knowing a single person. Three months later, I had a small group, a mentor, and a church family I actually looked forward to seeing."',
+  testi_author_name: 'Ama Boateng',
+  testi_author_title: 'Member since 2023, East Legon',
+  testi_author_img: '/images/pensafallback-bw.png',
+  testi_media_img: '/images/pensafallback-bw.png',
+  testi_service_time: '6:30 AM - 9:30 AM',
+  testi_service_day: 'Every Sunday',
+  testi_service_type: 'In person & online',
+
+  // 10. Pulpit & Sermons
+  blog_eyebrow: 'From the pulpit',
+  blog_title: 'Messages & reflections from our community.',
+
+  // 11. Newsletter Encouragement
+  newsletter_title: 'Get weekly encouragement — a short note every Friday.',
+  newsletter_placeholder: 'Your email address',
+  newsletter_btn_text: 'Subscribe',
 };

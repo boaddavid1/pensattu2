@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getImageUrl } from '../api.js';
+import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
 
 const fallback = [
   { id: 1, name: 'Pastor Mark Johnson', role: 'Senior Pastor', image_url: '/images/pensafallback-bw.png' },
@@ -32,6 +33,8 @@ function getHomeTeam(data) {
 export default function Team() {
   const [team, setTeam] = useState(fallback);
   const [rawTeam, setRawTeam] = useState([]);
+  const [eyebrow, setEyebrow] = useState(DEFAULT_HOME_SETTINGS.leadership_eyebrow);
+  const [title, setTitle] = useState(DEFAULT_HOME_SETTINGS.leadership_title);
 
   useEffect(() => {
     api.get('/team')
@@ -39,6 +42,15 @@ export default function Team() {
         if (Array.isArray(data) && data.length) {
           setRawTeam(data);
           setTeam(getHomeTeam(data));
+        }
+      })
+      .catch(() => {});
+
+    api.get('/home-settings')
+      .then((res) => {
+        if (res && typeof res === 'object') {
+          if (res.leadership_eyebrow) setEyebrow(res.leadership_eyebrow);
+          if (res.leadership_title) setTitle(res.leadership_title);
         }
       })
       .catch(() => {});
@@ -50,8 +62,8 @@ export default function Team() {
     <section className="team" id="team">
       <div className="wrap">
         <div className="section-head center">
-          <span className="eyebrow">Our leadership</span>
-          <h2>Leading with <span style={{ color: 'var(--moss)' }}>Vision, Integrity, and Purpose</span></h2>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
         </div>
         <div className="team-grid">
           {team.slice(0, 4).map((p) => (

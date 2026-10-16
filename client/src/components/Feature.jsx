@@ -1,15 +1,29 @@
 import { useEffect, useState } from 'react';
 import { api, getImageUrl } from '../api.js';
+import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
 
 const FALLBACK_IMAGE = '/images/pensafallback-bw.png';
 
 export default function Feature() {
   const [events, setEvents] = useState([]);
+  const [eyebrow, setEyebrow] = useState(DEFAULT_HOME_SETTINGS.events_eyebrow);
+  const [title, setTitle] = useState(DEFAULT_HOME_SETTINGS.events_title);
+  const [moreText, setMoreText] = useState(DEFAULT_HOME_SETTINGS.events_more_link_text);
 
   useEffect(() => {
     api.get('/events')
       .then((data) => {
         if (Array.isArray(data)) setEvents(data);
+      })
+      .catch(() => {});
+
+    api.get('/home-settings')
+      .then((res) => {
+        if (res && typeof res === 'object') {
+          if (res.events_eyebrow) setEyebrow(res.events_eyebrow);
+          if (res.events_title) setTitle(res.events_title);
+          if (res.events_more_link_text) setMoreText(res.events_more_link_text);
+        }
       })
       .catch(() => {});
   }, []);
@@ -38,8 +52,8 @@ export default function Feature() {
           <img src={imgSrc} alt={events[0]?.title || 'Upcoming event'} />
         </div>
         <div>
-          <span className="eyebrow">Upcoming Events</span>
-          <h2>What&apos;s happening <span style={{ color: 'var(--moss)' }}>next</span>.</h2>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
           <div className="feature-list">
             {featured.map((e) => (
               <div className="feature-row" key={e.id}>

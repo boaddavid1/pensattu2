@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '../api';
+import { api, getImageUrl } from '../api';
 import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
 
 export default function Why() {
@@ -42,12 +42,12 @@ export default function Why() {
           <div className="why-media-grid">
             <img
               className="tall"
-              src={settings.why_image_tall || '/images/pensa%20(1).JPG'}
+              src={getImageUrl(settings.why_image_tall || '/images/pensa%20(1).JPG')}
               alt="Worship band leading a Sunday service"
             />
             <img
               className="short"
-              src={settings.why_image_short || '/images/pastor.JPG'}
+              src={getImageUrl(settings.why_image_short || '/images/pastor.JPG')}
               alt="Pastor"
             />
           </div>

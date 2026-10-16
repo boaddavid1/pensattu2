@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api';
+import { api, getImageUrl } from '../api';
 import { DEFAULT_HOME_SETTINGS } from '../data/defaultPageSettings';
 
 export default function Story() {
@@ -36,9 +36,9 @@ export default function Story() {
               muted
               loop
               playsInline
-              poster={settings.story_poster_url || '/images/pensafallback-bw.png'}
+              poster={getImageUrl(settings.story_poster_url || '/images/pensafallback-bw.png')}
             >
-              <source src={settings.story_video_url || '/videos/story.mp4'} type="video/mp4" />
+              <source src={getImageUrl(settings.story_video_url || '/videos/story.mp4')} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>
