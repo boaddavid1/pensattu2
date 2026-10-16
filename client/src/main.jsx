@@ -3,6 +3,12 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 
+// Handle dynamic import / chunk load errors when new builds are deployed
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  window.location.reload();
+});
+
 // Swap manifest and service worker based on the current route so the
 // admin portal installs as its own PWA with its own icon and theme.
 function setupPwa() {

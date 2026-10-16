@@ -805,6 +805,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static client build in production; falls through for SPA routes
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
+// Ensure missing or expired hashed chunks return 404 instead of index.html fallback
+app.all('/assets/*', (req, res) => {
+  res.status(404).type('text/plain').send('Asset chunk expired or not found');
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });

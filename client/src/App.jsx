@@ -9,6 +9,32 @@ import AdminLayout from './admin/AdminLayout';
 import { isLoggedIn } from './admin/adminApi';
 import { NavigationProvider } from './context/NavigationContext';
 
+function lazyWithRetry(componentImport) {
+  return lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      const msg = error?.message || String(error);
+      const isChunkError =
+        msg.includes('Failed to fetch dynamically imported module') ||
+        msg.includes('Importing a module script failed') ||
+        msg.includes('error loading dynamically imported module') ||
+        msg.includes('ChunkLoadError');
+
+      if (isChunkError) {
+        const reloadKey = 'chunk_reload_' + window.location.pathname;
+        const alreadyReloaded = sessionStorage.getItem(reloadKey);
+        if (!alreadyReloaded) {
+          sessionStorage.setItem(reloadKey, '1');
+          window.location.reload();
+          return new Promise(() => {});
+        }
+      }
+      throw error;
+    }
+  });
+}
+
 class AdminErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -19,22 +45,49 @@ class AdminErrorBoundary extends Component {
   }
   componentDidCatch(error, errorInfo) {
     console.error('Admin Error:', error, errorInfo);
+    const msg = error?.message || String(error);
+    if (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('error loading dynamically imported module')
+    ) {
+      const reloadKey = 'admin_err_reload_' + window.location.pathname;
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, '1');
+        setTimeout(() => window.location.reload(), 150);
+      }
+    }
   }
   render() {
     if (this.state.hasError) {
+      const msg = this.state.error?.message || String(this.state.error);
+      const isChunkError =
+        msg.includes('Failed to fetch dynamically imported module') ||
+        msg.includes('Importing a module script failed') ||
+        msg.includes('error loading dynamically imported module');
+
       return (
         <div style={{ padding: '2.5rem', maxWidth: '640px', margin: '4rem auto', background: '#1a1a2e', color: '#e0e0e0', borderRadius: '12px', border: '1px solid #333', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', fontFamily: 'system-ui, sans-serif' }}>
-          <h2 style={{ color: '#ff6b6b', marginTop: 0, fontSize: '1.4rem' }}>Portal Error</h2>
-          <p style={{ lineHeight: 1.5, color: '#aaa' }}>Something went wrong loading this section of the admin portal.</p>
-          <pre style={{ background: '#12121e', padding: '1rem', borderRadius: '8px', overflow: 'auto', fontSize: '0.85rem', color: '#ff9999', margin: '1rem 0' }}>
-            {this.state.error?.message || String(this.state.error)}
+          <h2 style={{ color: isChunkError ? '#5bc0de' : '#ff6b6b', marginTop: 0, fontSize: '1.4rem' }}>
+            {isChunkError ? '🔄 Portal Updated' : 'Portal Error'}
+          </h2>
+          <p style={{ lineHeight: 1.5, color: '#aaa' }}>
+            {isChunkError
+              ? 'A new version of the Admin Portal was deployed. Please reload the page to apply the latest updates.'
+              : 'Something went wrong loading this section of the admin portal.'}
+          </p>
+          <pre style={{ background: '#12121e', padding: '1rem', borderRadius: '8px', overflow: 'auto', fontSize: '0.85rem', color: isChunkError ? '#99ccff' : '#ff9999', margin: '1rem 0' }}>
+            {msg}
           </pre>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                sessionStorage.clear();
+                window.location.reload();
+              }}
               style={{ padding: '0.6rem 1.4rem', background: '#2c5f4a', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
             >
-              Reload Page
+              Reload &amp; Update Portal
             </button>
             <a
               href="/control-panel/dashboard"
@@ -50,37 +103,37 @@ class AdminErrorBoundary extends Component {
   }
 }
 
-// Route-level code splitting — each page loads on demand.
-const Home = lazy(() => import('./pages/Home'));
-const About = lazy(() => import('./pages/About'));
-const Leadership = lazy(() => import('./pages/Leadership'));
-const Sermons = lazy(() => import('./pages/Sermons'));
-const Contact = lazy(() => import('./pages/Contact'));
-const Events = lazy(() => import('./pages/Events'));
-const NoticeBoard = lazy(() => import('./pages/NoticeBoard'));
-const NoticeDetail = lazy(() => import('./pages/NoticeDetail'));
-const Gallery = lazy(() => import('./pages/Gallery'));
-const AlbumDetail = lazy(() => import('./pages/AlbumDetail'));
-const Register = lazy(() => import('./pages/Register'));
-const Ministries = lazy(() => import('./pages/Ministries'));
-const DepartmentsTeams = lazy(() => import('./pages/Ministries'));
-const MinistryDetail = lazy(() => import('./pages/MinistryDetail'));
+// Route-level code splitting — each page loads on demand with resilient auto-retry.
+const Home = lazyWithRetry(() => import('./pages/Home'));
+const About = lazyWithRetry(() => import('./pages/About'));
+const Leadership = lazyWithRetry(() => import('./pages/Leadership'));
+const Sermons = lazyWithRetry(() => import('./pages/Sermons'));
+const Contact = lazyWithRetry(() => import('./pages/Contact'));
+const Events = lazyWithRetry(() => import('./pages/Events'));
+const NoticeBoard = lazyWithRetry(() => import('./pages/NoticeBoard'));
+const NoticeDetail = lazyWithRetry(() => import('./pages/NoticeDetail'));
+const Gallery = lazyWithRetry(() => import('./pages/Gallery'));
+const AlbumDetail = lazyWithRetry(() => import('./pages/AlbumDetail'));
+const Register = lazyWithRetry(() => import('./pages/Register'));
+const Ministries = lazyWithRetry(() => import('./pages/Ministries'));
+const DepartmentsTeams = lazyWithRetry(() => import('./pages/Ministries'));
+const MinistryDetail = lazyWithRetry(() => import('./pages/MinistryDetail'));
 
-const AdminDashboard = lazy(() => import('./admin/AdminDashboard'));
-const AdminCrudPage = lazy(() => import('./admin/AdminCrudPage'));
-const AdminMinistryForm = lazy(() => import('./admin/AdminMinistryForm'));
-const AdminGallery = lazy(() => import('./admin/AdminGallery'));
-const AdminReadonly = lazy(() => import('./admin/AdminReadonly'));
-const AdminTeamForm = lazy(() => import('./admin/AdminTeamForm'));
-const AdminTeamYear = lazy(() => import('./admin/AdminTeamYear'));
-const AdminPastQuestions = lazy(() => import('./admin/AdminPastQuestions'));
-const AdminBooks = lazy(() => import('./admin/AdminBooks'));
-const AdminUsers = lazy(() => import('./admin/AdminUsers'));
-const AdminPrayers = lazy(() => import('./prayer-admin/AdminPrayers'));
-const AdminRegistrations = lazy(() => import('./admin/AdminRegistrations'));
-const AdminNavigation = lazy(() => import('./admin/AdminNavigation'));
-const AdminSermons = lazy(() => import('./admin/AdminSermons'));
-const AdminPages = lazy(() => import('./admin/AdminPages'));
+const AdminDashboard = lazyWithRetry(() => import('./admin/AdminDashboard'));
+const AdminCrudPage = lazyWithRetry(() => import('./admin/AdminCrudPage'));
+const AdminMinistryForm = lazyWithRetry(() => import('./admin/AdminMinistryForm'));
+const AdminGallery = lazyWithRetry(() => import('./admin/AdminGallery'));
+const AdminReadonly = lazyWithRetry(() => import('./admin/AdminReadonly'));
+const AdminTeamForm = lazyWithRetry(() => import('./admin/AdminTeamForm'));
+const AdminTeamYear = lazyWithRetry(() => import('./admin/AdminTeamYear'));
+const AdminPastQuestions = lazyWithRetry(() => import('./admin/AdminPastQuestions'));
+const AdminBooks = lazyWithRetry(() => import('./admin/AdminBooks'));
+const AdminUsers = lazyWithRetry(() => import('./admin/AdminUsers'));
+const AdminPrayers = lazyWithRetry(() => import('./prayer-admin/AdminPrayers'));
+const AdminRegistrations = lazyWithRetry(() => import('./admin/AdminRegistrations'));
+const AdminNavigation = lazyWithRetry(() => import('./admin/AdminNavigation'));
+const AdminSermons = lazyWithRetry(() => import('./admin/AdminSermons'));
+const AdminPages = lazyWithRetry(() => import('./admin/AdminPages'));
 
 function PageLoader() {
   return <div className="loading">Loading...</div>;
