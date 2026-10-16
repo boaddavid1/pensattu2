@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import './Gallery.css';
 import { api, getImageUrl } from '../api';
 import { albums as fallbackAlbums } from '../data/albums';
+import GalleryShareModal from '../components/GalleryShareModal';
 
 // Client-side cache for instant subsequent and initial loads
 let memoryGalleryCache = null;
@@ -48,6 +49,15 @@ export default function Gallery() {
 
   // Instant render from cache or fallback data — 0ms blank screen delay
   const [albums, setAlbums] = useState(() => memoryGalleryCache || fallbackAlbums);
+  const [shareModal, setShareModal] = useState({ isOpen: false, album: null });
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((cur) => (cur === msg ? '' : cur));
+    }, 2800);
+  };
 
   const initialPhotos = useMemo(() => extractAllPhotos(memoryGalleryCache || fallbackAlbums), []);
   const [heroColumns, setHeroColumns] = useState(() => buildColumns(initialPhotos));
@@ -141,7 +151,27 @@ export default function Gallery() {
           <div className="cover-grid">
             {albums.map((album) => (
               <Link className="cover-card" to={`/gallery/${album.id}`} key={album.id}>
-                <div className="cover-img">
+                <div className="cover-img cover-img-wrap">
+                  <button
+                    type="button"
+                    className="cover-share-btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShareModal({ isOpen: true, album });
+                    }}
+                    title={`Share ${album.title} album`}
+                    aria-label={`Share ${album.title} album`}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="18" cy="5" r="3" />
+                      <circle cx="6" cy="12" r="3" />
+                      <circle cx="18" cy="19" r="3" />
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                    </svg>
+                    Share
+                  </button>
                   <img
                     src={getImageUrl(album.cover, { width: 550, quality: 'auto' })}
                     alt={`${album.title} album cover`}
@@ -170,6 +200,28 @@ export default function Gallery() {
           </div>
         </div>
       </section>
+
+      {/* Share Modal */}
+      <GalleryShareModal
+        isOpen={shareModal.isOpen}
+        onClose={() => setShareModal({ isOpen: false, album: null })}
+        type="album"
+        title="PENSA TTU Gallery Album"
+        subtitle={shareModal.album?.title || ''}
+        url={shareModal.album ? `${window.location.origin}/gallery/${shareModal.album.id}` : ''}
+        imageUrl={shareModal.album?.cover || ''}
+        onShowToast={showToast}
+      />
+
+      {/* Toast Feedback */}
+      {toastMessage && (
+        <div className="gallery-toast">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </main>
   );
 }

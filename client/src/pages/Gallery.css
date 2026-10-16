@@ -339,3 +339,412 @@
   .cover-grid { grid-template-columns: 1fr; }
   .album { padding: 26px 22px 30px; border-radius: 22px; }
 }
+
+/* ===== ENHANCED SHARING & DOWNLOADING UI ===== */
+
+/* Floating Share button on Album Cards */
+.cover-img-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.cover-share-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  background: rgba(10, 46, 92, 0.72);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.cover-share-btn:hover {
+  background: #0E4C92;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(14, 76, 146, 0.4);
+  color: #fff;
+}
+
+/* Album Hero Actions Bar */
+.album-hero-content {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.album-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-hero-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.btn-hero-share {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.btn-hero-share:hover {
+  background: #fff;
+  color: var(--pine-deep);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.btn-hero-download {
+  background: var(--moss);
+  color: var(--pine-deep);
+  border-color: var(--moss);
+}
+
+.btn-hero-download:hover {
+  background: #a3e635;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(163, 230, 53, 0.35);
+}
+
+/* Photo Grid Items Quick Hover Actions */
+.g-item-actions-bar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: all 0.25s ease;
+}
+
+.g-item:hover .g-item-actions-bar,
+.g-item:focus-within .g-item-actions-bar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (hover: none) {
+  .g-item-actions-bar {
+    opacity: 0.92;
+    transform: translateY(0);
+  }
+}
+
+.g-action-pill {
+  background: rgba(10, 25, 60, 0.78);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.g-action-pill:hover {
+  background: #0E4C92;
+  transform: scale(1.12);
+  color: #fff;
+}
+
+.g-action-pill.download:hover {
+  background: #16a34a;
+}
+
+/* Enhanced Lightbox Viewer */
+.gallery-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(5, 15, 30, 0.94);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease;
+  user-select: none;
+}
+
+.lightbox-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(180deg, rgba(5, 15, 30, 0.85) 0%, rgba(5, 15, 30, 0) 100%);
+  color: #fff;
+  z-index: 10;
+}
+
+.lightbox-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lightbox-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.lightbox-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 350px;
+}
+
+.lightbox-category-tag {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  background: var(--moss);
+  color: var(--pine-deep);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.lightbox-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lightbox-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lightbox-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.lightbox-btn.btn-download {
+  background: #16a34a;
+  border-color: #22c55e;
+}
+
+.lightbox-btn.btn-download:hover {
+  background: #15803d;
+}
+
+.lightbox-btn.btn-close {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.lightbox-btn.btn-close:hover {
+  background: #dc2626;
+  border-color: #ef4444;
+}
+
+/* Lightbox Stage */
+.lightbox-stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 80px;
+  min-height: 0;
+}
+
+.lightbox-main-img {
+  max-width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.65);
+  animation: zoomFade 0.22s ease;
+  pointer-events: auto;
+}
+
+@keyframes zoomFade {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.lightbox-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 8;
+}
+
+.lightbox-nav-arrow:hover {
+  background: #0E4C92;
+  border-color: #3b82f6;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.lightbox-nav-arrow.prev { left: 20px; }
+.lightbox-nav-arrow.next { right: 20px; }
+
+/* Lightbox Bottom Info & Thumbnails */
+.lightbox-bottom {
+  padding: 12px 24px 20px;
+  background: linear-gradient(0deg, rgba(5, 15, 30, 0.95) 0%, rgba(5, 15, 30, 0) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  z-index: 10;
+}
+
+.lightbox-caption {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  text-align: center;
+  max-width: 600px;
+  margin: 0;
+}
+
+.lightbox-thumbs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  max-width: 90vw;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.lightbox-thumb-btn {
+  width: 52px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.lightbox-thumb-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
+
+.lightbox-thumb-btn.active {
+  border-color: #38bdf8;
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.lightbox-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Floating Toast Notification */
+.gallery-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: #0f172a;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  animation: toastSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+@keyframes toastSlideUp {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 768px) {
+  .lightbox-stage { padding: 10px 16px; }
+  .lightbox-nav-arrow {
+    width: 40px;
+    height: 40px;
+  }
+  .lightbox-nav-arrow.prev { left: 8px; }
+  .lightbox-nav-arrow.next { right: 8px; }
+  .lightbox-thumbs-bar { display: none; }
+  .lightbox-title { max-width: 180px; }
+}
+
