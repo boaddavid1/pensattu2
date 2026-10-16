@@ -407,7 +407,8 @@ export default function AdminGalleryBulkModal({
   const totalBytes = queue.reduce((sum, item) => sum + (item.file?.size || 0), 0);
   const pendingCloudinaryCount = queue.filter((i) => !i.cloudinaryUrl && i.status !== 'error').length;
   const readyToSaveCount = queue.filter((i) => i.cloudinaryUrl && !i.dbSaved).length;
-  const savedCount = queue.filter((i) => i.dbSaved).length;
+  const successCount = queue.filter((i) => i.dbSaved || i.status === 'success').length;
+  const savedCount = successCount;
   const errorCount = queue.filter((i) => i.status === 'error').length;
 
   return (
