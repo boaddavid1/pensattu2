@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, getImageUrl } from '../api.js';
 import { ministriesData } from '../data/ministriesData.js';
 import './MinistryDetail.css';
+import './Ministries.css';
 
 const initialMinistries = ministriesData;
 
@@ -117,156 +118,154 @@ export default function Ministries() {
   };
 
   return (
-    <main className="departments-page">
-      {/* Hero Section */}
-      <section className="page-hero">
-        <div className="page-hero-bg">
+    <main className="departments-page ministries-page">
+      {/* 1. Hero Section */}
+      <section className="ministries-hero">
+        <div className="ministries-hero-bg">
           <img src="/images/leadership-hero.png" alt="PENSA TTU Ministries" />
         </div>
-        <div className="page-hero-inner">
-          <span className="eyebrow">Ministries &bull; Departments &amp; Teams</span>
-          <h1>Serving with passion, <em>growing together in Christ</em>.</h1>
-          <p>
-            Every ministry and team at PENSA TTU exists to build God's Kingdom, equip believers,
-            and provide a vibrant family where your spiritual gifts find true purpose.
-          </p>
-        </div>
-      </section>
-
-      {/* Filter and Search Bar */}
-      <section className="filters" style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="wrap">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '36px 0 28px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-              <div>
-                <span className="eyebrow" style={{ marginBottom: '8px' }}>Find Your Fit</span>
-                <h2 style={{ fontSize: '28px', color: 'var(--pine-deep)' }}>Explore Our Ministries</h2>
-              </div>
-              <div style={{ minWidth: '260px', maxWidth: '380px', width: '100%' }}>
-                <input
-                  type="text"
-                  placeholder="Search ministry or keyword..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 18px',
-                    borderRadius: '100px',
-                    border: '1px solid var(--line)',
-                    background: '#fff',
-                    fontFamily: 'inherit',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Category Pills */}
-            <div className="filter-row" style={{ padding: '0', gap: '8px' }}>
-              {categoryFilters.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`pill${activeCategory === cat ? ' active' : ''}`}
-                  onClick={() => setActiveCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
+          <div className="ministries-hero-inner">
+            <span className="ministries-hero-badge">
+              <span className="pulse-dot" />
+              Ministries &bull; Departments &amp; Teams
+            </span>
+            <h1 className="ministries-hero-title">
+              Serving with passion, <em>growing together in Christ</em>.
+            </h1>
+            <p className="ministries-hero-lead">
+              Every ministry and team at PENSA TTU exists to build God's Kingdom, equip believers,
+              and provide a vibrant family where your spiritual gifts find true purpose.
+            </p>
+            <div className="ministries-hero-stats">
+              <span className="ministries-hero-pill">
+                ✨ {ministries.length} Active Ministries
+              </span>
+              <span className="ministries-hero-pill">
+                👥 Open to All Academic Levels
+              </span>
+              <span className="ministries-hero-pill">
+                🌱 Mentorship &amp; Fellowship
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Grid of Ministries */}
-      <section className="services" style={{ background: 'var(--paper)', paddingTop: '50px' }}>
+      {/* 2. Filter & Search Controls */}
+      <section className="ministries-filter-section">
         <div className="wrap">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <p style={{ color: 'var(--ink-soft)', fontSize: '15px' }}>
+          <div className="ministries-filter-container">
+            <div className="ministries-filter-head">
+              <div className="ministries-filter-titles">
+                <span className="ministries-filter-eyebrow">Find Your Calling</span>
+                <h2 className="ministries-filter-heading">Explore Our Ministries</h2>
+              </div>
+              <div className="ministries-search-box">
+                <span className="ministries-search-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  className="ministries-search-input"
+                  placeholder="Search ministry or keyword..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search ministries"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="ministries-search-clear"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Horizontal Scrollable Category Pills on Mobile */}
+            <div className="ministries-pills-wrapper">
+              <div className="ministries-pills-scroll" role="tablist">
+                {categoryFilters.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeCategory === cat}
+                    className={`ministry-category-pill${activeCategory === cat ? ' active' : ''}`}
+                    onClick={() => setActiveCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Grid of Ministries */}
+      <section className="ministries-body-section">
+        <div className="wrap">
+          <div className="ministries-results-bar">
+            <span className="ministries-results-count">
               Showing <strong>{filteredMinistries.length}</strong> {filteredMinistries.length === 1 ? 'ministry' : 'ministries'}
-            </p>
-            {activeCategory !== 'All' && (
+            </span>
+            {(activeCategory !== 'All' || searchQuery) && (
               <button
                 type="button"
+                className="ministries-reset-btn"
                 onClick={() => { setActiveCategory('All'); setSearchQuery(''); }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--moss-deep)',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
               >
                 Reset filters &times;
               </button>
             )}
           </div>
 
-          <div className="service-grid" style={{ marginTop: '0', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
+          <div className="ministries-cards-grid">
             {filteredMinistries.map((min) => (
               <Link
                 to={`/ministries/${min.id}`}
-                className="service-card service-card-clickable"
+                className="ministry-card"
                 key={min.id}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  borderRadius: '20px',
-                  background: '#fff',
-                  border: '1px solid var(--line)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
-                  overflow: 'hidden',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                }}
               >
                 <div>
-                  <div className="img" style={{ position: 'relative', height: '200px' }}>
+                  <div className="ministry-card-cover">
                     <img
                       src={getImageUrl(min.image_url)}
                       alt={min.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      className="ministry-card-img"
+                      loading="lazy"
                     />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '14px',
-                        left: '14px',
-                        background: 'rgba(25, 45, 36, 0.88)',
-                        color: 'var(--paper)',
-                        padding: '4px 12px',
-                        borderRadius: '100px',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        letterSpacing: '0.02em',
-                      }}
-                    >
+                    <div className="ministry-card-cover-overlay" />
+                    <span className="ministry-card-badge">
                       {min.category}
                     </span>
                   </div>
-                  <div className="body" style={{ padding: '24px' }}>
-                    <h3 style={{ fontSize: '19px', color: 'var(--pine-deep)', marginBottom: '8px' }}>{min.title}</h3>
-                    <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>
-                      {min.description}
-                    </p>
+                  <div className="ministry-card-body">
+                    <h3 className="ministry-card-title">{min.title}</h3>
+                    <p className="ministry-card-desc">{min.description}</p>
                     {min.meeting && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--moss-deep)', fontWeight: '600', marginBottom: '8px' }}>
-                        <span>🕒 Meeting Time:</span>
+                      <div className="ministry-card-meeting">
+                        <span>🕒</span>
                         <span>{min.meeting}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="card-view-details-footer">
-                  <span style={{ fontSize: '12.5px', color: '#52665e', fontWeight: 600 }}>
-                    {min.leader ? `Lead: ${min.leader.name}` : 'Leadership details'}
+                <div className="ministry-card-footer">
+                  <span className="ministry-card-leader" title={min.leader?.name ? `Lead: ${min.leader.name}` : 'Team leadership'}>
+                    {min.leader ? `Lead: ${min.leader.name}` : 'Team Leadership'}
                   </span>
-                  <span className="card-view-details-btn">
-                    View details &rarr;
+                  <span className="ministry-card-action-btn">
+                    Explore details &rarr;
                   </span>
                 </div>
               </Link>
@@ -274,11 +273,10 @@ export default function Ministries() {
           </div>
 
           {filteredMinistries.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '20px', border: '1px solid var(--line)' }}>
-              <h3 style={{ fontSize: '20px', color: 'var(--pine-deep)', marginBottom: '8px' }}>No ministry found</h3>
-              <p style={{ color: 'var(--ink-soft)', fontSize: '14.5px', marginBottom: '20px' }}>
-                We couldn't find any ministry matching your current filter or search criteria.
-              </p>
+            <div className="ministries-empty-card">
+              <div className="ministries-empty-icon">🔍</div>
+              <h3>No ministry found</h3>
+              <p>We couldn't find any ministry matching "{searchQuery || activeCategory}". Try searching with different keywords or clear filters.</p>
               <button
                 type="button"
                 className="btn btn-dark"
@@ -291,8 +289,8 @@ export default function Ministries() {
         </div>
       </section>
 
-      {/* Why Serve Section */}
-      <section className="values" style={{ background: '#fff' }}>
+      {/* 4. Why Serve Section */}
+      <section className="ministries-values-section">
         <div className="wrap">
           <div className="section-head center">
             <span className="eyebrow">Why Serve</span>
@@ -302,24 +300,24 @@ export default function Ministries() {
               discover your leadership potential, and leave a permanent mark on campus.
             </p>
           </div>
-          <div className="value-grid">
-            <div className="value-card">
-              <div className="ic">🌱</div>
+          <div className="ministries-values-grid">
+            <div className="ministries-value-item">
+              <div className="ministries-value-icon">🌱</div>
               <h3>Spiritual Growth</h3>
               <p>Serving pushes your faith into practical action, drawing you closer to Christ as you depend on His strength.</p>
             </div>
-            <div className="value-card">
-              <div className="ic">🤝</div>
+            <div className="ministries-value-item">
+              <div className="ministries-value-icon">🤝</div>
               <h3>Deep Fellowship</h3>
               <p>Team members become lifelong friends, prayer partners, and support systems throughout your university journey.</p>
             </div>
-            <div className="value-card">
-              <div className="ic">⚡</div>
+            <div className="ministries-value-item">
+              <div className="ministries-value-icon">⚡</div>
               <h3>Skill &amp; Leadership</h3>
               <p>Gain hands-on skills in leadership, public speaking, technical production, organizational planning, and care.</p>
             </div>
-            <div className="value-card">
-              <div className="ic">🌍</div>
+            <div className="ministries-value-item">
+              <div className="ministries-value-icon">🌍</div>
               <h3>Kingdom Impact</h3>
               <p>Be part of life-changing encounters, touching hundreds of students and people in the Takoradi metropolis.</p>
             </div>
@@ -327,18 +325,18 @@ export default function Ministries() {
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="cta" style={{ background: 'var(--sand)' }}>
+      {/* 5. Bottom CTA */}
+      <section className="ministries-cta-section">
         <div className="wrap">
-          <div className="cta-box" style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto' }}>
+          <div className="ministries-cta-box">
             <span className="eyebrow">Ready to take the step?</span>
-            <h2 style={{ fontSize: 'clamp(26px, 3vw, 36px)', color: 'var(--pine-deep)', marginBottom: '16px' }}>
+            <h2 className="ministries-cta-title">
               Every member has a <em>place to belong</em>.
             </h2>
-            <p style={{ color: 'var(--ink-soft)', fontSize: '15.5px', lineHeight: 1.65, marginBottom: '26px' }}>
+            <p className="ministries-cta-desc">
               Still unsure which ministry suits you best? Reach out to our leadership team or speak to any executive after Sunday service.
             </p>
-            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div className="ministries-cta-actions">
               <Link to="/contact" className="btn btn-dark">
                 Contact our leaders <span className="btn-arrow" style={{ background: 'var(--moss)', color: 'var(--pine-deep)' }}>→</span>
               </Link>
@@ -350,129 +348,65 @@ export default function Ministries() {
         </div>
       </section>
 
-      {/* Detail & Join Modal */}
+      {/* 6. Detail & Join Modal */}
       {selectedMinistry && (
-        <div
-          className="modal-overlay"
-          onClick={handleCloseModal}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 19, 0.65)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px',
-          }}
-        >
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: '#fff',
-              borderRadius: '24px',
-              maxWidth: '640px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 20px 48px rgba(0,0,0,0.2)',
-              position: 'relative',
-              animation: 'fadeIn 0.25s ease-out',
-            }}
-          >
+        <div className="ministries-modal-overlay" onClick={handleCloseModal}>
+          <div className="ministries-modal-dialog" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
+              className="ministries-modal-close-btn"
               onClick={handleCloseModal}
               aria-label="Close dialog"
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                background: 'rgba(0,0,0,0.06)',
-                border: 'none',
-                fontSize: '18px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 10,
-              }}
             >
               &times;
             </button>
 
-            <div style={{ position: 'relative', height: '220px' }}>
+            <div className="ministries-modal-hero">
               <img
                 src={getImageUrl(selectedMinistry.image_url)}
                 alt={selectedMinistry.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 60%)',
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  padding: '24px',
-                }}
-              >
+              <div className="ministries-modal-hero-overlay">
                 <div>
-                  <span
-                    style={{
-                      background: 'var(--moss)',
-                      color: 'var(--pine-deep)',
-                      padding: '3px 10px',
-                      borderRadius: '100px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      display: 'inline-block',
-                      marginBottom: '8px',
-                    }}
-                  >
+                  <span className="ministries-modal-cat-tag">
                     {selectedMinistry.category}
                   </span>
-                  <h2 style={{ color: '#fff', fontSize: '24px', margin: 0 }}>{selectedMinistry.title}</h2>
+                  <h2 className="ministries-modal-heading">{selectedMinistry.title}</h2>
                 </div>
               </div>
             </div>
 
-            <div style={{ padding: '24px 28px' }}>
+            <div className="ministries-modal-body">
               {selectedMinistry.meeting && (
-                <div style={{ background: 'var(--sand)', padding: '12px 16px', borderRadius: '12px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '18px' }}>🕒</span>
+                <div className="ministries-modal-meeting-box">
+                  <span style={{ fontSize: '20px' }}>🕒</span>
                   <div>
-                    <strong style={{ display: 'block', fontSize: '13px', color: 'var(--pine-deep)' }}>Meeting Schedule</strong>
-                    <span style={{ fontSize: '13.5px', color: 'var(--ink-soft)' }}>{selectedMinistry.meeting}</span>
+                    <strong>Meeting Schedule</strong>
+                    <span>{selectedMinistry.meeting}</span>
                   </div>
                 </div>
               )}
 
-              <div style={{ marginBottom: '20px' }}>
+              <div style={{ marginBottom: '18px' }}>
                 <h4 style={{ fontSize: '15px', color: 'var(--pine-deep)', marginBottom: '6px' }}>About This Ministry</h4>
-                <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: 1.6 }}>{selectedMinistry.description}</p>
+                <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>{selectedMinistry.description}</p>
               </div>
 
               {selectedMinistry.responsibilities && (
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ marginBottom: '18px' }}>
                   <h4 style={{ fontSize: '15px', color: 'var(--pine-deep)', marginBottom: '6px' }}>Key Responsibilities</h4>
-                  <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: 1.6 }}>{selectedMinistry.responsibilities}</p>
+                  <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>{selectedMinistry.responsibilities}</p>
                 </div>
               )}
 
               {selectedMinistry.idealFor && (
-                <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '22px' }}>
                   <h4 style={{ fontSize: '15px', color: 'var(--pine-deep)', marginBottom: '6px' }}>Ideal For</h4>
-                  <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: 1.6 }}>{selectedMinistry.idealFor}</p>
+                  <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>{selectedMinistry.idealFor}</p>
                 </div>
               )}
 
-              <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '24px 0' }} />
+              <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '20px 0' }} />
 
               <div>
                 <h3 style={{ fontSize: '18px', color: 'var(--pine-deep)', marginBottom: '6px' }}>
@@ -488,13 +422,13 @@ export default function Ministries() {
                       background: 'rgba(74, 124, 89, 0.12)',
                       border: '1px solid var(--moss)',
                       color: 'var(--pine-deep)',
-                      padding: '18px',
+                      padding: '20px',
                       borderRadius: '14px',
                       textAlign: 'center',
                     }}
                   >
-                    <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎉</div>
-                    <h4 style={{ margin: '0 0 4px', fontSize: '16px' }}>Interest Submitted!</h4>
+                    <div style={{ fontSize: '32px', marginBottom: '6px' }}>🎉</div>
+                    <h4 style={{ margin: '0 0 4px', fontSize: '17px' }}>Interest Submitted!</h4>
                     <p style={{ margin: 0, fontSize: '13.5px' }}>
                       Thank you for volunteering! A team lead will reach out to you shortly.
                     </p>
@@ -508,71 +442,43 @@ export default function Ministries() {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmitJoin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <form onSubmit={handleSubmitJoin}>
                     {submitStatus === 'error' && (
-                      <div style={{ background: '#fdf2f2', color: '#c53030', padding: '10px 14px', borderRadius: '8px', fontSize: '13.5px' }}>
+                      <div style={{ background: '#fdf2f2', color: '#c53030', padding: '10px 14px', borderRadius: '8px', fontSize: '13.5px', marginBottom: '14px' }}>
                         Failed to send. Please check your internet connection or contact us directly.
                       </div>
                     )}
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--pine-deep)' }}>
-                        Full Name *
-                      </label>
+                    <div className="ministries-form-group">
+                      <label className="ministries-form-label">Full Name *</label>
                       <input
                         type="text"
                         required
+                        className="ministries-form-input"
                         placeholder="e.g. Samuel Mensah"
                         value={joinForm.name}
                         onChange={(e) => setJoinForm({ ...joinForm, name: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          border: '1px solid var(--line)',
-                          fontSize: '14px',
-                          outline: 'none',
-                        }}
                       />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--pine-deep)' }}>
-                          Phone / WhatsApp *
-                        </label>
+                    <div className="ministries-form-row">
+                      <div className="ministries-form-group">
+                        <label className="ministries-form-label">Phone / WhatsApp *</label>
                         <input
                           type="tel"
                           required
+                          className="ministries-form-input"
                           placeholder="e.g. 0244123456"
                           value={joinForm.phone}
                           onChange={(e) => setJoinForm({ ...joinForm, phone: e.target.value })}
-                          style={{
-                            width: '100%',
-                            padding: '10px 14px',
-                            borderRadius: '10px',
-                            border: '1px solid var(--line)',
-                            fontSize: '14px',
-                            outline: 'none',
-                          }}
                         />
                       </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--pine-deep)' }}>
-                          Academic Level
-                        </label>
+                      <div className="ministries-form-group">
+                        <label className="ministries-form-label">Academic Level</label>
                         <select
+                          className="ministries-form-select"
                           value={joinForm.year}
                           onChange={(e) => setJoinForm({ ...joinForm, year: e.target.value })}
-                          style={{
-                            width: '100%',
-                            padding: '10px 14px',
-                            borderRadius: '10px',
-                            border: '1px solid var(--line)',
-                            fontSize: '14px',
-                            background: '#fff',
-                            outline: 'none',
-                          }}
                         >
                           <option>Level 100</option>
                           <option>Level 200</option>
@@ -584,48 +490,29 @@ export default function Ministries() {
                       </div>
                     </div>
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--pine-deep)' }}>
-                        Email (Optional)
-                      </label>
+                    <div className="ministries-form-group">
+                      <label className="ministries-form-label">Email (Optional)</label>
                       <input
                         type="email"
+                        className="ministries-form-input"
                         placeholder="you@example.com"
                         value={joinForm.email}
                         onChange={(e) => setJoinForm({ ...joinForm, email: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          border: '1px solid var(--line)',
-                          fontSize: '14px',
-                          outline: 'none',
-                        }}
                       />
                     </div>
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '4px', color: 'var(--pine-deep)' }}>
-                        Prior Experience or Questions (Optional)
-                      </label>
+                    <div className="ministries-form-group">
+                      <label className="ministries-form-label">Prior Experience or Questions (Optional)</label>
                       <textarea
                         rows={3}
+                        className="ministries-form-textarea"
                         placeholder="Tell us about any instruments you play, software you use, or why you'd like to join..."
                         value={joinForm.notes}
                         onChange={(e) => setJoinForm({ ...joinForm, notes: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          border: '1px solid var(--line)',
-                          fontSize: '14px',
-                          outline: 'none',
-                          resize: 'vertical',
-                        }}
                       />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
+                    <div className="ministries-modal-actions">
                       <button
                         type="button"
                         className="btn btn-ghost"
@@ -652,3 +539,4 @@ export default function Ministries() {
     </main>
   );
 }
+
