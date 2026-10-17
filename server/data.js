@@ -399,12 +399,11 @@ export const defaultNavigation = {
         is_dropdown: true,
         children: [
           { id: 'sub-about', label: 'About Us', path: '/about' },
-          { id: 'sub-ministries', label: 'Ministries', path: '/ministries' },
           { id: 'sub-dept', label: 'Departments & Teams', path: '/departments-and-teams' },
           { id: 'sub-leadership', label: 'Leadership', path: '/leadership' },
         ],
       },
-      { id: 'nav-ministries', label: 'Ministries', path: '/ministries', is_dropdown: false },
+      { id: 'nav-departments', label: 'Departments & Teams', path: '/departments-and-teams', is_dropdown: false },
       {
         id: 'nav-feed',
         label: 'Feed',
@@ -446,7 +445,6 @@ export const defaultNavigation = {
         title: 'Church',
         links: [
           { id: 'c1-1', label: 'About Us', path: '/about' },
-          { id: 'c1-2', label: 'Ministries', path: '/ministries' },
           { id: 'c1-3', label: 'Departments & Teams', path: '/departments-and-teams' },
           { id: 'c1-4', label: 'Leadership', path: '/leadership' },
           { id: 'c1-5', label: 'Sermons', path: '/sermons' },
@@ -455,12 +453,12 @@ export const defaultNavigation = {
       },
       {
         id: 'col-2',
-        title: 'Ministries & Teams',
+        title: 'Departments & Teams',
         links: [
-          { id: 'c2-1', label: 'Worship & Music', path: '/ministries' },
-          { id: 'c2-2', label: 'Youth & Kids', path: '/ministries' },
-          { id: 'c2-3', label: 'Outreach & Missions', path: '/ministries' },
-          { id: 'c2-4', label: 'Bible Study & Prayer', path: '/ministries' },
+          { id: 'c2-1', label: 'Worship & Music', path: '/departments-and-teams' },
+          { id: 'c2-2', label: 'Youth & Kids', path: '/departments-and-teams' },
+          { id: 'c2-3', label: 'Outreach & Missions', path: '/departments-and-teams' },
+          { id: 'c2-4', label: 'Bible Study & Prayer', path: '/departments-and-teams' },
         ],
       },
     ],

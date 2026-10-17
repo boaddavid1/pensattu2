@@ -321,7 +321,7 @@ section { padding: 100px 0; }
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(10, 30, 22, 0.55);
+  background: rgba(6, 25, 51, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -337,7 +337,7 @@ section { padding: 100px 0; }
   width: 100%;
   padding: 36px 28px 28px;
   text-align: center;
-  box-shadow: 0 24px 80px rgba(10, 30, 22, 0.22);
+  box-shadow: 0 24px 80px rgba(10, 46, 92, 0.22);
 }
 
 .pwa-prompt-close {
@@ -434,7 +434,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .mobile-tabbar { display: none; }
 .more-menu-backdrop {
   position: fixed; inset: 0; z-index: 149;
-  background: rgba(10, 30, 22, 0.35);
+  background: rgba(6, 25, 51, 0.45);
   animation: fadeIn .18s ease;
 }
 .more-menu {
@@ -787,7 +787,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .upcoming-event-overlay {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
   padding: 20px 20px 22px;
-  background: linear-gradient(to top, rgba(10, 30, 22, 0.92) 0%, rgba(10, 30, 22, 0.5) 55%, rgba(10, 30, 22, 0) 100%);
+  background: linear-gradient(to top, rgba(6, 25, 51, 0.94) 0%, rgba(10, 46, 92, 0.6) 55%, rgba(10, 46, 92, 0) 100%);
 }
 .upcoming-event-overlay h3 { font-family: 'Fraunces', serif; font-size: 19px; color: #fff; margin-bottom: 6px; }
 .upcoming-event-range { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.03em; color: var(--moss); }
@@ -796,7 +796,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 /* Event detail modal */
 .event-modal-backdrop {
   position: fixed; inset: 0; z-index: 200;
-  background: rgba(10, 30, 22, 0.72);
+  background: rgba(6, 25, 51, 0.78);
   display: flex; align-items: center; justify-content: center;
   padding: 24px;
   animation: fadeIn .2s ease;
@@ -810,7 +810,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .event-modal-close {
   position: absolute; top: 14px; right: 14px; z-index: 3;
   width: 36px; height: 36px; border-radius: 50%; border: none;
-  background: rgba(10, 30, 22, 0.6); color: #fff; font-size: 16px;
+  background: rgba(10, 46, 92, 0.75); color: #fff; font-size: 16px;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   backdrop-filter: blur(4px);
 }
@@ -949,7 +949,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
   height: 42px;
   border-radius: 50%;
   border: none;
-  background: rgba(10, 30, 22, 0.08);
+  background: rgba(10, 46, 92, 0.08);
   color: var(--pine-deep);
   font-size: 20px;
   cursor: pointer;
@@ -1006,7 +1006,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .sermon-card .img { aspect-ratio: 16/11; overflow: hidden; position: relative; }
 .sermon-card .img img { width: 100%; height: 100%; object-fit: cover; }
 .sermon-tag { position: absolute; top: 14px; left: 14px; background: var(--moss); color: var(--pine-deep); font-size: 11.5px; font-weight: 700; padding: 6px 12px; border-radius: 100px; }
-.duration { position: absolute; bottom: 14px; right: 14px; background: rgba(10, 30, 22, 0.75); color: #fff; font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 100px; }
+.duration { position: absolute; bottom: 14px; right: 14px; background: rgba(6, 25, 51, 0.8); color: #fff; font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 100px; }
 .sermon-card .body { padding: 22px; }
 .sermon-meta { font-size: 12px; color: var(--ink-soft); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
 .sermon-card h3 { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
@@ -1018,7 +1018,7 @@ footer { background: var(--pine-deep); color: rgba(247, 245, 238, 0.75); padding
 .series-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 50px; }
 .series-card { position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 4/3; }
 .series-card img { width: 100%; height: 100%; object-fit: cover; }
-.series-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10, 30, 22, 0.85) 0%, rgba(10, 30, 22, 0.1) 60%); }
+.series-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(6, 25, 51, 0.9) 0%, rgba(10, 46, 92, 0.15) 60%); }
 .series-info { position: absolute; left: 20px; right: 20px; bottom: 20px; z-index: 2; color: #fff; }
 .series-info span { font-size: 12px; color: rgba(255, 255, 255, 0.7); font-family: 'JetBrains Mono', monospace; }
 .series-info h3 { font-family: 'Fraunces', serif; font-size: 19px; margin-top: 6px; }

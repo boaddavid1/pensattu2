@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, Component } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet, useParams } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MobileTabBar from './components/MobileTabBar';
@@ -135,6 +135,11 @@ const AdminNavigation = lazyWithRetry(() => import('./admin/AdminNavigation'));
 const AdminSermons = lazyWithRetry(() => import('./admin/AdminSermons'));
 const AdminPages = lazyWithRetry(() => import('./admin/AdminPages'));
 
+function DepartmentRedirect() {
+  const { id } = useParams();
+  return <Navigate to={id ? `/departments-and-teams/${id}` : '/departments-and-teams'} replace />;
+}
+
 function PageLoader() {
   return <div className="loading">Loading...</div>;
 }
@@ -170,14 +175,14 @@ function AppShell() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/leadership" element={<Leadership />} />
-          <Route path="/ministries" element={<Ministries />} />
-          <Route path="/ministries/:id" element={<MinistryDetail />} />
-          <Route path="/ministry/:id" element={<MinistryDetail />} />
-          <Route path="/ministry" element={<Navigate to="/ministries" replace />} />
+          <Route path="/ministries" element={<Navigate to="/departments-and-teams" replace />} />
+          <Route path="/ministries/:id" element={<DepartmentRedirect />} />
+          <Route path="/ministry/:id" element={<DepartmentRedirect />} />
+          <Route path="/ministry" element={<Navigate to="/departments-and-teams" replace />} />
           <Route path="/departments-and-teams" element={<Ministries />} />
           <Route path="/departments-and-teams/:id" element={<MinistryDetail />} />
-          <Route path="/departments/:id" element={<MinistryDetail />} />
-          <Route path="/departments" element={<Navigate to="/ministries" replace />} />
+          <Route path="/departments/:id" element={<DepartmentRedirect />} />
+          <Route path="/departments" element={<Navigate to="/departments-and-teams" replace />} />
           <Route path="/sermons" element={<Sermons />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/events" element={<Events />} />

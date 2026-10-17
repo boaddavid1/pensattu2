@@ -88,18 +88,18 @@ export default function MinistryDetail() {
   if (!ministry) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 20px', minHeight: '60vh' }}>
-        <h2>Ministry Not Found</h2>
+        <h2>Department Not Found</h2>
         <p style={{ color: 'var(--ink-soft)', margin: '14px 0 24px' }}>
-          We could not find the requested ministry or department.
+          We could not find the requested department or team profile.
         </p>
-        <Link to="/ministries" className="btn btn-dark">
-          ← Back to All Ministries
+        <Link to="/departments-and-teams" className="btn btn-dark">
+          ← Back to Departments &amp; Teams
         </Link>
       </div>
     );
   }
 
-  const otherMinistries = ministriesData.filter((m) => m.id !== ministry.id).slice(0, 3);
+  const otherMinistries = ministriesData.filter((m) => m.id !== ministry.id).slice(0, 4);
   const leader = ministry.leader;
   const assistants = ministry.assistants || [];
 
@@ -110,19 +110,23 @@ export default function MinistryDetail() {
         <div className="wrap">
           <div className="ministry-detail-breadcrumbs">
             <Link to="/">Home</Link>
-            <span>/</span>
-            <Link to="/ministries">Ministries</Link>
-            <span>/</span>
-            <span style={{ color: '#fff' }}>{ministry.title}</span>
+            <span className="breadcrumb-separator">/</span>
+            <Link to="/departments-and-teams">Departments &amp; Teams</Link>
+            <span className="breadcrumb-separator">/</span>
+            <span className="breadcrumb-current">{ministry.title}</span>
           </div>
 
-          <span className="ministry-badge">{ministry.category || 'Ministry'}</span>
+          <Link to="/departments-and-teams" className="ministry-mobile-back-btn">
+            &larr; Back to all departments
+          </Link>
+
+          <span className="ministry-badge">{ministry.category || 'Department'}</span>
           <h1 className="ministry-detail-title">{ministry.title}</h1>
 
           {ministry.meeting && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '14.5px', color: 'rgba(255,255,255,0.9)' }}>
-              <span>🕒 <strong>Meeting:</strong> {ministry.meeting}</span>
-              {ministry.venue && <span>📍 <strong>Venue:</strong> {ministry.venue}</span>}
+            <div className="ministry-detail-meta-row">
+              <span className="ministry-detail-meta-chip">🕒 <strong>Meeting:</strong> {ministry.meeting}</span>
+              {ministry.venue && <span className="ministry-detail-meta-chip">📍 <strong>Venue:</strong> {ministry.venue}</span>}
             </div>
           )}
 
@@ -143,77 +147,87 @@ export default function MinistryDetail() {
               src={getImageUrl(ministry.image_url)}
               alt={ministry.title}
               className="ministry-cover-img"
+              loading="lazy"
             />
 
             <div className="ministry-main-content">
               {/* Overview & About */}
               <h2 className="ministry-section-title">
-                <span>📖</span> About This Ministry
+                <span>📖</span> About This Department
               </h2>
               <p className="ministry-lead-text">
                 {ministry.fullDescription || ministry.description}
               </p>
 
               {ministry.responsibilities && (
-                <div style={{ marginBottom: '32px' }}>
-                  <h3 className="ministry-section-title">
+                <div className="ministry-info-callout">
+                  <h3 className="ministry-section-title" style={{ fontSize: '17px', marginBottom: '8px' }}>
                     <span>⚡</span> Core Responsibilities
                   </h3>
-                  <p style={{ color: '#44554d', fontSize: '15px', lineHeight: 1.65 }}>
+                  <p>
                     {ministry.responsibilities}
                   </p>
                 </div>
               )}
 
               {ministry.idealFor && (
-                <div style={{ marginBottom: '36px' }}>
-                  <h3 className="ministry-section-title">
+                <div className="ministry-info-callout">
+                  <h3 className="ministry-section-title" style={{ fontSize: '17px', marginBottom: '8px' }}>
                     <span>🎯</span> Who Should Join?
                   </h3>
-                  <p style={{ color: '#44554d', fontSize: '15px', lineHeight: 1.65 }}>
+                  <p>
                     {ministry.idealFor}
                   </p>
                 </div>
               )}
 
-              {/* Leadership & Assistants Section ("Assistances") */}
+              {/* Leadership & Assistants Section */}
               <div className="leadership-box">
                 <h3 className="ministry-section-title" style={{ marginBottom: '6px' }}>
-                  <span>👥</span> Ministry Leadership &amp; Assistants
+                  <span>👥</span> Department Leadership &amp; Assistants
                 </h3>
-                <p style={{ fontSize: '14px', color: '#65776f', margin: '0 0 24px' }}>
-                  Meet the leader and assistants coordinating the affairs, spiritual growth, and activities of this ministry.
+                <p style={{ fontSize: '13.5px', color: '#5d7088', margin: '0 0 20px' }}>
+                  Meet the leader and assistants coordinating the affairs, spiritual growth, and activities of this team.
                 </p>
 
                 {/* Primary Leader */}
                 {leader && (
                   <div>
                     <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--moss-deep)', display: 'block', marginBottom: '8px' }}>
-                      Ministry Leader
+                      Head Leader
                     </span>
                     <div className="leader-card-featured">
                       <img
                         src={getImageUrl(leader.image_url) || '/images/pensafallback-bw.png'}
                         alt={leader.name}
                         className="leader-avatar"
+                        loading="lazy"
                       />
                       <div className="leader-info">
                         <h4>{leader.name}</h4>
                         <span className="leader-role-badge">{leader.role}</span>
                         {leader.bio && <p className="leader-bio">{leader.bio}</p>}
                         <div className="leader-contacts">
-                          {leader.phone && <span>☎ {leader.phone}</span>}
-                          {leader.email && <span>✉ {leader.email}</span>}
+                          {leader.phone && (
+                            <a href={`tel:${leader.phone.replace(/\s+/g, '')}`} className="leader-contact-pill" title="Call Leader">
+                              <span>☎</span> {leader.phone}
+                            </a>
+                          )}
+                          {leader.email && (
+                            <a href={`mailto:${leader.email}`} className="leader-contact-pill" title="Email Leader">
+                              <span>✉</span> {leader.email}
+                            </a>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Assistants / "Assistances" */}
+                {/* Assistants */}
                 {assistants.length > 0 && (
-                  <div>
-                    <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--moss-deep)', display: 'block', marginBottom: '12px' }}>
+                  <div style={{ marginTop: '20px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--moss-deep)', display: 'block', marginBottom: '10px' }}>
                       Assistant Leaders ({assistants.length})
                     </span>
                     <div className="assistants-grid">
@@ -223,11 +237,16 @@ export default function MinistryDetail() {
                             src={getImageUrl(ast.image_url) || '/images/pensafallback-bw.png'}
                             alt={ast.name}
                             className="assistant-avatar"
+                            loading="lazy"
                           />
                           <div className="assistant-info">
                             <h5>{ast.name}</h5>
                             <div className="assistant-role">{ast.role}</div>
-                            {ast.phone && <div className="assistant-phone">☎ {ast.phone}</div>}
+                            {ast.phone && (
+                              <a href={`tel:${ast.phone.replace(/\s+/g, '')}`} className="assistant-phone">
+                                ☎ {ast.phone}
+                              </a>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -235,16 +254,14 @@ export default function MinistryDetail() {
                   </div>
                 )}
               </div>
-
-
             </div>
           </div>
 
-          {/* Right Column: Sidebar (Quick Details & Contact) */}
-          <aside>
+          {/* Right Column: Sidebar */}
+          <aside className="ministry-detail-sidebar">
             {/* Quick Overview Card */}
             <div className="ministry-sidebar-card">
-              <h3 style={{ fontSize: '17px', color: 'var(--pine-deep)', margin: '0 0 16px', fontWeight: 700 }}>
+              <h3 className="sidebar-card-title">
                 Quick Details
               </h3>
 
@@ -281,28 +298,29 @@ export default function MinistryDetail() {
               </div>
             </div>
 
-            <div style={{ background: '#fff', borderRadius: '18px', padding: '22px', border: '1px solid var(--line)', marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '16px', color: 'var(--pine-deep)', margin: '0 0 8px', fontWeight: 700 }}>
+            {/* Get In Touch Card */}
+            <div className="ministry-sidebar-touch-card">
+              <h4 className="sidebar-card-title" style={{ fontSize: '16px' }}>
                 Get In Touch
               </h4>
-              <p style={{ fontSize: '13.5px', color: '#55665e', lineHeight: 1.55, margin: '0 0 16px' }}>
-                Have questions about {ministry.title}? Speak with the ministry leadership after any service or reach out through our contact page.
+              <p className="sidebar-touch-desc">
+                Have questions about {ministry.title}? Speak with the team leadership after any service or reach out through our contact page.
               </p>
-              <Link to="/contact" className="btn btn-dark" style={{ width: '100%', justifyContent: 'center', fontSize: '13.5px' }}>
+              <Link to="/contact" className="btn btn-dark sidebar-touch-btn">
                 Contact Fellowship &rarr;
               </Link>
             </div>
 
             {/* Key Regular Activities */}
             {ministry.activities && ministry.activities.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: '18px', padding: '22px', border: '1px solid var(--line)', marginBottom: '24px' }}>
-                <h4 style={{ fontSize: '16px', color: 'var(--pine-deep)', margin: '0 0 14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="ministry-activities-card">
+                <h4 className="sidebar-card-title" style={{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>🗓️</span> Key Regular Activities
                 </h4>
-                <ul style={{ paddingLeft: '0', listStyle: 'none', margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <ul className="activities-list">
                   {ministry.activities.map((act, index) => (
-                    <li key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13.5px', color: '#3c4e45', lineHeight: 1.5 }}>
-                      <span style={{ color: 'var(--moss-deep)', fontWeight: 800, marginTop: '2px', flexShrink: 0 }}>✓</span>
+                    <li key={index} className="activity-item">
+                      <span className="activity-check">✓</span>
                       <span>{act}</span>
                     </li>
                   ))}
@@ -310,39 +328,30 @@ export default function MinistryDetail() {
               </div>
             )}
 
-            {/* Other Ministries Navigation */}
+            {/* Other Departments & Teams Navigation */}
             {otherMinistries.length > 0 && (
-              <div style={{ marginTop: '24px', background: '#fff', borderRadius: '18px', padding: '20px', border: '1px solid var(--line)' }}>
-                <h4 style={{ fontSize: '15px', color: 'var(--pine-deep)', marginBottom: '14px', fontWeight: 700 }}>
-                  Explore Other Ministries
+              <div className="other-dept-container">
+                <h4 className="sidebar-card-title" style={{ fontSize: '15px' }}>
+                  Explore Other Departments
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div className="other-dept-list">
                   {otherMinistries.map((om) => (
                     <Link
                       key={om.id}
-                      to={`/ministries/${om.id}`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        background: '#f8faf9',
-                        textDecoration: 'none',
-                        color: 'var(--pine-deep)',
-                        fontSize: '13.5px',
-                        fontWeight: 600,
-                        border: '1px solid #e7eee9',
-                        transition: 'all 0.2s',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#edf5ef'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = '#f8faf9'; }}
+                      to={`/departments-and-teams/${om.id}`}
+                      className="other-dept-link"
                     >
                       <span>{om.title}</span>
-                      <span style={{ color: 'var(--moss-deep)' }}>→</span>
+                      <span className="arrow">&rarr;</span>
                     </Link>
                   ))}
                 </div>
+                <Link
+                  to="/departments-and-teams"
+                  className="all-dept-link"
+                >
+                  View All Departments &amp; Teams &rarr;
+                </Link>
               </div>
             )}
           </aside>

@@ -1,21 +1,22 @@
 /* ==========================================================================
-   PENSA TTU - MINISTRIES PAGE (Mobile-First & Desktop Responsive Styles)
+   PENSA TTU - DEPARTMENTS & TEAMS (Mobile-First & Desktop Responsive Styles)
+   Project Colors: Navy (#0A2E5C), Royal Blue (#0E4C92), Sky Blue (#4FA6FF)
    ========================================================================== */
 
 /* Page Wrapper */
 .ministries-page {
-  background: var(--paper, #fcfcfb);
+  background: var(--paper, #fafbfd);
   min-height: 100vh;
   padding-bottom: 0;
   overflow-x: hidden;
 }
 
 /* --------------------------------------------------------------------------
-   1. HERO SECTION
+   1. HERO SECTION (Using Project Colors: Deep Navy & Royal Blue)
    -------------------------------------------------------------------------- */
 .ministries-hero {
   position: relative;
-  background: linear-gradient(145deg, #092319 0%, #0f3527 60%, #154533 100%);
+  background: linear-gradient(145deg, #061933 0%, #0A2E5C 55%, #0E4C92 100%);
   color: #fff;
   padding: 56px 0 48px;
   overflow: hidden;
@@ -26,15 +27,15 @@
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at 85% 15%, rgba(196, 240, 146, 0.15) 0%, transparent 55%),
-    radial-gradient(circle at 10% 90%, rgba(30, 92, 60, 0.25) 0%, transparent 60%);
+    radial-gradient(circle at 85% 15%, rgba(79, 166, 255, 0.18) 0%, transparent 55%),
+    radial-gradient(circle at 10% 90%, rgba(38, 115, 214, 0.22) 0%, transparent 60%);
   pointer-events: none;
 }
 
 .ministries-hero-bg {
   position: absolute;
   inset: 0;
-  opacity: 0.18;
+  opacity: 0.15;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
@@ -55,9 +56,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(196, 240, 146, 0.15);
-  border: 1px solid rgba(196, 240, 146, 0.35);
-  color: var(--moss, #c4f092);
+  background: rgba(79, 166, 255, 0.16);
+  border: 1px solid rgba(79, 166, 255, 0.38);
+  color: var(--moss, #4FA6FF);
   padding: 6px 14px;
   border-radius: 999px;
   font-family: 'JetBrains Mono', monospace;
@@ -73,8 +74,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #4ade80;
-  box-shadow: 0 0 10px #4ade80;
+  background: #4FA6FF;
+  box-shadow: 0 0 10px #4FA6FF;
   display: inline-block;
 }
 
@@ -90,12 +91,12 @@
 
 .ministries-hero-title em {
   font-style: italic;
-  color: var(--moss, #c4f092);
+  color: var(--moss, #4FA6FF);
 }
 
 .ministries-hero-lead {
   font-size: clamp(14px, 2.2vw, 16px);
-  color: rgba(255, 255, 255, 0.84);
+  color: rgba(255, 255, 255, 0.88);
   line-height: 1.65;
   margin: 0 0 22px;
   max-width: 680px;
@@ -112,12 +113,12 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 5px 12px;
   border-radius: 999px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(6px);
 }
 
@@ -126,7 +127,7 @@
    -------------------------------------------------------------------------- */
 .ministries-filter-section {
   background: #fff;
-  border-bottom: 1px solid var(--line, #e2e8e5);
+  border-bottom: 1px solid var(--line, rgba(14, 76, 146, 0.12));
   position: relative;
   z-index: 10;
 }
@@ -157,7 +158,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--moss-deep, #1e5c3c);
+  color: var(--moss-deep, #2673D6);
   margin-bottom: 4px;
 }
 
@@ -165,7 +166,7 @@
   font-size: clamp(20px, 3.5vw, 26px);
   font-family: 'Fraunces', serif;
   font-weight: 700;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   margin: 0;
 }
 
@@ -191,11 +192,11 @@
   height: 44px;
   padding: 0 38px 0 40px;
   border-radius: 999px;
-  border: 1.5px solid var(--line, #d8e2dc);
-  background: #f7faf8;
+  border: 1.5px solid #d4e2f0;
+  background: #f7faff;
   font-family: inherit;
   font-size: 14px;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   outline: none;
   transition: all 0.2s ease;
   -webkit-appearance: none;
@@ -203,8 +204,8 @@
 
 .ministries-search-input:focus {
   background: #fff;
-  border-color: var(--moss-deep, #1e5c3c);
-  box-shadow: 0 0 0 3px rgba(30, 92, 60, 0.12);
+  border-color: var(--moss-deep, #2673D6);
+  box-shadow: 0 0 0 3px rgba(38, 115, 214, 0.15);
 }
 
 .ministries-search-clear {
@@ -212,7 +213,7 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  background: #e2e8e5;
+  background: #e2eaf4;
   border: none;
   width: 22px;
   height: 22px;
@@ -227,8 +228,8 @@
 }
 
 .ministries-search-clear:hover {
-  background: #cbd8d1;
-  color: #0c2b20;
+  background: #c6d9ed;
+  color: #0A2E5C;
 }
 
 /* Category Pills - Horizontal Scroll on Mobile */
@@ -246,11 +247,11 @@
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 
 .ministries-pills-scroll::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
+  display: none;
 }
 
 .ministry-category-pill {
@@ -259,9 +260,9 @@
   height: 36px;
   padding: 0 16px;
   border-radius: 999px;
-  background: #f0f4f2;
-  border: 1px solid #d8e2dc;
-  color: #3b5046;
+  background: #f0f5fc;
+  border: 1px solid #d2e2f3;
+  color: #2b496e;
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -275,16 +276,16 @@
 }
 
 .ministry-category-pill:hover {
-  background: #e4eee8;
-  border-color: #c4d4cc;
-  color: var(--pine-deep, #0c2b20);
+  background: #e3effc;
+  border-color: #b8d4f4;
+  color: var(--pine-deep, #0A2E5C);
 }
 
 .ministry-category-pill.active {
-  background: var(--pine-deep, #0c2b20);
-  border-color: var(--pine-deep, #0c2b20);
-  color: var(--moss, #c4f092);
-  box-shadow: 0 3px 12px rgba(12, 43, 32, 0.18);
+  background: var(--pine-deep, #0A2E5C);
+  border-color: var(--pine-deep, #0A2E5C);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(10, 46, 92, 0.25);
 }
 
 .ministry-category-pill:active {
@@ -292,10 +293,10 @@
 }
 
 /* --------------------------------------------------------------------------
-   3. MINISTRIES RESULTS & GRID
+   3. DEPARTMENTS & TEAMS RESULTS & GRID
    -------------------------------------------------------------------------- */
 .ministries-body-section {
-  background: var(--paper, #fcfcfb);
+  background: var(--paper, #fafbfd);
   padding: 28px 0 60px;
 }
 
@@ -306,18 +307,18 @@
   gap: 12px;
   margin-bottom: 22px;
   font-size: 14px;
-  color: #55665e;
+  color: #4B5B52;
 }
 
 .ministries-results-count strong {
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   font-weight: 700;
 }
 
 .ministries-reset-btn {
-  background: rgba(30, 92, 60, 0.08);
-  border: 1px solid rgba(30, 92, 60, 0.2);
-  color: var(--moss-deep, #1e5c3c);
+  background: rgba(38, 115, 214, 0.08);
+  border: 1px solid rgba(38, 115, 214, 0.25);
+  color: var(--moss-deep, #2673D6);
   padding: 4px 12px;
   border-radius: 999px;
   font-size: 12.5px;
@@ -330,7 +331,7 @@
 }
 
 .ministries-reset-btn:hover {
-  background: rgba(30, 92, 60, 0.15);
+  background: rgba(38, 115, 214, 0.16);
 }
 
 /* Grid layout */
@@ -347,8 +348,8 @@
   justify-content: space-between;
   background: #fff;
   border-radius: 20px;
-  border: 1px solid #dce6e1;
-  box-shadow: 0 4px 18px rgba(12, 43, 32, 0.04);
+  border: 1px solid #dbe6f2;
+  box-shadow: 0 4px 18px rgba(10, 46, 92, 0.04);
   overflow: hidden;
   text-decoration: none;
   color: inherit;
@@ -359,8 +360,8 @@
 
 .ministry-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 32px rgba(12, 43, 32, 0.1);
-  border-color: #b8ccbf;
+  box-shadow: 0 14px 32px rgba(10, 46, 92, 0.1);
+  border-color: #aecdff;
 }
 
 .ministry-card:active {
@@ -372,7 +373,7 @@
   position: relative;
   width: 100%;
   height: 200px;
-  background: #0f3527;
+  background: #0A2E5C;
   overflow: hidden;
 }
 
@@ -391,7 +392,7 @@
 .ministry-card-cover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(12, 43, 32, 0.55) 100%);
+  background: linear-gradient(180deg, rgba(6, 25, 51, 0.06) 0%, rgba(10, 46, 92, 0.62) 100%);
   pointer-events: none;
 }
 
@@ -399,7 +400,7 @@
   position: absolute;
   top: 12px;
   left: 12px;
-  background: rgba(12, 43, 32, 0.88);
+  background: rgba(10, 46, 92, 0.9);
   color: #fff;
   padding: 4px 11px;
   border-radius: 999px;
@@ -407,7 +408,7 @@
   font-weight: 700;
   letter-spacing: 0.03em;
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -423,14 +424,14 @@
   font-family: 'Fraunces', serif;
   font-size: 19px;
   font-weight: 700;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   margin: 0 0 8px;
   line-height: 1.25;
 }
 
 .ministry-card-desc {
   font-size: 13.5px;
-  color: #55665e;
+  color: #4B5B52;
   line-height: 1.55;
   margin: 0 0 14px;
   display: -webkit-box;
@@ -444,9 +445,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #f1f6f3;
-  border: 1px solid #dce8e1;
-  color: var(--moss-deep, #1e5c3c);
+  background: #EBF3FC;
+  border: 1px solid #D2E4F9;
+  color: var(--moss-deep, #2673D6);
   padding: 5px 10px;
   border-radius: 8px;
   font-size: 12px;
@@ -458,16 +459,16 @@
 /* Card Bottom Action Bar */
 .ministry-card-footer {
   padding: 12px 22px 14px;
-  border-top: 1px solid #edf2ef;
+  border-top: 1px solid #ebf2fa;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fafcfb;
+  background: #fbfdff;
 }
 
 .ministry-card-leader {
   font-size: 12px;
-  color: #667770;
+  color: #5d7088;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -481,7 +482,7 @@
 .ministry-card-action-btn {
   font-size: 13px;
   font-weight: 700;
-  color: var(--moss-deep, #1e5c3c);
+  color: var(--moss-deep, #2673D6);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -489,7 +490,7 @@
 }
 
 .ministry-card:hover .ministry-card-action-btn {
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   gap: 8px;
 }
 
@@ -501,7 +502,7 @@
   padding: 50px 24px;
   background: #fff;
   border-radius: 20px;
-  border: 1px solid #dce6e1;
+  border: 1px solid #dce6f2;
   max-width: 520px;
   margin: 20px auto 40px;
 }
@@ -510,8 +511,8 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: #f0f6f2;
-  color: var(--moss-deep, #1e5c3c);
+  background: #ebf3fc;
+  color: var(--moss-deep, #2673D6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -522,13 +523,13 @@
 .ministries-empty-card h3 {
   font-family: 'Fraunces', serif;
   font-size: 20px;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   margin: 0 0 8px;
 }
 
 .ministries-empty-card p {
   font-size: 14px;
-  color: #667770;
+  color: #5d7088;
   line-height: 1.5;
   margin: 0 0 20px;
 }
@@ -539,7 +540,7 @@
 .ministries-values-section {
   background: #fff;
   padding: 60px 0;
-  border-top: 1px solid var(--line, #e2e8e5);
+  border-top: 1px solid var(--line, rgba(14, 76, 146, 0.12));
 }
 
 .ministries-values-grid {
@@ -550,8 +551,8 @@
 }
 
 .ministries-value-item {
-  background: #f8faf9;
-  border: 1px solid #e1e9e4;
+  background: #f8fbff;
+  border: 1px solid #dce8f5;
   border-radius: 18px;
   padding: 24px 20px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -559,14 +560,14 @@
 
 .ministries-value-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(12, 43, 32, 0.05);
+  box-shadow: 0 6px 18px rgba(10, 46, 92, 0.06);
 }
 
 .ministries-value-icon {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #e9f2ec;
+  background: #e9f2fd;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -577,13 +578,13 @@
 .ministries-value-item h3 {
   font-size: 16px;
   font-weight: 700;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   margin: 0 0 8px;
 }
 
 .ministries-value-item p {
   font-size: 13.5px;
-  color: #55665e;
+  color: #4B5B52;
   line-height: 1.55;
   margin: 0;
 }
@@ -592,9 +593,9 @@
    6. BOTTOM CTA
    -------------------------------------------------------------------------- */
 .ministries-cta-section {
-  background: var(--sand, #f0efe8);
+  background: var(--sand, #E9F1FB);
   padding: 60px 0;
-  border-top: 1px solid #e0dfd6;
+  border-top: 1px solid #d3e2f5;
 }
 
 .ministries-cta-box {
@@ -606,18 +607,18 @@
 .ministries-cta-title {
   font-family: 'Fraunces', serif;
   font-size: clamp(24px, 4vw, 36px);
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   margin: 0 0 14px;
 }
 
 .ministries-cta-title em {
-  color: var(--moss-deep, #1e5c3c);
+  color: var(--moss-deep, #2673D6);
   font-style: italic;
 }
 
 .ministries-cta-desc {
   font-size: 15px;
-  color: #55665e;
+  color: #4B5B52;
   line-height: 1.6;
   margin: 0 0 24px;
 }
@@ -635,7 +636,7 @@
 .ministries-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 24, 18, 0.72);
+  background: rgba(6, 25, 51, 0.72);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -657,7 +658,7 @@
   width: 100%;
   max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
   position: relative;
   animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -698,7 +699,7 @@
   position: relative;
   height: 200px;
   width: 100%;
-  background: #0f3527;
+  background: #0A2E5C;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -712,7 +713,7 @@
 .ministries-modal-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(10, 32, 24, 0.9) 100%);
+  background: linear-gradient(180deg, rgba(6, 25, 51, 0.1) 0%, rgba(10, 46, 92, 0.92) 100%);
   display: flex;
   align-items: flex-end;
   padding: 20px 24px;
@@ -720,8 +721,8 @@
 
 .ministries-modal-cat-tag {
   display: inline-block;
-  background: var(--moss, #c4f092);
-  color: var(--pine-deep, #0c2b20);
+  background: var(--moss, #4FA6FF);
+  color: var(--pine-deep, #0A2E5C);
   font-size: 11.5px;
   font-weight: 700;
   padding: 3px 10px;
@@ -745,8 +746,8 @@
 }
 
 .ministries-modal-meeting-box {
-  background: #f1f6f3;
-  border: 1px solid #dce8e1;
+  background: #EBF3FC;
+  border: 1px solid #D2E4F9;
   padding: 12px 14px;
   border-radius: 12px;
   margin-bottom: 18px;
@@ -758,14 +759,14 @@
 .ministries-modal-meeting-box strong {
   display: block;
   font-size: 12px;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .ministries-modal-meeting-box span {
   font-size: 13.5px;
-  color: var(--moss-deep, #1e5c3c);
+  color: var(--moss-deep, #2673D6);
   font-weight: 600;
 }
 
@@ -777,7 +778,7 @@
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   margin-bottom: 5px;
 }
 
@@ -788,11 +789,11 @@
   height: 44px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1.5px solid var(--line, #d8e2dc);
+  border: 1.5px solid #d4e2f0;
   background: #fff;
   font-family: inherit;
   font-size: 14px;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
@@ -807,8 +808,8 @@
 .ministries-form-input:focus,
 .ministries-form-select:focus,
 .ministries-form-textarea:focus {
-  border-color: var(--moss-deep, #1e5c3c);
-  box-shadow: 0 0 0 3px rgba(30, 92, 60, 0.12);
+  border-color: var(--moss-deep, #2673D6);
+  box-shadow: 0 0 0 3px rgba(38, 115, 214, 0.15);
 }
 
 .ministries-form-row {
@@ -865,7 +866,7 @@
 
   .ministries-search-input {
     height: 46px;
-    font-size: 15px; /* Prevents auto-zoom on iOS Safari */
+    font-size: 16px; /* Prevents auto-zoom on iOS Safari */
   }
 
   /* Make pill chips extra touch-friendly */
@@ -880,7 +881,7 @@
     font-size: 12.5px;
   }
 
-  /* 1-column layout for ministries cards on mobile */
+  /* 1-column layout for cards on mobile */
   .ministries-cards-grid {
     grid-template-columns: 1fr;
     gap: 18px;
@@ -905,7 +906,7 @@
   .ministry-card-desc {
     font-size: 13px;
     margin-bottom: 10px;
-    -webkit-line-clamp: 2; /* Keep cards compact on mobile */
+    -webkit-line-clamp: 2;
   }
 
   .ministry-card-footer {
@@ -915,14 +916,14 @@
   .ministry-card-action-btn {
     font-size: 13.5px;
     padding: 6px 12px;
-    background: #eef5f0;
+    background: #eef5fc;
     border-radius: 999px;
   }
 
   /* Modal on mobile */
   .ministries-modal-overlay {
     padding: 10px;
-    align-items: flex-end; /* Bottom sheet appearance on mobile */
+    align-items: flex-end;
   }
 
   .ministries-modal-dialog {
@@ -954,7 +955,7 @@
   .ministries-form-input,
   .ministries-form-select,
   .ministries-form-textarea {
-    font-size: 16px; /* Essential: Prevents iOS Safari viewport zoom */
+    font-size: 16px;
     height: 46px;
   }
 

@@ -341,7 +341,7 @@ export default function AdminMinistryForm({ isNew: isNewProp }) {
         <div className="editor-header-actions">
           {!isNew && (
             <a
-              href={`/ministries/${id}`}
+              href={`/departments-and-teams/${id}`}
               target="_blank"
               rel="noreferrer"
               className="btn-editor-live"

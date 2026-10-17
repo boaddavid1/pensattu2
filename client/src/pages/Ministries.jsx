@@ -128,18 +128,18 @@ export default function Ministries() {
           <div className="ministries-hero-inner">
             <span className="ministries-hero-badge">
               <span className="pulse-dot" />
-              Ministries &bull; Departments &amp; Teams
+              Departments &amp; Teams
             </span>
             <h1 className="ministries-hero-title">
               Serving with passion, <em>growing together in Christ</em>.
             </h1>
             <p className="ministries-hero-lead">
-              Every ministry and team at PENSA TTU exists to build God's Kingdom, equip believers,
+              Every department and team at PENSA TTU exists to build God's Kingdom, equip believers,
               and provide a vibrant family where your spiritual gifts find true purpose.
             </p>
             <div className="ministries-hero-stats">
               <span className="ministries-hero-pill">
-                ✨ {ministries.length} Active Ministries
+                ✨ {ministries.length} Active Departments
               </span>
               <span className="ministries-hero-pill">
                 👥 Open to All Academic Levels
@@ -159,7 +159,7 @@ export default function Ministries() {
             <div className="ministries-filter-head">
               <div className="ministries-filter-titles">
                 <span className="ministries-filter-eyebrow">Find Your Calling</span>
-                <h2 className="ministries-filter-heading">Explore Our Ministries</h2>
+                <h2 className="ministries-filter-heading">Explore Departments &amp; Teams</h2>
               </div>
               <div className="ministries-search-box">
                 <span className="ministries-search-icon">
@@ -171,10 +171,10 @@ export default function Ministries() {
                 <input
                   type="text"
                   className="ministries-search-input"
-                  placeholder="Search ministry or keyword..."
+                  placeholder="Search department, team or keyword..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  aria-label="Search ministries"
+                  aria-label="Search departments"
                 />
                 {searchQuery && (
                   <button
@@ -215,7 +215,7 @@ export default function Ministries() {
         <div className="wrap">
           <div className="ministries-results-bar">
             <span className="ministries-results-count">
-              Showing <strong>{filteredMinistries.length}</strong> {filteredMinistries.length === 1 ? 'ministry' : 'ministries'}
+              Showing <strong>{filteredMinistries.length}</strong> {filteredMinistries.length === 1 ? 'department or team' : 'departments & teams'}
             </span>
             {(activeCategory !== 'All' || searchQuery) && (
               <button
@@ -231,7 +231,7 @@ export default function Ministries() {
           <div className="ministries-cards-grid">
             {filteredMinistries.map((min) => (
               <Link
-                to={`/ministries/${min.id}`}
+                to={`/departments-and-teams/${min.id}`}
                 className="ministry-card"
                 key={min.id}
               >
@@ -275,8 +275,8 @@ export default function Ministries() {
           {filteredMinistries.length === 0 && (
             <div className="ministries-empty-card">
               <div className="ministries-empty-icon">🔍</div>
-              <h3>No ministry found</h3>
-              <p>We couldn't find any ministry matching "{searchQuery || activeCategory}". Try searching with different keywords or clear filters.</p>
+              <h3>No department or team found</h3>
+              <p>We couldn't find any department or team matching "{searchQuery || activeCategory}". Try searching with different keywords or clear filters.</p>
               <button
                 type="button"
                 className="btn btn-dark"
@@ -296,7 +296,7 @@ export default function Ministries() {
             <span className="eyebrow">Why Serve</span>
             <h2>More than volunteering — <em>it's discipleship</em>.</h2>
             <p>
-              Joining a ministry is one of the quickest ways to build deep friendships,
+              Joining a department or team is one of the quickest ways to build deep friendships,
               discover your leadership potential, and leave a permanent mark on campus.
             </p>
           </div>
@@ -334,7 +334,7 @@ export default function Ministries() {
               Every member has a <em>place to belong</em>.
             </h2>
             <p className="ministries-cta-desc">
-              Still unsure which ministry suits you best? Reach out to our leadership team or speak to any executive after Sunday service.
+              Still unsure which department or team suits you best? Reach out to our leadership team or speak to any executive after Sunday service.
             </p>
             <div className="ministries-cta-actions">
               <Link to="/contact" className="btn btn-dark">

@@ -46,13 +46,13 @@ export default function Services() {
         </div>
         <div className="service-grid">
           {departments.map((m) => (
-            <Link to="/ministries" className="service-card" key={m.id} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+            <Link to={`/departments-and-teams/${m.id}`} className="service-card" key={m.id} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
               <div className="img"><img src={getImageUrl(m.image_url)} alt={m.title} /></div>
               <div className="body">
                 <h3>{m.title}</h3>
                 <p>{m.description}</p>
                 <span style={{ display: 'inline-block', marginTop: '10px', fontSize: '13px', fontWeight: '600', color: 'var(--moss-deep)' }}>
-                  Explore ministry &rarr;
+                  Explore department &rarr;
                 </span>
               </div>
             </Link>

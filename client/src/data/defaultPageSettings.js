@@ -154,8 +154,8 @@ export const DEFAULT_HOME_SETTINGS = {
   ],
   hero_btn1_text: 'About us',
   hero_btn1_link: '/about',
-  hero_btn2_text: 'Explore Ministries',
-  hero_btn2_link: '/ministries',
+  hero_btn2_text: 'Explore Departments',
+  hero_btn2_link: '/departments-and-teams',
 
   // 2. Trail Ticker
   trail_items: [
@@ -210,9 +210,9 @@ export const DEFAULT_HOME_SETTINGS = {
 
   // 8. Ministries & Teams Showcase
   ministries_eyebrow: 'Get involved',
-  ministries_title: 'Ministries & Teams built around how you are wired.',
-  ministries_btn_text: 'See all ministries & teams',
-  ministries_btn_link: '/ministries',
+  ministries_title: 'Departments & Teams built around how you are wired.',
+  ministries_btn_text: 'See all departments & teams',
+  ministries_btn_link: '/departments-and-teams',
 
   // 9. Testimonial & Service Schedule
   testi_eyebrow: 'What our members say',

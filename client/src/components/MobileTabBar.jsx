@@ -56,7 +56,6 @@ const tabs = [
 ];
 
 const moreLinks = [
-  { to: '/ministries', label: 'Ministries' },
   { to: '/departments-and-teams', label: 'Departments & Teams' },
   { to: '/leadership', label: 'Leadership' },
   { to: '/notice-board', label: 'News' },

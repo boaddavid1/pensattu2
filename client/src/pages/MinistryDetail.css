@@ -1,15 +1,23 @@
-/* Ministry Detail Page Styles */
+/* ==========================================================================
+   PENSA TTU - DEPARTMENT & TEAM DETAIL PAGE STYLES
+   Project Colors: Navy (#0A2E5C), Royal Blue (#0E4C92), Sky Blue (#4FA6FF)
+   ========================================================================== */
+
+/* Page Wrapper */
 .ministry-detail-page {
-  background: var(--paper, #fbfbf9);
+  background: var(--paper, #fafbfd);
   min-height: 100vh;
-  padding-bottom: 80px;
+  padding-bottom: 70px;
 }
 
+/* --------------------------------------------------------------------------
+   1. HERO BANNER (Project Royal Navy & Sky Blue)
+   -------------------------------------------------------------------------- */
 .ministry-detail-hero {
   position: relative;
-  background: linear-gradient(135deg, var(--pine-deep, #0c2b20) 0%, var(--pine, #174233) 100%);
+  background: linear-gradient(135deg, #0A2E5C 0%, #0E4C92 100%);
   color: #fff;
-  padding: 60px 0 50px;
+  padding: 54px 0 44px;
   overflow: hidden;
 }
 
@@ -17,7 +25,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 80% 20%, rgba(196, 240, 146, 0.12) 0%, transparent 60%);
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(79, 166, 255, 0.18) 0%, transparent 60%),
+    radial-gradient(circle at 10% 80%, rgba(38, 115, 214, 0.22) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -25,160 +35,191 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 24px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .ministry-detail-breadcrumbs a {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.88);
   text-decoration: none;
   transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
 }
 
 .ministry-detail-breadcrumbs a:hover {
-  color: var(--moss, #c4f092);
+  color: var(--moss, #4FA6FF);
 }
 
 .ministry-badge {
   display: inline-block;
-  background: var(--moss, #c4f092);
-  color: var(--pine-deep, #0c2b20);
+  background: var(--moss, #4FA6FF);
+  color: var(--pine-deep, #0A2E5C);
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: 12px;
   padding: 4px 14px;
   border-radius: 100px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .ministry-detail-title {
   font-family: 'Fraunces', serif;
-  font-size: clamp(32px, 4vw, 46px);
+  font-size: clamp(28px, 4.2vw, 44px);
   font-weight: 700;
   line-height: 1.15;
   color: #fff;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+.ministry-detail-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.92);
+  margin-top: 10px;
+}
+
+.ministry-detail-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 5px 12px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
 }
 
 .ministry-detail-scripture {
   font-style: italic;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.82);
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.9);
   max-width: 760px;
   line-height: 1.6;
-  border-left: 3px solid var(--moss, #c4f092);
-  padding-left: 16px;
-  margin-top: 18px;
+  border-left: 3px solid var(--moss, #4FA6FF);
+  padding-left: 14px;
+  margin-top: 16px;
 }
 
-/* Two-column layout */
+/* --------------------------------------------------------------------------
+   2. TWO-COLUMN LAYOUT & MAIN CARD
+   -------------------------------------------------------------------------- */
 .ministry-detail-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 36px;
-  margin-top: 40px;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+  margin-top: 36px;
   align-items: start;
-}
-
-@media (max-width: 991px) {
-  .ministry-detail-layout {
-    grid-template-columns: 1fr;
-  }
 }
 
 .ministry-main-card {
   background: #fff;
   border-radius: 20px;
-  border: 1px solid var(--line, #e2e8e5);
+  border: 1px solid #dbe6f2;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(10, 46, 92, 0.04);
 }
 
 .ministry-cover-img {
   width: 100%;
-  height: 340px;
+  height: 320px;
   object-fit: cover;
   display: block;
 }
 
 .ministry-main-content {
-  padding: 36px 40px;
-}
-
-@media (max-width: 768px) {
-  .ministry-main-content {
-    padding: 24px;
-  }
+  padding: 34px 38px;
 }
 
 .ministry-section-title {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
-  color: var(--pine-deep, #0c2b20);
-  margin: 0 0 14px;
+  color: var(--pine-deep, #0A2E5C);
+  margin: 0 0 12px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .ministry-lead-text {
-  font-size: 16px;
+  font-size: 15.5px;
   line-height: 1.7;
-  color: #33443c;
+  color: #3b4e44;
   margin-bottom: 28px;
 }
 
-/* Leadership Highlight Section */
+.ministry-info-callout {
+  background: #f8fbff;
+  border: 1px solid #dce8f5;
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 26px;
+}
+
+.ministry-info-callout p {
+  color: #3b4e44;
+  font-size: 14.5px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   3. LEADERSHIP & ASSISTANTS SECTION
+   -------------------------------------------------------------------------- */
 .leadership-box {
-  background: #f7faf8;
+  background: #f6faff;
   border-radius: 18px;
-  padding: 30px;
-  margin: 36px 0;
-  border: 1px solid #dbe5df;
+  padding: 28px;
+  margin: 32px 0 10px;
+  border: 1px solid #dbe7f5;
 }
 
 .leader-card-featured {
   display: flex;
-  gap: 22px;
+  gap: 20px;
   align-items: center;
   background: #fff;
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid #d4ded8;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-  margin-bottom: 26px;
-}
-
-@media (max-width: 580px) {
-  leader-card-featured {
-    flex-direction: column;
-    text-align: center;
-  }
+  border: 1px solid #d6e3f2;
+  box-shadow: 0 2px 12px rgba(10, 46, 92, 0.04);
+  margin-bottom: 24px;
 }
 
 .leader-avatar {
-  width: 90px;
-  height: 90px;
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid var(--moss, #c4f092);
+  border: 3px solid var(--moss, #4FA6FF);
   flex-shrink: 0;
 }
 
+.leader-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .leader-info h4 {
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--pine-deep, #0c2b20);
+  color: var(--pine-deep, #0A2E5C);
   margin: 0 0 4px;
 }
 
 .leader-role-badge {
   display: inline-block;
-  background: #e4efe7;
-  color: #174233;
-  font-size: 13px;
+  background: #EBF3FC;
+  color: var(--pine, #0E4C92);
+  font-size: 12.5px;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 6px;
@@ -189,85 +230,112 @@
   font-size: 13.5px;
   color: #55665e;
   line-height: 1.5;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
 }
 
 .leader-contacts {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   font-size: 13px;
-  color: var(--moss-deep, #1e5c3c);
+  color: var(--moss-deep, #2673D6);
   font-weight: 600;
   flex-wrap: wrap;
 }
 
-/* Assistants Grid ("Assistances") */
+.leader-contact-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0f5fc;
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--moss-deep, #2673D6);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.leader-contact-pill:hover {
+  background: #e1eefc;
+  color: var(--pine-deep, #0A2E5C);
+}
+
+/* Assistants Grid */
 .assistants-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
 }
 
 .assistant-card {
   background: #fff;
   border-radius: 14px;
-  padding: 18px;
-  border: 1px solid #d8e2dc;
+  padding: 16px;
+  border: 1px solid #d8e5f5;
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .assistant-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 16px rgba(10, 46, 92, 0.06);
 }
 
 .assistant-avatar {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #ccd8d1;
+  border: 2px solid #c9ddf2;
   flex-shrink: 0;
 }
 
+.assistant-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .assistant-info h5 {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: var(--pine-deep, #0c2b20);
-  margin: 0 0 3px;
+  color: var(--pine-deep, #0A2E5C);
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .assistant-role {
-  font-size: 12.5px;
-  color: #4a6358;
+  font-size: 12px;
+  color: #3b5a7a;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .assistant-phone {
-  font-size: 12px;
-  color: #72827a;
+  font-size: 11.5px;
+  color: #657e96;
 }
 
-/* Sidebar Box */
+/* --------------------------------------------------------------------------
+   4. SIDEBAR CARDS
+   -------------------------------------------------------------------------- */
 .ministry-sidebar-card {
   background: #fff;
   border-radius: 20px;
-  border: 1px solid var(--line, #e2e8e5);
-  padding: 26px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  border: 1px solid #dbe6f2;
+  padding: 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 16px rgba(10, 46, 92, 0.03);
 }
 
 .sidebar-info-row {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #f0f3f2;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f4fa;
 }
 
 .sidebar-info-row:last-child {
@@ -277,61 +345,393 @@
 }
 
 .sidebar-info-row .icon {
-  font-size: 20px;
+  font-size: 18px;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .sidebar-info-row strong {
   display: block;
-  font-size: 13px;
-  color: #708078;
+  font-size: 11.5px;
+  color: #6a7d92;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .sidebar-info-row span {
-  font-size: 15px;
-  color: var(--pine-deep, #0c2b20);
+  font-size: 14px;
+  color: var(--pine-deep, #0A2E5C);
   font-weight: 600;
 }
 
-
-
-/* Clickable card improvements in Ministries list */
-.service-card-clickable {
-  cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  position: relative;
-  text-decoration: none;
-  color: inherit;
+/* Quick Details & Card Title */
+.sidebar-card-title {
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  color: var(--pine-deep, #0A2E5C);
+  margin: 0 0 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.service-card-clickable:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 14px 34px rgba(12, 43, 32, 0.09) !important;
-  border-color: #cbd8d1 !important;
+/* Touch & Contact Card */
+.ministry-sidebar-touch-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #dbe6f2;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 16px rgba(10, 46, 92, 0.03);
 }
 
-.card-view-details-footer {
-  padding: 14px 24px 20px;
+.sidebar-touch-desc {
+  font-size: 13.5px;
+  color: #55665e;
+  line-height: 1.55;
+  margin: 0 0 16px;
+}
+
+.sidebar-touch-btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 13.5px;
+  padding: 12px;
+}
+
+/* Activities Card */
+.ministry-activities-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #dbe6f2;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 16px rgba(10, 46, 92, 0.03);
+}
+
+.activities-list {
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #2e4359;
+  line-height: 1.5;
+}
+
+.activity-check {
+  color: var(--moss-deep, #2673D6);
+  font-weight: 800;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Other Departments Navigation */
+.other-dept-container {
+  margin-top: 22px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 22px;
+  border: 1px solid #dbe6f2;
+  box-shadow: 0 4px 16px rgba(10, 46, 92, 0.03);
+}
+
+.other-dept-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.other-dept-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid #f2f5f4;
-  margin-top: auto;
-}
-
-.card-view-details-btn {
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-decoration: none;
+  color: var(--pine-deep, #0A2E5C);
   font-size: 13.5px;
-  font-weight: 700;
-  color: var(--moss-deep, #1e5c3c);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: gap 0.2s ease;
+  font-weight: 600;
+  border: 1px solid #e2ecf7;
+  transition: all 0.2s ease;
 }
 
-.service-card-clickable:hover .card-view-details-btn {
-  gap: 10px;
-  color: var(--pine-deep, #0c2b20);
+.other-dept-link:hover {
+  background: #eff6ff;
+  border-color: #bad5ff;
+  color: var(--moss-deep, #2673D6);
+  transform: translateX(3px);
+}
+
+.other-dept-link:active {
+  transform: scale(0.98);
+}
+
+.other-dept-link .arrow {
+  color: var(--moss-deep, #2673D6);
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.other-dept-link:hover .arrow {
+  transform: translateX(2px);
+}
+
+.all-dept-link {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--moss-deep, #2673D6);
+  text-decoration: none;
+  padding: 6px 0;
+  transition: color 0.2s;
+}
+
+.all-dept-link:hover {
+  text-decoration: underline;
+}
+
+.ministry-mobile-back-btn {
+  display: none;
+}
+
+/* ==========================================================================
+   MOBILE-SPECIFIC ENHANCEMENTS (< 991px & < 768px)
+   ========================================================================== */
+@media (max-width: 991px) {
+  .ministry-detail-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .ministry-cover-img {
+    height: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ministry-detail-page {
+    padding-bottom: 40px;
+  }
+
+  .ministry-detail-hero {
+    padding: 28px 0 24px;
+  }
+
+  .ministry-detail-breadcrumbs {
+    display: none;
+  }
+
+  .ministry-mobile-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 14px;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s;
+  }
+
+  .ministry-mobile-back-btn:active {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .ministry-badge {
+    font-size: 11px;
+    padding: 3px 12px;
+    margin-bottom: 10px;
+  }
+
+  .ministry-detail-title {
+    font-size: clamp(24px, 6vw, 32px);
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+
+  .ministry-detail-meta-row {
+    font-size: 12px;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .ministry-detail-meta-chip {
+    padding: 4px 10px;
+  }
+
+  .ministry-detail-scripture {
+    font-size: 13px;
+    padding-left: 10px;
+    margin-top: 14px;
+    border-left-width: 2px;
+  }
+
+  .ministry-detail-layout {
+    margin-top: 16px;
+    gap: 18px;
+  }
+
+  .ministry-main-card {
+    border-radius: 18px;
+    border: 1px solid #e1ebf5;
+  }
+
+  .ministry-cover-img {
+    height: 190px;
+  }
+
+  .ministry-main-content {
+    padding: 18px 14px;
+  }
+
+  .ministry-section-title {
+    font-size: 17px;
+    gap: 6px;
+  }
+
+  .ministry-lead-text {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  .ministry-info-callout {
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+
+  .ministry-info-callout p {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .leadership-box {
+    padding: 16px 12px;
+    border-radius: 16px;
+    margin: 20px 0 10px;
+  }
+
+  .leader-card-featured {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px 12px;
+    gap: 12px;
+    border-radius: 14px;
+  }
+
+  .leader-avatar {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto;
+  }
+
+  .leader-info h4 {
+    font-size: 17px;
+  }
+
+  .leader-role-badge {
+    font-size: 11.5px;
+    padding: 3px 10px;
+  }
+
+  .leader-bio {
+    font-size: 13px;
+    margin: 10px 0;
+  }
+
+  .leader-contacts {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .leader-contact-pill {
+    width: 100%;
+    justify-content: center;
+    padding: 9px 14px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .assistants-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .assistant-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .assistant-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .assistant-info h5 {
+    font-size: 14px;
+  }
+
+  .assistant-role {
+    font-size: 11.5px;
+  }
+
+  .assistant-phone {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    margin-top: 4px;
+    color: var(--moss-deep, #2673D6);
+    font-weight: 600;
+  }
+
+  .ministry-sidebar-card,
+  .ministry-sidebar-touch-card,
+  .ministry-activities-card,
+  .other-dept-container {
+    padding: 18px 14px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+  }
+
+  .sidebar-card-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .sidebar-info-row {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  .sidebar-info-row span {
+    font-size: 13px;
+  }
+
+  .sidebar-touch-btn {
+    min-height: 42px;
+  }
+
+  .other-dept-link {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
 }

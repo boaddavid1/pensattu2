@@ -20,12 +20,11 @@ export const defaultNavigation = {
         is_dropdown: true,
         children: [
           { id: 'sub-about', label: 'About Us', path: '/about' },
-          { id: 'sub-ministries', label: 'Ministries', path: '/ministries' },
           { id: 'sub-dept', label: 'Departments & Teams', path: '/departments-and-teams' },
           { id: 'sub-leadership', label: 'Leadership', path: '/leadership' },
         ],
       },
-      { id: 'nav-ministries', label: 'Ministries', path: '/ministries', is_dropdown: false },
+      { id: 'nav-departments', label: 'Departments & Teams', path: '/departments-and-teams', is_dropdown: false },
       {
         id: 'nav-feed',
         label: 'Feed',
@@ -67,7 +66,6 @@ export const defaultNavigation = {
         title: 'Church',
         links: [
           { id: 'c1-1', label: 'About Us', path: '/about' },
-          { id: 'c1-2', label: 'Ministries', path: '/ministries' },
           { id: 'c1-3', label: 'Departments & Teams', path: '/departments-and-teams' },
           { id: 'c1-4', label: 'Leadership', path: '/leadership' },
           { id: 'c1-5', label: 'Sermons', path: '/sermons' },
@@ -76,17 +74,85 @@ export const defaultNavigation = {
       },
       {
         id: 'col-2',
-        title: 'Ministries & Teams',
+        title: 'Departments & Teams',
         links: [
-          { id: 'c2-1', label: 'Worship & Music', path: '/ministries' },
-          { id: 'c2-2', label: 'Youth & Kids', path: '/ministries' },
-          { id: 'c2-3', label: 'Outreach & Missions', path: '/ministries' },
-          { id: 'c2-4', label: 'Bible Study & Prayer', path: '/ministries' },
+          { id: 'c2-1', label: 'Worship & Music', path: '/departments-and-teams' },
+          { id: 'c2-2', label: 'Youth & Kids', path: '/departments-and-teams' },
+          { id: 'c2-3', label: 'Outreach & Missions', path: '/departments-and-teams' },
+          { id: 'c2-4', label: 'Bible Study & Prayer', path: '/departments-and-teams' },
         ],
       },
     ],
   },
 };
+
+// Normalize and deduplicate navigation links so "Ministries" is seamlessly replaced by "Departments & Teams"
+function cleanNavData(raw) {
+  if (!raw) return defaultNavigation;
+  const nav = JSON.parse(JSON.stringify(raw));
+
+  const sanitizeLink = (link) => {
+    if (!link) return null;
+    let path = link.path || '';
+    let label = link.label || '';
+    if (path === '/ministries' || path === '/ministry' || path === '/departments') {
+      path = '/departments-and-teams';
+    }
+    if (label.toLowerCase() === 'ministries') {
+      label = 'Departments & Teams';
+    }
+    const children = Array.isArray(link.children)
+      ? dedupeList(link.children.map(sanitizeLink).filter(Boolean))
+      : undefined;
+
+    return {
+      ...link,
+      path,
+      label,
+      ...(children ? { children } : {}),
+    };
+  };
+
+  const dedupeList = (items) => {
+    if (!Array.isArray(items)) return [];
+    const seen = new Set();
+    const result = [];
+    for (const it of items) {
+      if (!it) continue;
+      const key = (it.path || '').toLowerCase();
+      if (key === '/departments-and-teams' || (it.label && it.label.toLowerCase() === 'departments & teams')) {
+        if (seen.has('dept-teams')) continue;
+        seen.add('dept-teams');
+      } else if (key && seen.has(key)) {
+        continue;
+      } else if (key) {
+        seen.add(key);
+      }
+      result.push(it);
+    }
+    return result;
+  };
+
+  if (nav.navbar && Array.isArray(nav.navbar.links)) {
+    const mapped = nav.navbar.links.map(sanitizeLink).filter(Boolean);
+    nav.navbar.links = dedupeList(mapped);
+  }
+
+  if (nav.footer && Array.isArray(nav.footer.columns)) {
+    nav.footer.columns = nav.footer.columns.map((col) => {
+      let title = col.title || '';
+      if (title.toLowerCase() === 'ministries & teams' || title.toLowerCase() === 'ministries') {
+        title = 'Departments & Teams';
+      }
+      const links = Array.isArray(col.links)
+        ? dedupeList(col.links.map(sanitizeLink).filter(Boolean))
+        : [];
+      return { ...col, title, links };
+    });
+  }
+
+  return nav;
+}
 
 const NavigationContext = createContext({
   navData: defaultNavigation,
@@ -102,10 +168,11 @@ export function NavigationProvider({ children }) {
     try {
       const data = await api.get('/navigation');
       if (data && (data.navbar || data.footer)) {
-        setNavData({
+        const merged = {
           navbar: { ...defaultNavigation.navbar, ...(data.navbar || {}) },
           footer: { ...defaultNavigation.footer, ...(data.footer || {}) },
-        });
+        };
+        setNavData(cleanNavData(merged));
       }
     } catch {
       // Use fallback default
@@ -119,7 +186,7 @@ export function NavigationProvider({ children }) {
 
     const handleCustomUpdate = (e) => {
       if (e.detail) {
-        setNavData(e.detail);
+        setNavData(cleanNavData(e.detail));
       } else {
         fetchNav();
       }
