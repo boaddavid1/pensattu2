@@ -50,7 +50,6 @@ export default function AdminGallery() {
 
   // Navigation & Filtering
   const [viewMode, setViewMode] = useState('albums'); // 'albums' | 'allPhotos'
-  const [albumFilter, setAlbumFilter] = useState('all'); // 'all' | 'root' | 'sub'
   const [selectedAlbumId, setSelectedAlbumId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -146,7 +145,8 @@ export default function AdminGallery() {
   }, [allPhotos]);
 
   // Stats
-  const totalAlbumsCount = albums.length;
+  const totalAlbumsCount = albums.filter((a) => !a.parent_id).length;
+  const totalSubAlbumsCount = albums.filter((a) => a.parent_id).length;
   const totalPhotosCount = allPhotos.length;
   const distinctCategoriesCount = useMemo(() => {
     const cats = new Set(allPhotos.map((p) => p.category).filter(Boolean));
@@ -216,23 +216,19 @@ export default function AdminGallery() {
     return set;
   }, [editingAlbum, albums]);
 
-  // Filtered Albums for Albums view
+  // Filtered Albums for Albums view: ONLY root/main albums appear outside.
+  // Sub-folders and sub-albums are strictly visible and managed within their parent album.
   const filteredAlbums = useMemo(() => {
-    let list = albums;
-    if (albumFilter === 'root') {
-      list = list.filter((a) => !a.parent_id);
-    } else if (albumFilter === 'sub') {
-      list = list.filter((a) => Boolean(a.parent_id));
-    }
+    let list = albums.filter((a) => !a.parent_id);
 
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
     return list.filter((a) =>
       (a.name || '').toLowerCase().includes(q) ||
       (a.description || '').toLowerCase().includes(q) ||
-      (a.parent_id && getAlbumName(a.parent_id).toLowerCase().includes(q))
+      (subAlbumsMap[a.id] || []).some((sub) => (sub.name || '').toLowerCase().includes(q))
     );
-  }, [albums, searchQuery, albumFilter]);
+  }, [albums, searchQuery, subAlbumsMap]);
 
   // Filtered Photos for current view
   const filteredPhotos = useMemo(() => {
@@ -589,7 +585,9 @@ export default function AdminGallery() {
               </svg>
               {totalAlbumsCount}
             </div>
-            <div className="ag-stat-label">Collections</div>
+            <div className="ag-stat-label">
+              Main Albums {totalSubAlbumsCount > 0 ? `(${totalSubAlbumsCount} sub-folders)` : ''}
+            </div>
           </div>
           <div className="ag-stat-box">
             <div className="ag-stat-num">
@@ -667,7 +665,7 @@ export default function AdminGallery() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
               </svg>
-              Albums & Collections ({albums.length})
+              Albums & Collections ({totalAlbumsCount})
             </button>
             <button
               type="button"
@@ -1205,40 +1203,22 @@ export default function AdminGallery() {
         </div>
       )}
 
-      {/* Mode 2: Albums & Collections Grid Overview */}
+      {/* Mode 2: Albums & Collections Grid Overview (Only Main Albums Shown Outside) */}
       {!selectedAlbumId && viewMode === 'albums' && (
         <>
-          {/* Albums Hierarchy View Filter Chips */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 4 }}>
+          {/* Main Albums Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#72849a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Filter Collections:
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>
+                Main Albums ({filteredAlbums.length})
               </span>
-              <button
-                type="button"
-                className={`ag-chip-tag ${albumFilter === 'all' ? 'selected' : ''}`}
-                onClick={() => setAlbumFilter('all')}
-              >
-                All Collections ({albums.length})
-              </button>
-              <button
-                type="button"
-                className={`ag-chip-tag ${albumFilter === 'root' ? 'selected' : ''}`}
-                onClick={() => setAlbumFilter('root')}
-              >
-                Top-Level Albums ({albums.filter((a) => !a.parent_id).length})
-              </button>
-              <button
-                type="button"
-                className={`ag-chip-tag ${albumFilter === 'sub' ? 'selected' : ''}`}
-                onClick={() => setAlbumFilter('sub')}
-              >
-                Nested Sub-Albums ({albums.filter((a) => a.parent_id).length})
-              </button>
-            </div>
-            {albumFilter !== 'all' && (
               <span style={{ fontSize: 12, color: '#64748b' }}>
-                Showing {filteredAlbums.length} of {albums.length} collections
+                • Click an album to open and manage its sub-folders & photos
+              </span>
+            </div>
+            {searchQuery && (
+              <span style={{ fontSize: 12, color: '#64748b' }}>
+                Showing {filteredAlbums.length} of {totalAlbumsCount} main collections
               </span>
             )}
           </div>
@@ -1306,15 +1286,9 @@ export default function AdminGallery() {
                         {count} photo{count !== 1 ? 's' : ''}
                       </span>
 
-                      {album.parent_id && (
-                        <span className="ag-album-parent-badge" title={`Parent collection: ${getAlbumName(album.parent_id)}`}>
-                          ↳ Inside: {getAlbumName(album.parent_id)}
-                        </span>
-                      )}
-
                       {subCount > 0 && (
                         <span className="ag-album-subcount-badge">
-                          📁 {subCount} sub-album{subCount !== 1 ? 's' : ''}
+                          📁 {subCount} sub-folder{subCount !== 1 ? 's' : ''}
                         </span>
                       )}
 
@@ -1367,18 +1341,6 @@ export default function AdminGallery() {
                         </div>
 
                         <div className="ag-album-actions-group">
-                          <button
-                            type="button"
-                            className="ag-icon-btn"
-                            onClick={(e) => { e.stopPropagation(); openCreateAlbum(album.id); }}
-                            title={`Add a sub-album inside "${album.name}"`}
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                              <line x1="12" y1="11" x2="12" y2="17" />
-                              <line x1="9" y1="14" x2="15" y2="14" />
-                            </svg>
-                          </button>
                           <button
                             type="button"
                             className="ag-icon-btn"
@@ -1643,7 +1605,7 @@ export default function AdminGallery() {
                     </select>
                     {albumForm.parent_id && (
                       <p style={{ fontSize: 12, color: '#15803d', margin: '6px 0 0', fontWeight: 600 }}>
-                        ✓ This album will live as a sub-folder inside <strong>"{getAlbumName(albumForm.parent_id)}"</strong>
+                        ✓ This sub-album will live inside <strong>"{getAlbumName(albumForm.parent_id)}"</strong> and will only appear when opening this parent album.
                       </p>
                     )}
                   </div>
