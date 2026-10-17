@@ -1758,3 +1758,184 @@
   z-index: 2;
 }
 
+/* ─── Album Card + Sub-Album Button ──────────────────────── */
+.ag-btn-card-subalbum {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ag-btn-card-subalbum:hover {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* ─── Sub-Albums Empty State Banner ──────────────────────── */
+.ag-subalbums-empty-banner {
+  background: #ffffff;
+  border: 1px dashed #10b981;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ag-subalbums-empty-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 650px;
+}
+
+.ag-subalbums-folder-art {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ag-btn-create-subalbum-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.ag-btn-create-subalbum-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+
+/* ─── Add Sub-Album Card in Grid ─────────────────────────── */
+.ag-subalbum-add-card {
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 105px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  gap: 6px;
+}
+
+.ag-subalbum-add-card:hover {
+  border-color: #10b981;
+  background: #f0fdf4;
+  transform: translateY(-2px);
+}
+
+.ag-subalbum-add-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.ag-subalbum-add-card:hover .ag-subalbum-add-icon {
+  transform: scale(1.12);
+  background: #10b981;
+  color: #ffffff;
+}
+
+.ag-subalbum-add-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0A2E5C;
+}
+
+.ag-subalbum-add-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* ─── Create Album Type Switcher Pills ────────────────────── */
+.ag-album-type-switch-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.ag-album-type-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ag-type-pill {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ag-type-pill:hover {
+  border-color: #0E4C92;
+  color: #0E4C92;
+}
+
+.ag-type-pill.selected {
+  background: #0A2E5C;
+  border-color: #0A2E5C;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(10, 46, 92, 0.25);
+}
+
+.ag-type-pill.selected:nth-child(2) {
+  background: #059669;
+  border-color: #059669;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+

@@ -942,37 +942,73 @@ export default function AdminGallery() {
             </div>
           </div>
 
-          {/* Nested Sub-Albums in Selected Album */}
-          {currentSubAlbums.length > 0 && (
-            <div className="ag-subalbums-section">
-              <div className="ag-subalbums-header">
-                <div className="ag-subalbums-title-wrap">
-                  <div className="ag-subalbums-icon-circle">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          {/* Sub-Albums & Folders in Selected Album */}
+          <div className="ag-subalbums-section">
+            <div className="ag-subalbums-header">
+              <div className="ag-subalbums-title-wrap">
+                <div className="ag-subalbums-icon-circle">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="ag-subalbums-heading">
+                    Sub-Albums & Folders in "{currentAlbum.name}" ({currentSubAlbums.length})
+                  </h3>
+                  <p className="ag-subalbums-subheading">
+                    {currentSubAlbums.length > 0
+                      ? `${currentSubAlbums.length} sub-folder${currentSubAlbums.length !== 1 ? 's' : ''} organized inside this collection`
+                      : `Divide "${currentAlbum.name}" into sub-folders for events, sessions, or teams`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="ag-btn-add-subalbum-mini"
+                onClick={() => openCreateAlbum(currentAlbum.id)}
+                title={`Create a sub-album inside "${currentAlbum.name}"`}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  <line x1="12" y1="11" x2="12" y2="17" />
+                  <line x1="9" y1="14" x2="15" y2="14" />
+                </svg>
+                + Create Sub-Album
+              </button>
+            </div>
+
+            {currentSubAlbums.length === 0 ? (
+              <div className="ag-subalbums-empty-banner">
+                <div className="ag-subalbums-empty-left">
+                  <div className="ag-subalbums-folder-art">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                      <line x1="12" y1="11" x2="12" y2="17" />
+                      <line x1="9" y1="14" x2="15" y2="14" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="ag-subalbums-heading">Sub-Albums in this Collection</h3>
-                    <p className="ag-subalbums-subheading">
-                      {currentSubAlbums.length} nested collection{currentSubAlbums.length !== 1 ? 's' : ''} inside "{currentAlbum.name}"
+                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#0A2E5C' }}>
+                      No sub-albums or folders inside "{currentAlbum.name}" yet
+                    </h4>
+                    <p style={{ margin: '3px 0 0', fontSize: 12.5, color: '#64748b' }}>
+                      You can organize photos into sub-folders (e.g., "Day 1", "Day 2", "Outreach", "Worship Night", "Executives")
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  className="ag-btn-add-subalbum-mini"
+                  className="ag-btn-create-subalbum-cta"
                   onClick={() => openCreateAlbum(currentAlbum.id)}
-                  title="Create new sub-album"
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
-                  Add Sub-Album
+                  + Create Sub-Album / Folder
                 </button>
               </div>
-
+            ) : (
               <div className="ag-subalbums-grid">
                 {currentSubAlbums.map((sub) => {
                   const pCount = albumPhotoCounts[sub.id] || 0;
@@ -1005,7 +1041,7 @@ export default function AdminGallery() {
                         <div className="ag-subalbum-footer">
                           {nestedCount > 0 ? (
                             <span className="ag-subalbum-nested-tag">
-                              📁 {nestedCount} sub-collection{nestedCount !== 1 ? 's' : ''}
+                              📁 {nestedCount} sub-folder{nestedCount !== 1 ? 's' : ''}
                             </span>
                           ) : (
                             <span style={{ fontSize: 11, color: '#94a3b8' }}>Direct sub-album</span>
@@ -1018,9 +1054,26 @@ export default function AdminGallery() {
                     </div>
                   );
                 })}
+
+                {/* Quick Add Sub-Album Card */}
+                <div
+                  className="ag-subalbum-add-card"
+                  onClick={() => openCreateAlbum(currentAlbum.id)}
+                  title={`Create another sub-album inside "${currentAlbum.name}"`}
+                >
+                  <div className="ag-subalbum-add-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                      <line x1="12" y1="11" x2="12" y2="17" />
+                      <line x1="9" y1="14" x2="15" y2="14" />
+                    </svg>
+                  </div>
+                  <span className="ag-subalbum-add-label">+ Add Sub-Album</span>
+                  <span className="ag-subalbum-add-sub">Create folder in "{currentAlbum.name}"</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Photos Grid in Selected Album */}
           {filteredPhotos.length === 0 ? (
@@ -1287,16 +1340,31 @@ export default function AdminGallery() {
                       </p>
 
                       <div className="ag-album-card-footer">
-                        <button
-                          type="button"
-                          className="ag-btn-album-open"
-                          onClick={() => { setSelectedAlbumId(album.id); setSearchQuery(''); }}
-                        >
-                          View Collection
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className="ag-btn-album-open"
+                            onClick={() => { setSelectedAlbumId(album.id); setSearchQuery(''); }}
+                          >
+                            Open Album
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            className="ag-btn-card-subalbum"
+                            onClick={(e) => { e.stopPropagation(); openCreateAlbum(album.id); }}
+                            title={`Create a sub-album or folder inside "${album.name}"`}
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                              <line x1="12" y1="11" x2="12" y2="17" />
+                              <line x1="9" y1="14" x2="15" y2="14" />
+                            </svg>
+                            + Sub-Album
+                          </button>
+                        </div>
 
                         <div className="ag-album-actions-group">
                           <button
@@ -1486,7 +1554,11 @@ export default function AdminGallery() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                 </svg>
-                {activeModal === 'editAlbum' ? 'Edit Album Details' : 'Create New Album'}
+                {activeModal === 'editAlbum'
+                  ? 'Edit Album Details'
+                  : albumForm.parent_id
+                  ? `Create Sub-Album in "${getAlbumName(albumForm.parent_id)}"`
+                  : 'Create New Album'}
               </h3>
               <button type="button" className="ag-modal-close" onClick={closeModal}>
                 ✕
@@ -1495,43 +1567,105 @@ export default function AdminGallery() {
 
             <form onSubmit={handleSaveAlbum}>
               <div className="ag-modal-body">
+                {/* Album Scope Switcher (Top-Level vs Nested Sub-Album) */}
+                {activeModal === 'createAlbum' && (
+                  <div className="ag-album-type-switch-box">
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Collection Type:
+                    </span>
+                    <div className="ag-album-type-pills">
+                      <button
+                        type="button"
+                        className={`ag-type-pill ${!albumForm.parent_id ? 'selected' : ''}`}
+                        onClick={() => setAlbumForm({ ...albumForm, parent_id: '' })}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                        Main Top-Level Album
+                      </button>
+                      <button
+                        type="button"
+                        className={`ag-type-pill ${albumForm.parent_id ? 'selected' : ''}`}
+                        onClick={() => {
+                          if (!albumForm.parent_id) {
+                            const defaultParent = selectedAlbumId || albums[0]?.id || '';
+                            setAlbumForm({ ...albumForm, parent_id: String(defaultParent) });
+                          }
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                        </svg>
+                        📁 Sub-Album / Folder
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Parent Album Picker */}
+                {Boolean(albumForm.parent_id || activeModal === 'editAlbum') && (
+                  <div
+                    className="ag-form-group"
+                    style={{
+                      background: albumForm.parent_id ? '#f0fdf4' : '#f8fafc',
+                      border: albumForm.parent_id ? '1px solid #86efac' : '1px solid #e2e8f0',
+                      borderRadius: 12,
+                      padding: '12px 14px',
+                    }}
+                  >
+                    <label className="ag-form-label" style={{ color: albumForm.parent_id ? '#166534' : 'inherit', fontWeight: 700 }}>
+                      📁 Parent Album (Folder) {albumForm.parent_id ? '*' : ''}
+                      <span className="ag-form-label-opt">
+                        {albumForm.parent_id ? 'Nest inside this collection' : 'Optional'}
+                      </span>
+                    </label>
+                    <select
+                      className="ag-form-select"
+                      value={albumForm.parent_id || ''}
+                      onChange={(e) => setAlbumForm({ ...albumForm, parent_id: e.target.value })}
+                      style={{
+                        borderColor: albumForm.parent_id ? '#10b981' : undefined,
+                        fontWeight: 600,
+                      }}
+                      required={Boolean(albumForm.parent_id)}
+                    >
+                      <option value="">None (Keep as Main Top-Level Album)</option>
+                      {albums
+                        .filter((a) => !editingDescendantIds.has(a.id))
+                        .map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.parent_id ? `  ↳ ${a.name} (Sub-album)` : `📁 ${a.name}`}
+                          </option>
+                        ))}
+                    </select>
+                    {albumForm.parent_id && (
+                      <p style={{ fontSize: 12, color: '#15803d', margin: '6px 0 0', fontWeight: 600 }}>
+                        ✓ This album will live as a sub-folder inside <strong>"{getAlbumName(albumForm.parent_id)}"</strong>
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="ag-form-group">
                   <label className="ag-form-label">
-                    Album Name *
+                    {albumForm.parent_id ? 'Sub-Album Name *' : 'Album Name *'}
                   </label>
                   <input
                     type="text"
                     className="ag-form-input"
-                    placeholder="e.g., Annual Camp 2026, Freshers' Welcome"
+                    placeholder={
+                      albumForm.parent_id
+                        ? 'e.g., Day 1, Outreach Team, Evening Worship, Executives'
+                        : "e.g., Annual Camp 2026, Freshers' Welcome"
+                    }
                     value={albumForm.name}
                     onChange={(e) => setAlbumForm({ ...albumForm, name: e.target.value })}
                     required
                     autoFocus
                   />
-                </div>
-
-                <div className="ag-form-group">
-                  <label className="ag-form-label">
-                    Parent Album
-                    <span className="ag-form-label-opt">Optional (leave empty for main album)</span>
-                  </label>
-                  <select
-                    className="ag-form-select"
-                    value={albumForm.parent_id || ''}
-                    onChange={(e) => setAlbumForm({ ...albumForm, parent_id: e.target.value })}
-                  >
-                    <option value="">None (Top-Level Collection)</option>
-                    {albums
-                      .filter((a) => !editingDescendantIds.has(a.id))
-                      .map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.parent_id ? `  ↳ ${a.name} (Sub-album)` : a.name}
-                        </option>
-                      ))}
-                  </select>
-                  <p style={{ fontSize: 11.5, color: '#64748b', margin: '4px 0 0' }}>
-                    Nest this album inside another collection, or keep it as an independent top-level album.
-                  </p>
                 </div>
 
                 <div className="ag-form-group">
