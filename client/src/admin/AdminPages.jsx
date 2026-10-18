@@ -620,36 +620,39 @@ export default function AdminPages({ defaultTab }) {
               </div>
 
               {/* Additional Story Paragraphs */}
-              {Array.isArray(aboutSettings.extra_story_paragraphs) &&
-                aboutSettings.extra_story_paragraphs.map((para, pIdx) => (
-                  <div key={pIdx} className="ap-item-card">
-                    <div className="ap-item-card-header">
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0E4C92' }}>Extra Paragraph #{pIdx + 1}</span>
-                      <button
-                        type="button"
-                        className="ap-remove-item-btn"
-                        onClick={() => {
+              {Array.isArray(aboutSettings.extra_story_paragraphs) && aboutSettings.extra_story_paragraphs.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+                  {aboutSettings.extra_story_paragraphs.map((para, pIdx) => (
+                    <div key={pIdx} className="ap-item-card">
+                      <div className="ap-item-card-header">
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0E4C92' }}>Extra Paragraph #{pIdx + 1}</span>
+                        <button
+                          type="button"
+                          className="ap-remove-item-btn"
+                          onClick={() => {
+                            const updated = [...(aboutSettings.extra_story_paragraphs || [])];
+                            updated.splice(pIdx, 1);
+                            setAboutSettings({ ...aboutSettings, extra_story_paragraphs: updated });
+                          }}
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                      <textarea
+                        className="ap-form-textarea"
+                        rows={2}
+                        value={para}
+                        onChange={(e) => {
                           const updated = [...(aboutSettings.extra_story_paragraphs || [])];
-                          updated.splice(pIdx, 1);
+                          updated[pIdx] = e.target.value;
                           setAboutSettings({ ...aboutSettings, extra_story_paragraphs: updated });
                         }}
-                      >
-                        ✕ Remove
-                      </button>
+                        placeholder="Write another story paragraph..."
+                      />
                     </div>
-                    <textarea
-                      className="ap-form-textarea"
-                      rows={2}
-                      value={para}
-                      onChange={(e) => {
-                        const updated = [...(aboutSettings.extra_story_paragraphs || [])];
-                        updated[pIdx] = e.target.value;
-                        setAboutSettings({ ...aboutSettings, extra_story_paragraphs: updated });
-                      }}
-                      placeholder="Write another story paragraph..."
-                    />
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
 
               <button
                 type="button"
@@ -1024,7 +1027,7 @@ export default function AdminPages({ defaultTab }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="ap-cards-grid-timeline">
                 {(aboutSettings.timeline_list || []).map((item, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
@@ -1549,11 +1552,11 @@ export default function AdminPages({ defaultTab }) {
               </div>
 
               {/* Slide items list */}
-              <div style={{ marginTop: 16 }}>
-                <label className="ap-form-label" style={{ fontSize: 13, marginBottom: 10 }}>
+              <div className="ap-form-group">
+                <label className="ap-form-label">
                   Carousel Slides (Images, animated typing headlines & descriptions)
                 </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="ap-cards-grid-slides">
                   {(homeSettings.hero_slides || DEFAULT_HOME_SETTINGS.hero_slides || []).map((slide, idx) => (
                     <div key={idx} className="ap-item-card">
                       <div className="ap-item-card-header">
@@ -1678,7 +1681,7 @@ export default function AdminPages({ defaultTab }) {
                 <button
                   type="button"
                   className="ap-add-item-btn"
-                  style={{ marginTop: 12 }}
+                  style={{ alignSelf: 'flex-start' }}
                   onClick={() => addHomeArrayItem('hero_slides', {
                     img: '/images/pensafallback-bw.png',
                     alt: 'New fellowship slide',
@@ -1831,8 +1834,9 @@ export default function AdminPages({ defaultTab }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
+              <div className="ap-form-group">
                 <label className="ap-form-label">Reasons Cards List</label>
+                <div className="ap-cards-grid-reasons">
                 {(homeSettings.why_reasons || DEFAULT_HOME_SETTINGS.why_reasons || []).map((r, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
@@ -1894,10 +1898,12 @@ export default function AdminPages({ defaultTab }) {
                     />
                   </div>
                 ))}
+              </div>
 
                 <button
                   type="button"
                   className="ap-add-item-btn"
+                  style={{ alignSelf: 'flex-start' }}
                   onClick={() => addHomeArrayItem('why_reasons', {
                     num: `0${(homeSettings.why_reasons || DEFAULT_HOME_SETTINGS.why_reasons || []).length + 1}`,
                     title: 'New Reason',
@@ -2094,8 +2100,9 @@ export default function AdminPages({ defaultTab }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }}>
+              <div className="ap-form-group">
                 <label className="ap-form-label">Weekly Activity Cards</label>
+                <div className="ap-cards-grid-activities">
                 {(homeSettings.steps_list || DEFAULT_HOME_SETTINGS.steps_list || []).map((step, idx) => (
                   <div key={idx} className="ap-item-card">
                     <div className="ap-item-card-header">
@@ -2192,10 +2199,12 @@ export default function AdminPages({ defaultTab }) {
                     </div>
                   </div>
                 ))}
+              </div>
 
                 <button
                   type="button"
                   className="ap-add-item-btn"
+                  style={{ alignSelf: 'flex-start' }}
                   onClick={() => addHomeArrayItem('steps_list', {
                     tag: 'thursdays',
                     title: 'BIBLE STUDY HOUR',
@@ -2326,144 +2335,146 @@ export default function AdminPages({ defaultTab }) {
               <span className="ap-section-badge">Quote & Schedule</span>
             </div>
             <div className="ap-section-body">
-              <div style={{ background: '#f8fafd', border: '1px solid #d0e0f5', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-                <h4 style={{ fontSize: 14, color: '#0E4C92', margin: '0 0 12px', fontWeight: 700 }}>
-                  📅 Left Side: Sunday Service Badge & Photo
-                </h4>
-                <div className="ap-form-group">
-                  <label className="ap-form-label">Service / Congregation Image</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.testi_media_img || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_media_img: e.target.value })}
-                      placeholder="/images/pensafallback-bw.png"
-                    />
-                    <button
-                      type="button"
-                      className="ap-upload-file-btn"
-                      onClick={() => triggerImageUpload('testi_media_img')}
-                      disabled={uploadingField === 'testi_media_img'}
-                    >
-                      {uploadingField === 'testi_media_img' ? 'Uploading...' : 'Upload'}
-                    </button>
-                  </div>
-                  {homeSettings.testi_media_img && (
-                    <div className="ap-image-preview-wrap" style={{ height: 100, marginTop: 8 }}>
-                      <img src={homeSettings.testi_media_img} alt="Service preview" className="ap-image-preview" />
+              <div className="ap-form-grid-2">
+                <div style={{ background: '#f8fafd', border: '1px solid #d0e0f5', borderRadius: 12, padding: 16 }}>
+                  <h4 style={{ fontSize: 14, color: '#0E4C92', margin: '0 0 12px', fontWeight: 700 }}>
+                    📅 Left Side: Sunday Service Badge & Photo
+                  </h4>
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Service / Congregation Image</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        value={homeSettings.testi_media_img || ''}
+                        onChange={(e) => setHomeSettings({ ...homeSettings, testi_media_img: e.target.value })}
+                        placeholder="/images/pensafallback-bw.png"
+                      />
+                      <button
+                        type="button"
+                        className="ap-upload-file-btn"
+                        onClick={() => triggerImageUpload('testi_media_img')}
+                        disabled={uploadingField === 'testi_media_img'}
+                      >
+                        {uploadingField === 'testi_media_img' ? 'Uploading...' : 'Upload'}
+                      </button>
                     </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
-                  <div className="ap-form-group">
-                    <label className="ap-form-label">Service Times (e.g. 6:30 AM - 9:30 AM)</label>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.testi_service_time || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_time: e.target.value })}
-                      placeholder="6:30 AM - 9:30 AM"
-                    />
+                    {homeSettings.testi_media_img && (
+                      <div className="ap-image-preview-wrap" style={{ height: 100, marginTop: 8 }}>
+                        <img src={homeSettings.testi_media_img} alt="Service preview" className="ap-image-preview" />
+                      </div>
+                    )}
                   </div>
-                  <div className="ap-form-group">
-                    <label className="ap-form-label">Service Frequency (e.g. Every Sunday)</label>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.testi_service_day || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_day: e.target.value })}
-                      placeholder="Every Sunday"
-                    />
-                  </div>
-                  <div className="ap-form-group">
-                    <label className="ap-form-label">Service Mode (e.g. In person & online)</label>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.testi_service_type || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_type: e.target.value })}
-                      placeholder="In person & online"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 12, padding: 16 }}>
-                <h4 style={{ fontSize: 14, color: '#333', margin: '0 0 12px', fontWeight: 700 }}>
-                  💬 Right Side: Member Testimonial Quote
-                </h4>
-
-                <div className="ap-form-group">
-                  <label className="ap-form-label">Testimonial Eyebrow</label>
-                  <input
-                    type="text"
-                    className="ap-form-input"
-                    value={homeSettings.testi_eyebrow || ''}
-                    onChange={(e) => setHomeSettings({ ...homeSettings, testi_eyebrow: e.target.value })}
-                    placeholder="What our members say"
-                  />
-                </div>
-
-                <div className="ap-form-group">
-                  <label className="ap-form-label">Quote Text</label>
-                  <textarea
-                    className="ap-form-textarea"
-                    rows={3}
-                    value={homeSettings.testi_quote || ''}
-                    onChange={(e) => setHomeSettings({ ...homeSettings, testi_quote: e.target.value })}
-                    placeholder="Enter inspiring quote from a student or member..."
-                  />
-                </div>
-
-                <div className="ap-form-grid-2">
-                  <div className="ap-form-group">
-                    <label className="ap-form-label">Author Name</label>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.testi_author_name || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_name: e.target.value })}
-                      placeholder="e.g. Ama Boateng"
-                    />
-                  </div>
-                  <div className="ap-form-group">
-                    <label className="ap-form-label">Author Subtitle / Role</label>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.testi_author_title || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_title: e.target.value })}
-                      placeholder="e.g. Member since 2023, East Legon"
-                    />
-                  </div>
-                </div>
-
-                <div className="ap-form-group">
-                  <label className="ap-form-label">Author Avatar Photo</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="text"
-                      className="ap-form-input"
-                      value={homeSettings.testi_author_img || ''}
-                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_img: e.target.value })}
-                      placeholder="/images/pensafallback-bw.png"
-                    />
-                    <button
-                      type="button"
-                      className="ap-upload-file-btn"
-                      onClick={() => triggerImageUpload('testi_author_img')}
-                      disabled={uploadingField === 'testi_author_img'}
-                    >
-                      {uploadingField === 'testi_author_img' ? 'Uploading...' : 'Upload'}
-                    </button>
-                  </div>
-                  {homeSettings.testi_author_img && (
-                    <div className="ap-image-preview-wrap" style={{ height: 80, width: 80, borderRadius: '50%', overflow: 'hidden', marginTop: 8 }}>
-                      <img src={homeSettings.testi_author_img} alt="Author preview" className="ap-image-preview" />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
+                    <div className="ap-form-group">
+                      <label className="ap-form-label">Service Times (e.g. 6:30 AM - 9:30 AM)</label>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        value={homeSettings.testi_service_time || ''}
+                        onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_time: e.target.value })}
+                        placeholder="6:30 AM - 9:30 AM"
+                      />
                     </div>
-                  )}
+                    <div className="ap-form-group">
+                      <label className="ap-form-label">Service Frequency (e.g. Every Sunday)</label>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        value={homeSettings.testi_service_day || ''}
+                        onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_day: e.target.value })}
+                        placeholder="Every Sunday"
+                      />
+                    </div>
+                    <div className="ap-form-group">
+                      <label className="ap-form-label">Service Mode (e.g. In person & online)</label>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        value={homeSettings.testi_service_type || ''}
+                        onChange={(e) => setHomeSettings({ ...homeSettings, testi_service_type: e.target.value })}
+                        placeholder="In person & online"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 12, padding: 16 }}>
+                  <h4 style={{ fontSize: 14, color: '#333', margin: '0 0 12px', fontWeight: 700 }}>
+                    💬 Right Side: Member Testimonial Quote
+                  </h4>
+
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Testimonial Eyebrow</label>
+                    <input
+                      type="text"
+                      className="ap-form-input"
+                      value={homeSettings.testi_eyebrow || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_eyebrow: e.target.value })}
+                      placeholder="What our members say"
+                    />
+                  </div>
+
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Quote Text</label>
+                    <textarea
+                      className="ap-form-textarea"
+                      rows={3}
+                      value={homeSettings.testi_quote || ''}
+                      onChange={(e) => setHomeSettings({ ...homeSettings, testi_quote: e.target.value })}
+                      placeholder="Enter inspiring quote from a student or member..."
+                    />
+                  </div>
+
+                  <div className="ap-form-grid-2">
+                    <div className="ap-form-group">
+                      <label className="ap-form-label">Author Name</label>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        value={homeSettings.testi_author_name || ''}
+                        onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_name: e.target.value })}
+                        placeholder="e.g. Ama Boateng"
+                      />
+                    </div>
+                    <div className="ap-form-group">
+                      <label className="ap-form-label">Author Subtitle / Role</label>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        value={homeSettings.testi_author_title || ''}
+                        onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_title: e.target.value })}
+                        placeholder="e.g. Member since 2023, East Legon"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="ap-form-group">
+                    <label className="ap-form-label">Author Avatar Photo</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="text"
+                        className="ap-form-input"
+                        value={homeSettings.testi_author_img || ''}
+                        onChange={(e) => setHomeSettings({ ...homeSettings, testi_author_img: e.target.value })}
+                        placeholder="/images/pensafallback-bw.png"
+                      />
+                      <button
+                        type="button"
+                        className="ap-upload-file-btn"
+                        onClick={() => triggerImageUpload('testi_author_img')}
+                        disabled={uploadingField === 'testi_author_img'}
+                      >
+                        {uploadingField === 'testi_author_img' ? 'Uploading...' : 'Upload'}
+                      </button>
+                    </div>
+                    {homeSettings.testi_author_img && (
+                      <div className="ap-image-preview-wrap" style={{ height: 80, width: 80, borderRadius: '50%', overflow: 'hidden', marginTop: 8 }}>
+                        <img src={homeSettings.testi_author_img} alt="Author preview" className="ap-image-preview" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
