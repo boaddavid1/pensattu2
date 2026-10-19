@@ -1,0 +1,1120 @@
+/* school/css/styles.css — Master Retreat Registration & QR Attendance Terminal */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --primary-900: #061121;
+  --primary-800: #0a1e38;
+  --primary-700: #0f2c52;
+  --primary-600: #143b6e;
+  --primary-500: #1a4d8f;
+  --primary-400: #2563eb;
+  
+  --accent-gold: #f59e0b;
+  --accent-gold-light: #fef3c7;
+  --accent-gold-glow: rgba(245, 158, 11, 0.28);
+  
+  --success-500: #10b981;
+  --success-600: #059669;
+  --success-light: #ecfdf5;
+  --danger-500: #ef4444;
+  --danger-light: #fef2f2;
+  --info-500: #0284c7;
+  --info-light: #f0f9ff;
+  
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  
+  --border-light: rgba(15, 44, 82, 0.1);
+  --border-subtle: #e2e8f0;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  
+  --shadow-sm: 0 2px 6px rgba(10, 30, 56, 0.04);
+  --shadow-md: 0 6px 20px rgba(10, 30, 56, 0.07);
+  --shadow-lg: 0 12px 36px rgba(10, 30, 56, 0.12);
+  --shadow-glow: 0 0 24px rgba(37, 99, 235, 0.25);
+  
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Top Master Header Bar ─── */
+.ret-header {
+  background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-800) 60%, var(--primary-700) 100%);
+  color: #ffffff;
+  padding: 16px 24px;
+  box-shadow: 0 4px 20px rgba(6, 17, 33, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ret-header-inner {
+  max-width: 1380px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.ret-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.ret-brand-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #d97706 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 14px var(--accent-gold-glow);
+  flex-shrink: 0;
+}
+
+.ret-brand-text h1 {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.ret-brand-text p {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin: 2px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ret-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ret-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseDot 1.5s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.ret-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ret-session-select {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ret-session-select option {
+  background: var(--primary-900);
+  color: #ffffff;
+}
+
+.ret-session-select:focus {
+  border-color: var(--accent-gold);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.ret-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.ret-btn-gold {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #d97706 100%);
+  color: #061121;
+  box-shadow: 0 4px 14px var(--accent-gold-glow);
+}
+
+.ret-btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+}
+
+.ret-btn-primary {
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-400) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+.ret-btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-500) 100%);
+  transform: translateY(-1px);
+}
+
+.ret-btn-outline {
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.ret-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ─── Hero Banner with Live Dashboard Stat Counters ─── */
+.ret-masthead {
+  background: linear-gradient(180deg, var(--primary-900) 0%, #0d223f 100%);
+  padding: 24px 24px 34px;
+  color: #ffffff;
+}
+
+.ret-masthead-inner {
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+.ret-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.ret-theme-banner h2 {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.ret-theme-banner p {
+  color: #94a3b8;
+  font-size: 13.5px;
+  margin: 0;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ret-theme-banner p span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Glass Stat Cards */
+.ret-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.ret-stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.ret-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.ret-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.ret-stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ret-stat-value {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.ret-stat-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ─── Navigation Tabs Bar (Segmented View Switcher) ─── */
+.ret-nav-tabs-wrapper {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 79px;
+  z-index: 850;
+  box-shadow: 0 4px 12px rgba(10, 30, 56, 0.03);
+}
+
+.ret-nav-tabs {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ret-nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ret-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 14px 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.ret-tab-btn:hover {
+  color: var(--primary-600);
+}
+
+.ret-tab-btn.active {
+  color: var(--primary-600);
+  border-bottom-color: var(--primary-600);
+  background: #f8fafc;
+}
+
+.ret-tab-badge {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ret-tab-btn.active .ret-tab-badge {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-600);
+}
+
+/* ─── Main Content Container ─── */
+.ret-main {
+  max-width: 1380px;
+  margin: 28px auto 60px;
+  padding: 0 24px;
+  width: 100%;
+  flex: 1;
+}
+
+.ret-view {
+  display: none;
+  animation: retFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ret-view.active {
+  display: block;
+}
+
+@keyframes retFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Reusable Layout Cards ─── */
+.ret-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.ret-card-header {
+  padding: 18px 22px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ret-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary-900);
+  margin: 0;
+}
+
+.ret-card-badge {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary-600);
+}
+
+.ret-card-body {
+  padding: 24px;
+}
+
+/* ─── Forms & Inputs ─── */
+.ret-form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.ret-form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 768px) {
+  .ret-form-grid-2,
+  .ret-form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ret-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ret-form-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ret-form-input,
+.ret-form-select,
+.ret-form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.ret-form-input:focus,
+.ret-form-select:focus,
+.ret-form-textarea:focus {
+  background: #ffffff;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* ─── Student Upload Method Tabs ─── */
+.ret-upload-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  background: #f1f5fa;
+  padding: 4px;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.ret-upload-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ret-upload-tab-btn.active {
+  background: #ffffff;
+  color: var(--primary-600);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Drag & Drop File Zone */
+.ret-dropzone {
+  border: 2px dashed #93c5fd;
+  background: #f0f7ff;
+  border-radius: 14px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ret-dropzone:hover {
+  border-color: var(--primary-500);
+  background: #e6f0fd;
+}
+
+.ret-dropzone-icon {
+  font-size: 38px;
+  margin-bottom: 8px;
+}
+
+/* Live Parsed Students Preview Table */
+.ret-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.ret-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.ret-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.ret-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.ret-table tr:hover td {
+  background: #f8fafd;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STUDENT QR BADGE CARD DESIGN (CRUCIAL USER REQUIREMENT)
+   "generate a qrcode each school's students with their unique name on top of each"
+══════════════════════════════════════════════════════════════════════════ */
+
+.ret-badges-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.ret-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Single Badge Pass Card */
+.ret-badge-pass {
+  background: #ffffff;
+  border: 1.5px solid rgba(15, 44, 82, 0.16);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(6, 17, 33, 0.08);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  page-break-inside: avoid;
+}
+
+.ret-badge-pass:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(6, 17, 33, 0.14);
+}
+
+/* Top Lanyard Hole Guide */
+.ret-badge-top-lanyard {
+  height: 18px;
+  background: #061121;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.ret-badge-lanyard-hole {
+  width: 24px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+}
+
+/* Badge Foil Banner Header */
+.ret-badge-header {
+  background: linear-gradient(135deg, #061121 0%, #0f2c52 100%);
+  color: #ffffff;
+  padding: 14px 16px;
+  text-align: center;
+  position: relative;
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+.ret-badge-event-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+}
+
+.ret-badge-event-title {
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 800;
+  margin: 3px 0 0;
+  line-height: 1.2;
+}
+
+/* Badge Body */
+.ret-badge-body {
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: #ffffff;
+}
+
+/* ─── THE STUDENT NAME ON TOP OF THE QR CODE ─── */
+.ret-badge-student-name {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 800;
+  color: #061121;
+  line-height: 1.25;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+
+.ret-badge-school-tag {
+  display: inline-block;
+  background: #f1f5fa;
+  color: var(--primary-700);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(15, 44, 82, 0.1);
+}
+
+/* QR Code Container with High Contrast Framing */
+.ret-badge-qr-wrap {
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid #061121;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.ret-badge-qr-wrap canvas,
+.ret-badge-qr-wrap img {
+  display: block;
+  width: 140px;
+  height: 140px;
+}
+
+/* Student ID & Details Bar */
+.ret-badge-id-pill {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--primary-900);
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  padding: 4px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.ret-badge-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Badge Footer */
+.ret-badge-footer {
+  background: #f8fafc;
+  border-top: 1px solid var(--border-subtle);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.ret-badge-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ret-badge-btn-mini {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--primary-700);
+  transition: all 0.15s ease;
+}
+
+.ret-badge-btn-mini:hover {
+  background: var(--primary-600);
+  color: #ffffff;
+  border-color: var(--primary-600);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LIVE QR CAMERA SCANNER TERMINAL
+══════════════════════════════════════════════════════════════════════════ */
+.ret-scanner-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .ret-scanner-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ret-scanner-feed-box {
+  background: #061121;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.ret-scanner-top-bar {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Video Container */
+.ret-camera-viewfinder {
+  position: relative;
+  width: 100%;
+  min-height: 340px;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#reader {
+  width: 100% !important;
+  border: none !important;
+}
+
+#reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Animated Target Reticle */
+.ret-scan-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 220px;
+  height: 220px;
+  border: 2px solid rgba(16, 185, 129, 0.4);
+  border-radius: 16px;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+}
+
+.ret-scan-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #10b981;
+  box-shadow: 0 0 12px #10b981;
+  animation: scanLaser 2s linear infinite;
+}
+
+@keyframes scanLaser {
+  0% { top: 0; opacity: 0.8; }
+  50% { top: 96%; opacity: 1; }
+  100% { top: 0; opacity: 0.8; }
+}
+
+/* Scanner Mode Controller (Clock-In vs Clock-Out) */
+.ret-scanner-modes {
+  padding: 16px 20px;
+  background: #0a1e38;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ret-mode-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+}
+
+.ret-mode-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ret-mode-btn.active.clock-in {
+  background: var(--success-500);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+}
+
+.ret-mode-btn.active.clock-out {
+  background: var(--info-500);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+}
+
+.ret-mode-btn.active.auto {
+  background: var(--accent-gold);
+  color: #061121;
+}
+
+/* Manual Barcode / ID Input Bar */
+.ret-manual-input-bar {
+  padding: 16px 20px;
+  background: #ffffff;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 10px;
+}
+
+/* Instant Scan Verification Result Box */
+.ret-scan-result-card {
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.ret-scan-result-card.clocked-in {
+  border-color: var(--success-500);
+  background: #f0fdf4;
+}
+
+.ret-scan-result-card.clocked-out {
+  border-color: var(--info-500);
+  background: #f0f9ff;
+}
+
+.ret-scan-result-card.error {
+  border-color: var(--danger-500);
+  background: #fef2f2;
+}
+
+/* ─── Modals ─── */
+.ret-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 17, 33, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.ret-modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ret-modal {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(12px);
+  transition: transform 0.2s ease;
+}
+
+.ret-modal-backdrop.open .ret-modal {
+  transform: translateY(0);
+}
+
+.ret-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ret-modal-body {
+  padding: 24px;
+}
+
+.ret-modal-footer {
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DEDICATED PRINT STYLES FOR BATCH STUDENT QR BADGES
+   Prints directly onto A4 / Letter badge sheets with cutting guides!
+══════════════════════════════════════════════════════════════════════════ */
+@media print {
+  body {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .ret-header,
+  .ret-masthead,
+  .ret-nav-tabs-wrapper,
+  .ret-badges-controls,
+  .ret-badge-footer,
+  .ret-badge-top-lanyard,
+  .ret-scanner-layout,
+  #view-register,
+  #view-scanner,
+  #view-attendance,
+  #view-settings,
+  .no-print {
+    display: none !important;
+  }
+  
+  .ret-main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  
+  #view-badges {
+    display: block !important;
+  }
+  
+  .ret-card {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .ret-card-header,
+  .ret-card-body {
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  /* 2 columns x 3 rows grid on A4 / Letter paper */
+  .ret-badges-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    padding: 12px !important;
+  }
+  
+  .ret-badge-pass {
+    border: 1.5px dashed #000000 !important;
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .ret-badge-student-name {
+    font-size: 18px !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+  }
+  
+  .ret-badge-header {
+    background: #000000 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

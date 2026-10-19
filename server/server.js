@@ -10,6 +10,7 @@ import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
 import alumniRoutes from './alumniRoutes.js';
 import regRoutes from './regRoutes.js';
+import schoolRoutes, { syncRetreatSchema } from './schoolRoutes.js';
 import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
 import syncSchema from './syncSchema.js';
 import secSyncSchema from './secSyncSchema.js';
@@ -49,6 +50,7 @@ syncSchema().catch(() => {});
 secSyncSchema().catch(() => {});
 alumniSyncSchema().catch(() => {});
 regSyncSchema().catch(() => {});
+syncRetreatSchema().catch(() => {});
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -495,6 +497,10 @@ app.use('/api/alumni', alumniRoutes);
 
 // Member registration routes (converted from the PHP reg project)
 app.use('/api/reg', regRoutes);
+
+// Retreat school registration, QR badges & clock-in/out attendance terminal
+app.use('/api/school', schoolRoutes);
+app.use('/school', express.static(path.join(__dirname, '../school')));
 
 // Standalone Operation Paga pages (public form + student admin) — served as
 // static HTML so they stay independent of the React SPA, matching the original.
