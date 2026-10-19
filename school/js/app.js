@@ -17,7 +17,7 @@ class RetreatApp {
     this.schools = INITIAL_SCHOOLS;
     this.students = INITIAL_STUDENTS;
     this.attendance = INITIAL_ATTENDANCE;
-    this.activeTab = 'badges'; // default view
+    this.activeTab = 'scanner'; // default view for admin terminal
     this.manualStudents = []; // temporary rows in registration form
   }
 
@@ -25,7 +25,7 @@ class RetreatApp {
     this.loadFromLocalStorage();
     await this.fetchFromApi().catch(() => {});
     this.bindEvents();
-    this.switchTab('badges');
+    this.switchTab('scanner');
     this.updateStats();
     this.renderAll();
   }

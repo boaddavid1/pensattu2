@@ -155,6 +155,8 @@ export async function syncRetreatSchema() {
         id VARCHAR(50) PRIMARY KEY,
         school_code VARCHAR(30) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
+        registrant_name VARCHAR(150),
+        registrant_contact VARCHAR(50),
         category VARCHAR(100),
         region VARCHAR(150),
         patron_name VARCHAR(150),
@@ -164,6 +166,14 @@ export async function syncRetreatSchema() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    // Add registrant columns if table was created previously without them
+    try {
+      await pool.query(`ALTER TABLE retreat_schools ADD COLUMN registrant_name VARCHAR(150) NULL AFTER name`);
+    } catch (e) {}
+    try {
+      await pool.query(`ALTER TABLE retreat_schools ADD COLUMN registrant_contact VARCHAR(50) NULL AFTER registrant_name`);
+    } catch (e) {}
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS retreat_students (
@@ -302,14 +312,23 @@ router.post('/register', async (req, res) => {
         .toUpperCase() || 'SCH';
     }
 
+    const registrantName = (school.registrant_name || school.name || school.submitter_name || '').trim();
+    const registrantContact = (school.registrant_contact || school.contact || school.submitter_contact || '').trim();
+    const teacherInchargeName = (school.teacher_incharge_name || school.teacher_name || school.patron_name || '').trim();
+    const teacherInchargeContact = (school.teacher_incharge_contact || school.teacher_contact || school.patron_phone || '').trim();
+
     const newSchool = {
       id: schoolId,
       school_code: schoolCode,
       name: cleanSchoolName,
+      registrant_name: registrantName,
+      registrant_contact: registrantContact,
+      teacher_incharge_name: teacherInchargeName,
+      teacher_incharge_contact: teacherInchargeContact,
+      patron_name: teacherInchargeName || registrantName,
+      patron_phone: teacherInchargeContact || registrantContact,
       category: school.category || 'Senior High School',
       region: school.region || 'Ghana',
-      patron_name: school.patron_name || '',
-      patron_phone: school.patron_phone || '',
       patron_email: school.patron_email || '',
       notes: school.notes || '',
       created_at: new Date().toISOString(),
@@ -331,7 +350,7 @@ router.post('/register', async (req, res) => {
           gender: st.gender || 'Not Specified',
           level_class: st.level_class || st.class || 'Student Delegate',
           room_dorm: st.room_dorm || st.room || '',
-          emergency_contact: st.emergency_contact || school.patron_phone || '',
+          emergency_contact: st.emergency_contact || teacherInchargeContact || registrantContact || '',
           qr_payload: studentId,
           created_at: new Date().toISOString(),
         };
@@ -340,10 +359,10 @@ router.post('/register', async (req, res) => {
     // Try saving to MySQL database
     try {
       await pool.query(
-        `INSERT INTO retreat_schools (id, school_code, name, category, region, patron_name, patron_phone, patron_email, notes, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE name = VALUES(name), patron_name = VALUES(patron_name), patron_phone = VALUES(patron_phone), patron_email = VALUES(patron_email), notes = VALUES(notes)`,
-        [newSchool.id, newSchool.school_code, newSchool.name, newSchool.category, newSchool.region, newSchool.patron_name, newSchool.patron_phone, newSchool.patron_email, newSchool.notes, newSchool.created_at]
+        `INSERT INTO retreat_schools (id, school_code, name, registrant_name, registrant_contact, category, region, patron_name, patron_phone, patron_email, notes, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE name = VALUES(name), registrant_name = VALUES(registrant_name), registrant_contact = VALUES(registrant_contact), patron_name = VALUES(patron_name), patron_phone = VALUES(patron_phone), notes = VALUES(notes)`,
+        [newSchool.id, newSchool.school_code, newSchool.name, newSchool.registrant_name, newSchool.registrant_contact, newSchool.category, newSchool.region, newSchool.patron_name, newSchool.patron_phone, newSchool.patron_email, newSchool.notes, newSchool.created_at]
       );
 
       for (const st of formattedStudents) {

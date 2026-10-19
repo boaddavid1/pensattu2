@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizer Command Center — QR Scanner & Live Attendance Terminal</title>
+  <meta name="description" content="National campus and schools spiritual retreat organizer terminal. Camera gate pass scanner (clock-in/clock-out), master attendance list, and student badge directory.">
+
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Offline QR Code & Scanner Libraries -->
+  <script src="js/qrcode.min.js"></script>
+  <script src="js/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- ─── 1. TOP MASTER HEADER BAR ─── -->
+  <header class="ret-header">
+    <div class="ret-header-inner">
+      <a href="admin.html" class="ret-brand">
+        <div class="ret-brand-icon">🕊️</div>
+        <div class="ret-brand-text">
+          <h1 id="header-retreat-title">PENSA Schools & Campus Retreat 2026</h1>
+          <p>
+            <span class="ret-live-pill"><span class="ret-live-dot"></span> LIVE COMMAND SYSTEM</span>
+            <span>• Gate Scanner & Attendance Terminal</span>
+          </p>
+        </div>
+      </a>
+
+      <div class="ret-header-actions no-print">
+        <!-- Active Session Selector -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">SESSION:</span>
+          <select id="session-select" class="ret-session-select" title="Active retreat session"></select>
+        </div>
+
+        <!-- Quick Scan Terminal Launcher -->
+        <button type="button" class="ret-btn ret-btn-gold" onclick="window.retreatApp?.switchTab('scanner');">
+          📷 Gate Scanner
+        </button>
+
+        <!-- Link Back to Public Registration Form -->
+        <a href="index.html" class="ret-btn ret-btn-outline" style="text-decoration: none;">
+          ← School Registration Form
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── 2. HERO MASTHEAD WITH LIVE STAT COUNTERS ─── -->
+  <section class="ret-masthead">
+    <div class="ret-masthead-inner">
+      <div class="ret-title-row">
+        <div class="ret-theme-banner">
+          <h2>Organizer Gate Command & Attendance Terminal</h2>
+          <p id="header-retreat-theme">
+            <span>📖 Ignite & Shine — Transformed for Global Impact</span> • 
+            <span>📍 Takoradi Technical University Auditorium</span>
+          </p>
+        </div>
+
+        <div class="no-print" style="display: flex; gap: 10px;">
+          <button type="button" id="print-badges-btn" class="ret-btn ret-btn-primary">
+            🖨️ Print Badge Sheets (A4)
+          </button>
+          <button type="button" id="export-attendance-csv-btn" class="ret-btn ret-btn-outline">
+            📊 Export Attendance CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Live KPI Stat Cards Grid -->
+      <div class="ret-stats-grid">
+        <!-- Schools -->
+        <div class="ret-stat-card">
+          <div class="ret-stat-icon" style="background: rgba(37, 99, 235, 0.2); color: #60a5fa;">🏫</div>
+          <div class="ret-stat-info">
+            <span id="stat-total-schools" class="ret-stat-value">0</span>
+            <span class="ret-stat-label">Registered Schools</span>
+          </div>
+        </div>
+
+        <!-- Total Students -->
+        <div class="ret-stat-card">
+          <div class="ret-stat-icon" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">🎓</div>
+          <div class="ret-stat-info">
+            <span id="stat-total-students" class="ret-stat-value">0</span>
+            <span class="ret-stat-label">Total Student Delegates</span>
+          </div>
+        </div>
+
+        <!-- Currently Clocked In -->
+        <div class="ret-stat-card" style="border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.08);">
+          <div class="ret-stat-icon" style="background: rgba(16, 185, 129, 0.25); color: #34d399;">✅</div>
+          <div class="ret-stat-info">
+            <span id="stat-clocked-in" class="ret-stat-value" style="color: #34d399;">0</span>
+            <span class="ret-stat-label" style="color: #6ee7b7;">Clocked-In (Auditorium)</span>
+          </div>
+        </div>
+
+        <!-- Clocked Out -->
+        <div class="ret-stat-card">
+          <div class="ret-stat-icon" style="background: rgba(2, 132, 199, 0.2); color: #38bdf8;">🚪</div>
+          <div class="ret-stat-info">
+            <span id="stat-clocked-out" class="ret-stat-value">0</span>
+            <span class="ret-stat-label">Clocked-Out / On Break</span>
+          </div>
+        </div>
+
+        <!-- Attendance Rate -->
+        <div class="ret-stat-card">
+          <div class="ret-stat-icon" style="background: rgba(139, 92, 246, 0.2); color: #c084fc;">📈</div>
+          <div class="ret-stat-info">
+            <span id="stat-rate" class="ret-stat-value">0%</span>
+            <span class="ret-stat-label">Live Attendance Rate</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 3. SEGMENTED NAVIGATION CONTROLLER ─── -->
+  <nav class="ret-nav-tabs-wrapper no-print">
+    <div class="ret-nav-tabs">
+      <button type="button" class="ret-tab-btn active" data-tab="scanner">
+        <span>📷 Live Camera Scanner (Clock-In/Out)</span>
+      </button>
+
+      <button type="button" class="ret-tab-btn" data-tab="attendance">
+        <span>📊 Master Attendance Sheet</span>
+        <span id="tab-badge-attendance" class="ret-tab-badge">0</span>
+      </button>
+
+      <button type="button" class="ret-tab-btn" data-tab="badges">
+        <span>📇 All Student QR Badges</span>
+        <span id="tab-badge-badges" class="ret-tab-badge">0</span>
+      </button>
+
+      <button type="button" class="ret-tab-btn" data-tab="schools">
+        <span>🏛️ Schools Directory</span>
+        <span id="tab-badge-schools" class="ret-tab-badge">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ─── 4. MAIN APPLICATION VIEWS ─── -->
+  <main class="ret-main">
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         TAB 1: LIVE QR CAMERA SCANNER TERMINAL (CLOCK-IN / CLOCK-OUT)
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="view-scanner" class="ret-view active">
+      <div class="ret-scanner-layout">
+        <!-- Left: Live Camera Viewfinder & Mode Switcher -->
+        <div class="ret-scanner-feed-box">
+          <div class="ret-scanner-top-bar">
+            <span id="camera-status-text">○ Camera Active</span>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="toggle-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.15); color: #fff; border: none;">
+                🔄 Flip Camera
+              </button>
+            </div>
+          </div>
+
+          <!-- Video element controlled by html5-qrcode -->
+          <div class="ret-camera-viewfinder">
+            <div id="reader"></div>
+            <div class="ret-scan-overlay"></div>
+          </div>
+
+          <!-- Clock In vs Clock Out Mode Controller -->
+          <div class="ret-scanner-modes">
+            <div class="ret-mode-toggle">
+              <button type="button" class="ret-mode-btn active auto" data-mode="auto">
+                🔄 Auto Toggle
+              </button>
+              <button type="button" class="ret-mode-btn clock-in" data-mode="clock_in">
+                🟢 Clock In
+              </button>
+              <button type="button" class="ret-mode-btn clock-out" data-mode="clock_out">
+                🔵 Clock Out
+              </button>
+            </div>
+            <span style="font-size: 12px; color: #94a3b8;">
+              Point delegate QR badge directly at camera
+            </span>
+          </div>
+
+          <!-- Manual barcode/ID keyboard lookup fallback -->
+          <div class="ret-manual-scan-box">
+            <input
+              type="text"
+              id="manual-scan-input"
+              class="ret-form-input"
+              placeholder="Or type/paste Student ID or QR code text..."
+            />
+            <button type="button" id="manual-scan-btn" class="ret-btn ret-btn-primary" style="white-space: nowrap;">
+              Process
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Real-time scan result and recent activity audit log -->
+        <div class="ret-scanner-sidebar">
+          <!-- Dynamic Feedback Card -->
+          <div id="scan-result-card" class="ret-scan-result-card waiting">
+            <div style="text-align: center; padding: 20px 10px;">
+              <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
+              <div style="font-weight: 800; font-size: 16px; color: var(--primary-900);">Gate Scanner Ready</div>
+              <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                Hold up student delegate badge QR code in front of the lens for instant clock-in or clock-out.
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Scans Stream -->
+          <div class="ret-recent-scans-box">
+            <div class="ret-recent-scans-header">
+              <h3 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--primary-900);">Recent Scans Stream</h3>
+              <span style="font-size: 11px; font-weight: 700; color: #10b981;">● Live Updates</span>
+            </div>
+            <div id="recent-scans-list" class="ret-recent-scans-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         TAB 2: MASTER ATTENDANCE SHEET & AUDIT LOG
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="view-attendance" class="ret-view">
+      <div class="ret-card">
+        <div class="ret-card-header">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h2 class="ret-card-title">
+              <span>📊 Live Attendance Manifest</span>
+            </h2>
+            <div style="display: flex; gap: 8px;">
+              <select id="attendance-filter-school" class="ret-form-select" style="width: auto; min-width: 180px;">
+                <option value="">All Schools</option>
+              </select>
+              <select id="attendance-filter-status" class="ret-form-select" style="width: auto;">
+                <option value="">All Statuses</option>
+                <option value="clocked_in">Clocked In (Present)</option>
+                <option value="clocked_out">Clocked Out</option>
+                <option value="not_arrived">Not Yet Arrived</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input
+              type="text"
+              id="attendance-search-input"
+              class="ret-form-input"
+              placeholder="🔍 Search student name, ID..."
+              style="width: 220px;"
+            />
+            <button type="button" class="ret-btn ret-btn-outline" onclick="window.retreatApp?.exportAttendanceCsv();">
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="ret-card-body" style="padding: 0;">
+          <div class="ret-table-wrap" style="margin-top: 0; border: none; border-radius: 0;">
+            <table class="ret-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Student Delegate</th>
+                  <th>School & Level</th>
+                  <th>Gender</th>
+                  <th>Current Status</th>
+                  <th>Last Scanned</th>
+                  <th>Manual Override</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         TAB 3: ALL STUDENT QR BADGES STUDIO
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="view-badges" class="ret-view">
+      <div class="ret-badges-controls no-print">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <!-- Filter by School -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 13px; font-weight: 700; color: #475569;">Filter School:</label>
+            <select id="badge-filter-school" class="ret-form-select" style="width: auto; min-width: 200px;">
+              <option value="">All Schools</option>
+            </select>
+          </div>
+
+          <!-- Search by Name or ID -->
+          <input
+            type="text"
+            id="badge-search-input"
+            class="ret-form-input"
+            placeholder="🔍 Search student name or ID..."
+            style="width: 240px;"
+          />
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="ret-btn ret-btn-primary" onclick="window.print();">
+            🖨️ Print Filtered Sheet (A4)
+          </button>
+        </div>
+      </div>
+
+      <!-- Container where student badge cards are rendered -->
+      <div id="badges-grid" class="ret-badges-grid">
+        <!-- Rendered dynamically by badges.js -->
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         TAB 4: REGISTERED SCHOOLS DIRECTORY
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="view-schools" class="ret-view">
+      <div id="schools-summary-grid" class="ret-schools-grid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ─── 5. GLOBAL FOOTER ─── -->
+  <footer class="ret-footer no-print">
+    <div class="ret-footer-inner">
+      <div>
+        <strong>PENSA Schools & Campus Retreat 2026</strong> • Official Command & Attendance Terminal
+      </div>
+      <div>
+        Designed for High-Speed Gate Verification & Student Pass Issuance
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Main Controller -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -3,580 +3,329 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retreat Portal — School Registration, QR Badges & Live Attendance Terminal</title>
-  <meta name="description" content="National campus and schools spiritual retreat registration portal. Batch register schools, generate unique QR student badges with name on top, and live camera clock-in/clock-out attendance terminal.">
+  <title>School Delegate Registration — PENSA Retreat 2026</title>
+  <meta name="description" content="Official retreat registration portal for schools and student delegates. Register your school and upload student attendees to instantly generate official QR code gate passes.">
 
-  <!-- Modern Fonts -->
+  <!-- Google Modern Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Core Styles -->
+  <!-- Core Design System -->
   <link rel="stylesheet" href="css/styles.css">
 
-  <!-- Offline QR Code & Scanner Libraries -->
+  <!-- QR Code Generator Library -->
   <script src="js/qrcode.min.js"></script>
-  <script src="js/html5-qrcode.min.js"></script>
 </head>
 <body>
 
-  <!-- ─── 1. TOP MASTER HEADER BAR ─── -->
+  <!-- ─── 1. TOP HEADER BAR ─── -->
   <header class="ret-header">
     <div class="ret-header-inner">
-      <a href="#" class="ret-brand" onclick="window.retreatApp?.switchTab('badges'); return false;">
+      <a href="index.html" class="ret-brand">
         <div class="ret-brand-icon">🕊️</div>
         <div class="ret-brand-text">
-          <h1 id="header-retreat-title">PENSA Schools & Campus Retreat 2026</h1>
+          <h1>PENSA Schools & Campus Retreat 2026</h1>
           <p>
-            <span class="ret-live-pill"><span class="ret-live-dot"></span> LIVE COMMAND SYSTEM</span>
-            <span>• Master Badge & Attendance Terminal</span>
+            <span class="ret-live-pill"><span class="ret-live-dot"></span> REGISTRATION PORTAL</span>
+            <span>• Official School & Student Delegate Intake</span>
           </p>
         </div>
       </a>
 
       <div class="ret-header-actions no-print">
-        <!-- Active Session Selector -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">SESSION:</span>
-          <select id="session-select" class="ret-session-select" title="Active retreat session"></select>
-        </div>
-
-        <!-- Quick Scan Terminal Launcher -->
-        <button type="button" class="ret-btn ret-btn-gold" onclick="window.retreatApp?.switchTab('scanner');">
-          📷 Scan Gate Pass
-        </button>
-
-        <!-- New School Registration Button -->
-        <button type="button" class="ret-btn ret-btn-outline" onclick="window.retreatApp?.switchTab('register');">
-          + Register School
-        </button>
+        <!-- Direct link to Organizer Gate Scanner Terminal -->
+        <a href="admin.html" class="ret-btn ret-btn-outline" style="text-decoration: none; font-size: 13px;">
+          📷 Organizer Gate Scanner Terminal ➔
+        </a>
       </div>
     </div>
   </header>
 
-  <!-- ─── 2. HERO MASTHEAD WITH LIVE STAT COUNTERS ─── -->
-  <section class="ret-masthead">
-    <div class="ret-masthead-inner">
-      <div class="ret-title-row">
-        <div class="ret-theme-banner">
-          <h2>School Retreat Portal & QR Attendance Terminal</h2>
-          <p id="header-retreat-theme">
-            <span>📖 Ignite & Shine — Transformed for Global Impact</span> • 
-            <span>📍 Takoradi Technical University Auditorium</span>
+  <!-- ─── 2. MAIN REGISTRATION VIEW ─── -->
+  <main class="ret-reg-wrapper">
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SECTION A: PRIMARY REGISTRATION FORM
+         User requirement:
+         "the first page should only be the registration forms with the submit button.
+          these school be the fields (name, contact, name of school,
+          teacher incharge of students name and contact, and place to upload file
+          that contains name of students who will attend then submit"
+    ════════════════════════════════════════════════════════════════════ -->
+    <section id="registration-form-section">
+      <div class="ret-reg-card">
+        
+        <!-- Header -->
+        <div class="ret-reg-header">
+          <div class="ret-reg-pill">
+            <span>🏛️ Official Delegation Intake</span>
+          </div>
+          <h1 class="ret-reg-title">School & Student Registration</h1>
+          <p class="ret-reg-subtitle">
+            Please enter your school details and upload the file containing student attendees. Each student will immediately receive an official scannable QR badge with their unique name on top.
           </p>
         </div>
 
-        <div class="no-print" style="display: flex; gap: 10px;">
-          <button type="button" id="print-badges-btn" class="ret-btn ret-btn-primary">
-            🖨️ Print Badge Sheets (A4)
-          </button>
-          <button type="button" id="export-attendance-csv-btn" class="ret-btn ret-btn-outline">
-            📊 Export Attendance CSV
-          </button>
-        </div>
-      </div>
+        <!-- Form Body -->
+        <div class="ret-reg-body">
+          <form id="school-registration-form" novalidate>
+            
+            <!-- ─── STEP 1: SUBMITTER / REGISTRANT INFORMATION ─── -->
+            <div class="ret-form-section-title">
+              <span class="ret-step-num">1</span>
+              <span>Registrant Information</span>
+            </div>
 
-      <!-- Live KPI Stat Cards Grid -->
-      <div class="ret-stats-grid">
-        <!-- Schools -->
-        <div class="ret-stat-card">
-          <div class="ret-stat-icon" style="background: rgba(37, 99, 235, 0.2); color: #60a5fa;">🏫</div>
-          <div class="ret-stat-info">
-            <span id="stat-total-schools" class="ret-stat-value">0</span>
-            <span class="ret-stat-label">Registered Schools</span>
-          </div>
-        </div>
-
-        <!-- Total Students -->
-        <div class="ret-stat-card">
-          <div class="ret-stat-icon" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">🎓</div>
-          <div class="ret-stat-info">
-            <span id="stat-total-students" class="ret-stat-value">0</span>
-            <span class="ret-stat-label">Total Student Delegates</span>
-          </div>
-        </div>
-
-        <!-- Currently Clocked In -->
-        <div class="ret-stat-card" style="border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.08);">
-          <div class="ret-stat-icon" style="background: rgba(16, 185, 129, 0.25); color: #34d399;">✅</div>
-          <div class="ret-stat-info">
-            <span id="stat-clocked-in" class="ret-stat-value" style="color: #34d399;">0</span>
-            <span class="ret-stat-label" style="color: #6ee7b7;">Clocked-In (Auditorium)</span>
-          </div>
-        </div>
-
-        <!-- Clocked Out -->
-        <div class="ret-stat-card">
-          <div class="ret-stat-icon" style="background: rgba(2, 132, 199, 0.2); color: #38bdf8;">🚪</div>
-          <div class="ret-stat-info">
-            <span id="stat-clocked-out" class="ret-stat-value">0</span>
-            <span class="ret-stat-label">Clocked-Out / On Break</span>
-          </div>
-        </div>
-
-        <!-- Attendance Rate -->
-        <div class="ret-stat-card">
-          <div class="ret-stat-icon" style="background: rgba(139, 92, 246, 0.2); color: #c084fc;">📈</div>
-          <div class="ret-stat-info">
-            <span id="stat-rate" class="ret-stat-value">0%</span>
-            <span class="ret-stat-label">Live Attendance Rate</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── 3. SEGMENTED NAVIGATION CONTROLLER ─── -->
-  <nav class="ret-nav-tabs-wrapper no-print">
-    <div class="ret-nav-tabs">
-      <button type="button" class="ret-tab-btn active" data-tab="badges">
-        <span>📇 Student QR Badges Studio</span>
-        <span id="tab-badge-badges" class="ret-tab-badge">0</span>
-      </button>
-
-      <button type="button" class="ret-tab-btn" data-tab="register">
-        <span>🏫 Register School & Roster</span>
-      </button>
-
-      <button type="button" class="ret-tab-btn" data-tab="scanner">
-        <span>📷 Live Scanner (Clock-In/Out)</span>
-      </button>
-
-      <button type="button" class="ret-tab-btn" data-tab="attendance">
-        <span>📊 Master Attendance Sheet</span>
-        <span id="tab-badge-attendance" class="ret-tab-badge">0</span>
-      </button>
-
-      <button type="button" class="ret-tab-btn" data-tab="schools">
-        <span>🏛️ Schools Directory</span>
-        <span id="tab-badge-schools" class="ret-tab-badge">0</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- ─── 4. MAIN APPLICATION VIEWS ─── -->
-  <main class="ret-main">
-
-    <!-- ════════════════════════════════════════════════════════════════════
-         TAB 1: STUDENT QR BADGES STUDIO
-         User requirement: "generate a qrcode each school's students with their unique name on top of each"
-    ════════════════════════════════════════════════════════════════════ -->
-    <div id="view-badges" class="ret-view active">
-      <div class="ret-badges-controls no-print">
-        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-          <!-- Filter by School -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <label style="font-size: 13px; font-weight: 700; color: #475569;">Filter School:</label>
-            <select id="badge-filter-school" class="ret-form-select" style="width: auto; min-width: 200px;">
-              <option value="">All Schools</option>
-            </select>
-          </div>
-
-          <!-- Search by Name or ID -->
-          <input
-            type="text"
-            id="badge-search-input"
-            class="ret-form-input"
-            placeholder="🔍 Search student name or ID..."
-            style="width: 240px;"
-          />
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-          <button type="button" class="ret-btn ret-btn-primary" onclick="window.print();">
-            🖨️ Print Filtered Sheet (A4)
-          </button>
-        </div>
-      </div>
-
-      <!-- Container where student badge cards are rendered -->
-      <div id="badges-grid" class="ret-badges-grid">
-        <!-- Rendered dynamically by badges.js -->
-      </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════════════════════════
-         TAB 2: SCHOOL REGISTRATION & ROSTER UPLOAD FORM
-    ════════════════════════════════════════════════════════════════════ -->
-    <div id="view-register" class="ret-view">
-      <div class="ret-card">
-        <div class="ret-card-header">
-          <h2 class="ret-card-title">
-            <span>🏫 Register School & Upload Student Names</span>
-          </h2>
-          <span class="ret-card-badge">Step-by-Step Batch Registration</span>
-        </div>
-
-        <div class="ret-card-body">
-          <form id="school-registration-form">
-            <!-- School Information Section -->
-            <div style="margin-bottom: 24px;">
-              <h3 style="font-size: 15px; font-weight: 800; color: var(--primary-900); margin-bottom: 12px;">
-                1. School Profile & Patron Contacts
-              </h3>
-
-              <div class="ret-form-grid-3" style="margin-bottom: 16px;">
-                <div class="ret-form-group">
-                  <label class="ret-form-label">School Name *</label>
-                  <input
-                    type="text"
-                    name="school_name"
-                    class="ret-form-input"
-                    placeholder="e.g. St. Thomas Aquinas Senior High"
-                    required
-                  />
-                </div>
-
-                <div class="ret-form-group">
-                  <label class="ret-form-label">
-                    <span>School Code Prefix</span>
-                    <span style="font-weight: normal; color: #94a3b8; font-size: 11px;">(Auto if blank)</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="school_code"
-                    class="ret-form-input"
-                    placeholder="e.g. AQUIN"
-                    maxlength="6"
-                  />
-                </div>
-
-                <div class="ret-form-group">
-                  <label class="ret-form-label">Category / Level</label>
-                  <select name="school_category" class="ret-form-select">
-                    <option value="Senior High School">Senior High School (SHS)</option>
-                    <option value="Technical / TVET">Technical / TVET Institution</option>
-                    <option value="University / Tertiary">University / Tertiary College</option>
-                    <option value="Basic / JHS">Basic / Junior High</option>
-                  </select>
-                </div>
+            <div class="ret-form-grid-2" style="margin-bottom: 22px;">
+              <!-- 1. Name -->
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="field-name">
+                  <span>Your Full Name <span class="ret-req">*</span></span>
+                </label>
+                <input
+                  type="text"
+                  id="field-name"
+                  name="name"
+                  class="ret-form-input"
+                  placeholder="e.g. Deacon Dennis Mensah"
+                  required
+                  autocomplete="name"
+                />
               </div>
 
-              <div class="ret-form-grid-3">
-                <div class="ret-form-group">
-                  <label class="ret-form-label">Region / Town Location</label>
-                  <input
-                    type="text"
-                    name="school_region"
-                    class="ret-form-input"
-                    placeholder="e.g. Greater Accra, Cantonments"
-                  />
-                </div>
-
-                <div class="ret-form-group">
-                  <label class="ret-form-label">School Patron / Teacher Name</label>
-                  <input
-                    type="text"
-                    name="patron_name"
-                    class="ret-form-input"
-                    placeholder="e.g. Elder Emmanuel Osei"
-                  />
-                </div>
-
-                <div class="ret-form-group">
-                  <label class="ret-form-label">Patron Phone / WhatsApp</label>
-                  <input
-                    type="text"
-                    name="patron_phone"
-                    class="ret-form-input"
-                    placeholder="+233 24 123 4567"
-                  />
-                </div>
-              </div>
-
-              <div class="ret-form-grid-2" style="margin-top: 16px;">
-                <div class="ret-form-group">
-                  <label class="ret-form-label">Patron Email</label>
-                  <input
-                    type="email"
-                    name="patron_email"
-                    class="ret-form-input"
-                    placeholder="patron@school.edu.gh"
-                  />
-                </div>
-
-                <div class="ret-form-group">
-                  <label class="ret-form-label">Special Notes / Arrival Time</label>
-                  <input
-                    type="text"
-                    name="school_notes"
-                    class="ret-form-input"
-                    placeholder="e.g. Arriving on Saturday morning by school bus"
-                  />
-                </div>
+              <!-- 2. Contact -->
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="field-contact">
+                  <span>Your Contact (Phone / WhatsApp) <span class="ret-req">*</span></span>
+                </label>
+                <input
+                  type="tel"
+                  id="field-contact"
+                  name="contact"
+                  class="ret-form-input"
+                  placeholder="e.g. +233 24 123 4567"
+                  required
+                  autocomplete="tel"
+                />
               </div>
             </div>
 
-            <!-- Student Names Upload Section -->
-            <div style="border-top: 1px solid var(--border-subtle); padding-top: 24px; margin-bottom: 24px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                <h3 style="font-size: 15px; font-weight: 800; color: var(--primary-900); margin: 0;">
-                  2. Student Delegates Roster
-                </h3>
-                <span id="paste-count-badge" class="ret-card-badge" style="background: #ecfdf5; color: #059669;">
-                  0 students detected
+            <!-- ─── STEP 2: SCHOOL & TEACHER IN-CHARGE DETAILS ─── -->
+            <div class="ret-form-section-title" style="margin-top: 28px;">
+              <span class="ret-step-num">2</span>
+              <span>School & Teacher In-Charge</span>
+            </div>
+
+            <!-- 3. Name of School -->
+            <div class="ret-form-group" style="margin-bottom: 18px;">
+              <label class="ret-form-label" for="field-school-name">
+                <span>Name of School <span class="ret-req">*</span></span>
+              </label>
+              <input
+                type="text"
+                id="field-school-name"
+                name="school_name"
+                class="ret-form-input"
+                placeholder="e.g. St. Thomas Aquinas Senior High School"
+                required
+              />
+            </div>
+
+            <div class="ret-form-grid-2" style="margin-bottom: 24px;">
+              <!-- 4. Teacher incharge of students name -->
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="field-teacher-name">
+                  <span>Teacher In-Charge of Students Name <span class="ret-req">*</span></span>
+                </label>
+                <input
+                  type="text"
+                  id="field-teacher-name"
+                  name="teacher_incharge_name"
+                  class="ret-form-input"
+                  placeholder="e.g. Elder Emmanuel Osei"
+                  required
+                />
+              </div>
+
+              <!-- 5. Teacher incharge of students contact -->
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="field-teacher-contact">
+                  <span>Teacher In-Charge Contact <span class="ret-req">*</span></span>
+                </label>
+                <input
+                  type="tel"
+                  id="field-teacher-contact"
+                  name="teacher_incharge_contact"
+                  class="ret-form-input"
+                  placeholder="e.g. +233 20 987 6543"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- ─── STEP 3: PLACE TO UPLOAD FILE OF STUDENTS ATTENDING ─── -->
+            <div class="ret-form-section-title" style="margin-top: 28px;">
+              <span class="ret-step-num">3</span>
+              <span>Student Attendees File Upload</span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+              <span style="font-size: 13px; color: #475569;">
+                Upload the file containing the list of students attending from your school:
+              </span>
+              <button type="button" id="download-template-btn" class="ret-badge-btn-mini" style="background: #f1f5f9; color: var(--primary-600); border: 1px solid #cbd5e1;">
+                📥 Download Sample CSV Template
+              </button>
+            </div>
+
+            <!-- Hidden File Input -->
+            <input
+              type="file"
+              id="roster-file-input"
+              accept=".csv, .txt, .xlsx, .xls, text/csv, text/plain"
+              style="display: none;"
+            />
+
+            <!-- 6. Place to upload file that contains name of students who will attend -->
+            <div id="roster-dropzone" class="ret-dropzone-box" title="Click or drag file here">
+              <div class="ret-dropzone-icon-wrap">📁</div>
+              <div style="font-size: 16px; font-weight: 800; color: var(--primary-900); margin-bottom: 4px;">
+                Click to Browse or Drag & Drop Student File
+              </div>
+              <div style="font-size: 13px; color: #64748b;">
+                Supports <strong>.CSV</strong> and <strong>.TXT</strong> files exported from Excel, Word, or Google Sheets
+              </div>
+              <div style="margin-top: 12px;">
+                <span class="ret-btn ret-btn-outline" style="font-size: 12.5px; padding: 6px 16px; pointer-events: none;">
+                  Select File from Computer / Phone
                 </span>
               </div>
+            </div>
 
-              <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
-                Add the list of students attending from this school. Each student will automatically receive a unique QR code badge with their name on top!
-              </p>
-
-              <!-- Upload Sub-Tabs -->
-              <div class="ret-upload-tabs">
-                <button type="button" class="ret-upload-tab-btn active" data-method="paste">
-                  📋 Quick Paste Names List
-                </button>
-                <button type="button" class="ret-upload-tab-btn" data-method="file">
-                  📁 Upload CSV Spreadsheet
-                </button>
-                <button type="button" class="ret-upload-tab-btn" data-method="table">
-                  ✍️ Add Row by Row
+            <!-- Status Card showing parsed student names -->
+            <div id="upload-status-wrap" class="ret-upload-status-card" style="display: none;">
+              <div class="ret-upload-status-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 20px;">✅</span>
+                  <div>
+                    <strong id="upload-count-badge" style="font-size: 14.5px; color: #166534;">
+                      0 Student Names Loaded
+                    </strong>
+                    <div id="upload-filename-text" style="font-size: 12px; color: #64748b;">
+                      filename.csv
+                    </div>
+                  </div>
+                </div>
+                <button type="button" id="upload-change-file-btn" class="ret-badge-btn-mini" style="background: #ffffff; color: #ef4444; border: 1px solid #fca5a5;">
+                  ✕ Remove & Choose Another File
                 </button>
               </div>
 
-              <!-- Option A: Paste Box -->
-              <div id="upload-mode-paste">
-                <textarea
-                  id="roster-paste-textarea"
-                  class="ret-form-textarea"
-                  rows="7"
-                  placeholder="Paste student names here, one per line (copy directly from WhatsApp, Word, or Excel).
+              <!-- Chips preview of detected student names -->
+              <div id="upload-names-preview" class="ret-names-chips-wrap">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+            <!-- Quick fallback: Paste directly -->
+            <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+              <button type="button" id="toggle-paste-btn" class="ret-badge-btn-mini" style="background: transparent; color: var(--primary-600); border: none; text-decoration: underline; cursor: pointer;">
+                📋 Or paste names from clipboard
+              </button>
+            </div>
+
+            <div id="paste-fallback-box" style="display: none; margin-top: 10px;">
+              <textarea
+                id="roster-paste-textarea"
+                class="ret-form-textarea"
+                rows="5"
+                placeholder="Paste student names here, one per line (copy from WhatsApp, Excel, or Word)...
 Example:
-Kwame Mensah, Male, Form 3 Science, St. Luke Hall
-Abena Mansa, Female, Form 2 Arts, Ruth House
-Emmanuel Osei, Male, Form 3 Business
-Priscilla Baidoo, Female, Form 2 Science"
-                ></textarea>
-                <div style="font-size: 12px; color: #64748b; margin-top: 6px;">
-                  💡 Tip: You can paste just full names (one per line) or comma-separated format: <code>Name, Gender, Class, Room</code>.
-                </div>
-              </div>
-
-              <!-- Option B: CSV File Dropzone -->
-              <div id="upload-mode-file" style="display: none;">
-                <input type="file" id="roster-csv-file" accept=".csv,text/csv" style="display: none;" />
-                <div id="roster-dropzone" class="ret-dropzone">
-                  <div class="ret-dropzone-icon">📥</div>
-                  <div style="font-weight: 800; font-size: 15px; color: var(--primary-900);">
-                    Click or Drag & Drop Student CSV File
-                  </div>
-                  <div style="font-size: 12.5px; color: #64748b; margin-top: 4px;">
-                    Supports .CSV files exported from Excel or Google Sheets (Columns: Name, Gender, Class, Room)
-                  </div>
-                </div>
-              </div>
-
-              <!-- Option C: Manual Row Table -->
-              <div id="upload-mode-table" style="display: none;">
-                <div class="ret-table-wrap">
-                  <table class="ret-table">
-                    <thead>
-                      <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Student Full Name</th>
-                        <th style="width: 140px;">Gender</th>
-                        <th style="width: 160px;">Class / Level</th>
-                        <th style="width: 60px;">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody id="manual-roster-tbody">
-                      <tr>
-                        <td colspan="5" style="text-align: center; padding: 16px; color: #94a3b8;">
-                          No student rows added yet. Click "+ Add Student" below.
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <button type="button" id="add-manual-row-btn" class="ret-btn ret-btn-outline" style="margin-top: 12px; color: var(--primary-600); border-color: var(--primary-400);">
-                  + Add Student Row
-                </button>
+Kwame Mensah Addo, Male, Form 3 Science
+Akosua Serwaa Boateng, Female, Form 3 Arts
+Emmanuel Kojo Antwi, Male, Form 2 Business"
+              ></textarea>
+              <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                💡 Names will be parsed automatically as you paste or type.
               </div>
             </div>
 
-            <!-- Submit Registration Button -->
-            <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-subtle); padding-top: 18px;">
-              <button type="button" class="ret-btn ret-btn-outline" style="color: #64748b; border-color: #cbd5e1;" onclick="document.getElementById('school-registration-form').reset();">
-                Clear Form
-              </button>
-              <button type="submit" class="ret-btn ret-btn-gold" style="padding: 12px 28px; font-size: 14.5px;">
-                ✨ Register School & Generate QR Badges
-              </button>
-            </div>
+            <!-- ─── 7. SUBMIT BUTTON ─── -->
+            <button type="submit" id="submit-btn" class="ret-submit-btn">
+              <span>Submit Registration & Generate Badges ✨</span>
+            </button>
+
           </form>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- ════════════════════════════════════════════════════════════════════
-         TAB 3: LIVE QR CAMERA SCANNER TERMINAL (CLOCK-IN / CLOCK-OUT)
+         SECTION B: INSTANT GENERATED BADGES SHOWCASE
+         Revealed immediately after successful submission
     ════════════════════════════════════════════════════════════════════ -->
-    <div id="view-scanner" class="ret-view">
-      <div class="ret-scanner-layout">
-        <!-- Left: Live Camera Viewfinder & Mode Switcher -->
-        <div class="ret-scanner-feed-box">
-          <div class="ret-scanner-top-bar">
-            <span id="camera-status-text">○ Camera Active</span>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" id="toggle-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.15); color: #fff; border: none;">
-                🔄 Flip Camera
-              </button>
-            </div>
-          </div>
-
-          <!-- Video element controlled by html5-qrcode -->
-          <div class="ret-camera-viewfinder">
-            <div id="reader"></div>
-            <div class="ret-scan-overlay"></div>
-          </div>
-
-          <!-- Clock In vs Clock Out Mode Controller -->
-          <div class="ret-scanner-modes">
-            <div class="ret-mode-toggle">
-              <button type="button" class="ret-mode-btn active auto" data-mode="auto">
-                🔄 Auto Toggle
-              </button>
-              <button type="button" class="ret-mode-btn clock-in" data-mode="clock_in">
-                🟢 Clock In
-              </button>
-              <button type="button" class="ret-mode-btn clock-out" data-mode="clock_out">
-                🔵 Clock Out
-              </button>
-            </div>
-            <span style="font-size: 12px; color: #94a3b8;">
-              Point delegate QR badge directly at camera
-            </span>
-          </div>
-
-          <!-- Manual Barcode Scanner Gun / Keyboard Input -->
-          <div class="ret-manual-input-bar">
-            <input
-              type="text"
-              id="manual-scan-input"
-              class="ret-form-input"
-              placeholder="Barcode scanner gun input or enter Student ID (e.g. RET26-AUG-001)..."
-            />
-            <button type="button" id="manual-scan-btn" class="ret-btn ret-btn-primary" style="white-space: nowrap;">
-              Enter Scan
-            </button>
-          </div>
-        </div>
-
-        <!-- Right: Instant Verification Result & Recent Activity Feed -->
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-          <!-- Big Instant Verification Display Card -->
-          <div id="scan-result-card" class="ret-scan-result-card" style="min-height: 140px; display: flex; align-items: center; justify-content: center; text-align: center; color: #94a3b8; background: #ffffff;">
-            <div>
-              <div style="font-size: 44px; margin-bottom: 8px;">📷</div>
-              <h3 style="font-size: 16px; font-weight: 800; color: #0f2c52; margin: 0;">Scanner Terminal Ready</h3>
-              <p style="font-size: 12.5px; margin: 4px 0 0; color: #64748b;">
-                Scan any delegate's QR badge pass to record arrival or departure.
-              </p>
-            </div>
-          </div>
-
-          <!-- Recent Live Scans Feed -->
-          <div class="ret-card" style="margin-bottom: 0;">
-            <div class="ret-card-header">
-              <h3 class="ret-card-title" style="font-size: 15px;">
-                <span>⏱️ Live Scans Stream</span>
-              </h3>
-              <span class="ret-card-badge">Recent 10</span>
-            </div>
-            <div class="ret-card-body" style="padding: 14px;" id="recent-scans-list">
-              <!-- Rendered by app.js -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════════════════════════
-         TAB 4: MASTER ATTENDANCE SHEET & AUDIT LOG
-    ════════════════════════════════════════════════════════════════════ -->
-    <div id="view-attendance" class="ret-view">
-      <div class="ret-card">
-        <div class="ret-card-header">
-          <h2 class="ret-card-title">
-            <span>📊 Master Delegate Attendance Manifest</span>
-          </h2>
-
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <!-- Filter by School -->
-            <select id="attendance-filter-school" class="ret-form-select" style="width: auto;">
-              <option value="">All Schools</option>
-            </select>
-
-            <!-- Filter by Status -->
-            <select id="attendance-filter-status" class="ret-form-select" style="width: auto;">
-              <option value="">All Statuses</option>
-              <option value="clocked_in">Clocked In Only</option>
-              <option value="clocked_out">Clocked Out Only</option>
-              <option value="not_arrived">Not Arrived</option>
-            </select>
-
-            <!-- Search input -->
-            <input
-              type="text"
-              id="attendance-search-input"
-              class="ret-form-input"
-              placeholder="Search delegate..."
-              style="width: 200px;"
-            />
-          </div>
-        </div>
-
-        <div class="ret-card-body" style="padding: 0;">
-          <div class="ret-table-wrap" style="border: none; border-radius: 0; margin-top: 0;">
-            <table class="ret-table">
-              <thead>
-                <tr>
-                  <th style="width: 40px;">#</th>
-                  <th>Student Delegate</th>
-                  <th>School & Level</th>
-                  <th>Gender</th>
-                  <th>Current Status</th>
-                  <th>Last Scan Time</th>
-                  <th style="width: 140px;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="attendance-tbody">
-                <!-- Rendered dynamically -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════════════════════════
-         TAB 5: SCHOOLS LEADERBOARD & DIRECTORY
-    ════════════════════════════════════════════════════════════════════ -->
-    <div id="view-schools" class="ret-view">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+    <section id="badges-showcase-section" style="display: none;">
+      
+      <!-- Celebration Banner -->
+      <div class="ret-showcase-banner">
         <div>
-          <h2 style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--primary-900); margin: 0;">
-            Registered Schools & Delegation Progress
+          <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #34d399; margin-bottom: 4px;">
+            🎉 REGISTRATION SUCCESSFUL
+          </div>
+          <h2 id="showcase-school-name" style="font-family: var(--font-heading); font-size: 26px; font-weight: 900; margin: 0 0 6px;">
+            School Name
           </h2>
-          <p style="font-size: 13px; color: #64748b; margin: 2px 0 0;">
-            Select any school to view or batch-print all their student QR badges.
-          </p>
+          <div style="font-size: 13.5px; opacity: 0.9; display: flex; flex-wrap: wrap; gap: 16px;">
+            <span id="showcase-student-count">0 Student Passes Generated</span>
+            <span>•</span>
+            <span>Teacher In-Charge: <strong id="showcase-teacher-info">—</strong></span>
+            <span>•</span>
+            <span>Registrant: <strong id="showcase-registrant-info">—</strong></span>
+          </div>
         </div>
 
-        <button type="button" class="ret-btn ret-btn-gold" onclick="window.retreatApp?.switchTab('register');">
-          + Register Another School
-        </button>
+        <div class="ret-showcase-actions no-print">
+          <button type="button" id="print-all-badges-btn" class="ret-btn ret-btn-gold" style="font-weight: 800; padding: 12px 24px;">
+            🖨️ Print Badge Sheets (A4)
+          </button>
+          <button type="button" id="register-another-btn" class="ret-btn ret-btn-outline" style="color: #ffffff; border-color: rgba(255,255,255,0.4);">
+            ➕ Register Another School
+          </button>
+        </div>
       </div>
 
-      <div id="schools-summary-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
-        <!-- Rendered dynamically -->
+      <!-- Instruction note -->
+      <div class="no-print" style="background: #ffffff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="font-size: 13.5px; color: #334155;">
+          <strong>Official Delegate Passes:</strong> Each badge below features the student's <strong>unique name prominently on top of their QR code</strong>. Print these badges or save them for gate attendance clock-in.
+        </div>
+        <a href="admin.html" class="ret-badge-btn-mini" style="background: var(--primary-600); color: #fff; padding: 6px 14px;">
+          Open Gate Scanner Terminal ➔
+        </a>
       </div>
-    </div>
+
+      <!-- Student Badges Grid -->
+      <div id="badges-grid-container" class="ret-badges-grid">
+        <!-- Rendered dynamically by badges.js -->
+      </div>
+    </section>
 
   </main>
 
-  <!-- ─── 5. BOOTSTRAP SCRIPT (MODULE) ─── -->
-  <script type="module" src="js/app.js"></script>
+  <!-- ─── 3. GLOBAL FOOTER ─── -->
+  <footer class="ret-footer no-print">
+    <div class="ret-footer-inner">
+      <div>
+        <strong>PENSA Schools & Campus Retreat 2026</strong> • Official Delegate Registration Portal
+      </div>
+      <div>
+        Takoradi Technical University Auditorium • Gate Pass QR Verification System
+      </div>
+    </div>
+  </footer>
+
+  <!-- Dedicated Registration Controller -->
+  <script type="module" src="js/registration.js"></script>
 </body>
 </html>
