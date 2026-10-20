@@ -16,6 +16,8 @@
 
   <!-- QR Code Generator Library -->
   <script src="js/qrcode.min.js"></script>
+  <!-- Excel & Spreadsheet Engine (SheetJS) -->
+  <script src="js/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -80,13 +82,13 @@
             <div class="ret-form-grid-2" style="margin-bottom: 22px;">
               <!-- 1. Name -->
               <div class="ret-form-group">
-                <label class="ret-form-label" for="field-name">
+                <label class="ret-form-label" for="field-registrant-name">
                   <span>Your Full Name <span class="ret-req">*</span></span>
                 </label>
                 <input
                   type="text"
-                  id="field-name"
-                  name="name"
+                  id="field-registrant-name"
+                  name="registrant_name"
                   class="ret-form-input"
                   placeholder="e.g. Deacon Dennis Mensah"
                   required
@@ -96,13 +98,13 @@
 
               <!-- 2. Contact -->
               <div class="ret-form-group">
-                <label class="ret-form-label" for="field-contact">
+                <label class="ret-form-label" for="field-registrant-contact">
                   <span>Your Contact (Phone / WhatsApp) <span class="ret-req">*</span></span>
                 </label>
                 <input
                   type="tel"
-                  id="field-contact"
-                  name="contact"
+                  id="field-registrant-contact"
+                  name="registrant_contact"
                   class="ret-form-input"
                   placeholder="e.g. +233 24 123 4567"
                   required
@@ -174,31 +176,36 @@
               <span style="font-size: 13px; color: #475569;">
                 Upload the file containing the list of students attending from your school:
               </span>
-              <button type="button" id="download-template-btn" class="ret-badge-btn-mini" style="background: #f1f5f9; color: var(--primary-600); border: 1px solid #cbd5e1;">
-                📥 Download Sample CSV Template
-              </button>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" id="download-excel-template-btn" class="ret-badge-btn-mini" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 700;">
+                  📊 Download Excel Template (.xlsx)
+                </button>
+                <button type="button" id="download-template-btn" class="ret-badge-btn-mini" style="background: #f1f5f9; color: var(--primary-600); border: 1px solid #cbd5e1;">
+                  📥 CSV Template
+                </button>
+              </div>
             </div>
 
-            <!-- Hidden File Input -->
+            <!-- Hidden File Input supporting all Excel formats -->
             <input
               type="file"
               id="roster-file-input"
-              accept=".csv, .txt, .xlsx, .xls, text/csv, text/plain"
+              accept=".xlsx, .xls, .xlsb, .xlsm, .csv, .txt, .tsv, .ods, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv, text/plain"
               style="display: none;"
             />
 
             <!-- 6. Place to upload file that contains name of students who will attend -->
-            <div id="roster-dropzone" class="ret-dropzone-box" title="Click or drag file here">
-              <div class="ret-dropzone-icon-wrap">📁</div>
+            <div id="roster-dropzone" class="ret-dropzone-box" title="Click or drag any Excel or CSV file here">
+              <div class="ret-dropzone-icon-wrap" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 32px;">📊</div>
               <div style="font-size: 16px; font-weight: 800; color: var(--primary-900); margin-bottom: 4px;">
-                Click to Browse or Drag & Drop Student File
+                Click to Browse or Drag & Drop Excel File (.xlsx, .xls)
               </div>
-              <div style="font-size: 13px; color: #64748b;">
-                Supports <strong>.CSV</strong> and <strong>.TXT</strong> files exported from Excel, Word, or Google Sheets
+              <div style="font-size: 13px; color: #64748b; line-height: 1.5;">
+                Supports <strong>all Excel files (.xlsx, .xls, .xlsm, .xlsb)</strong>, <strong>Google Sheets</strong>, <strong>CSV</strong>, and <strong>Text</strong> rosters
               </div>
               <div style="margin-top: 12px;">
-                <span class="ret-btn ret-btn-outline" style="font-size: 12.5px; padding: 6px 16px; pointer-events: none;">
-                  Select File from Computer / Phone
+                <span class="ret-btn ret-btn-outline" style="font-size: 12.5px; padding: 7px 18px; pointer-events: none; border-color: #10b981; color: #047857;">
+                  📁 Select Excel / CSV File from Device
                 </span>
               </div>
             </div>
@@ -266,12 +273,27 @@ Emmanuel Kojo Antwi, Male, Form 2 Business"
          Revealed immediately after successful submission
     ════════════════════════════════════════════════════════════════════ -->
     <section id="badges-showcase-section" style="display: none;">
+
+      <!-- ─── Print-Only Header: Compact summary at top of the 1-page paper ─── -->
+      <div id="print-only-sheet-header" class="ret-print-only-header">
+        <div class="ret-print-header-top">
+          <div class="ret-print-title">PENSA TTU SPIRITUAL RETREAT 2026 • OFFICIAL STUDENT DELEGATE PASSES</div>
+          <div class="ret-print-badge-pill">ONE-PAGE PRINT SHEET</div>
+        </div>
+        <div class="ret-print-meta-bar">
+          <span><strong>School:</strong> <span id="print-school-name">—</span></span>
+          <span>•</span>
+          <span><strong>Teacher In-Charge:</strong> <span id="print-teacher-name">—</span></span>
+          <span>•</span>
+          <span><strong>Total Delegates:</strong> <span id="print-delegates-count">—</span></span>
+        </div>
+      </div>
       
       <!-- Celebration Banner -->
       <div class="ret-showcase-banner">
         <div>
           <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #34d399; margin-bottom: 4px;">
-            🎉 REGISTRATION SUCCESSFUL
+            🎉 REGISTRATION SUCCESSFUL • ALL QR CODES READY
           </div>
           <h2 id="showcase-school-name" style="font-family: var(--font-heading); font-size: 26px; font-weight: 900; margin: 0 0 6px;">
             School Name
@@ -286,8 +308,8 @@ Emmanuel Kojo Antwi, Male, Form 2 Business"
         </div>
 
         <div class="ret-showcase-actions no-print">
-          <button type="button" id="print-all-badges-btn" class="ret-btn ret-btn-gold" style="font-weight: 800; padding: 12px 24px;">
-            🖨️ Print Badge Sheets (A4)
+          <button type="button" id="print-all-badges-btn" class="ret-btn ret-btn-gold" style="font-weight: 800; padding: 12px 24px; font-size: 15px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">
+            🖨️ Print All Badges at Once (1 Page Paper)
           </button>
           <button type="button" id="register-another-btn" class="ret-btn ret-btn-outline" style="color: #ffffff; border-color: rgba(255,255,255,0.4);">
             ➕ Register Another School
@@ -313,17 +335,6 @@ Emmanuel Kojo Antwi, Male, Form 2 Business"
 
   </main>
 
-  <!-- ─── 3. GLOBAL FOOTER ─── -->
-  <footer class="ret-footer no-print">
-    <div class="ret-footer-inner">
-      <div>
-        <strong>PENSA Schools & Campus Retreat 2026</strong> • Official Delegate Registration Portal
-      </div>
-      <div>
-        Takoradi Technical University Auditorium • Gate Pass QR Verification System
-      </div>
-    </div>
-  </footer>
 
   <!-- Dedicated Registration Controller -->
   <script type="module" src="js/registration.js"></script>

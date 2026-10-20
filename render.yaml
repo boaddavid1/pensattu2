@@ -37,7 +37,18 @@ services:
         value: u197926764_pensattu
       - key: SEC_JWT_SECRET
         sync: false
+      - key: SCHOOL_DB_HOST
+        sync: false
+      - key: SCHOOL_DB_PORT
+        value: 3306
+      - key: SCHOOL_DB_USER
+        sync: false
+      - key: SCHOOL_DB_PASSWORD
+        sync: false
+      - key: SCHOOL_DB_NAME
+        value: u197926764_sch
       - key: ARKESEL_API_KEY
         sync: false
       - key: ARKESEL_SENDER_ID
         value: PENSA-TTU
+

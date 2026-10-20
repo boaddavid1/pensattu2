@@ -6,15 +6,25 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const src = join(__dirname, '..', 'prayer', 'admin');
-const dest = join(__dirname, 'src', 'prayer-admin');
 
-if (!existsSync(src)) {
-  console.error('[copy-prayer-admin] Source not found:', src);
-  process.exit(1);
+// 1. Copies prayer/admin/ into src/prayer-admin/ so the client can import it.
+const prayerSrc = join(__dirname, '..', 'prayer', 'admin');
+const prayerDest = join(__dirname, 'src', 'prayer-admin');
+
+if (existsSync(prayerSrc)) {
+  if (existsSync(prayerDest)) rmSync(prayerDest, { recursive: true, force: true });
+  mkdirSync(prayerDest, { recursive: true });
+  cpSync(prayerSrc, prayerDest, { recursive: true });
+  console.log('[copy-assets] Copied prayer/admin -> src/prayer-admin');
 }
 
-if (existsSync(dest)) rmSync(dest, { recursive: true, force: true });
-mkdirSync(dest, { recursive: true });
-cpSync(src, dest, { recursive: true });
-console.log('[copy-prayer-admin] Copied prayer/admin -> src/prayer-admin');
+// 2. Copies school/ into public/school/ so Vercel can serve the retreat school portal statically
+const schoolSrc = join(__dirname, '..', 'school');
+const schoolDest = join(__dirname, 'public', 'school');
+
+if (existsSync(schoolSrc)) {
+  if (existsSync(schoolDest)) rmSync(schoolDest, { recursive: true, force: true });
+  mkdirSync(schoolDest, { recursive: true });
+  cpSync(schoolSrc, schoolDest, { recursive: true });
+  console.log('[copy-assets] Copied school -> public/school');
+}

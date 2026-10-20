@@ -1,5 +1,8 @@
 import express from 'express';
-import pool from './db.js';
+import schoolPool from './schoolDb.js';
+
+// Dedicated MySQL pool for School Retreat module (reads SCHOOL_DB_* / SCH_DB_*)
+const pool = schoolPool;
 
 const router = express.Router();
 

@@ -624,17 +624,38 @@ body {
 
 .ret-badges-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
 }
 
-/* Single Badge Pass Card */
+@media (max-width: 1200px) {
+  .ret-badges-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ret-badges-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .ret-badges-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+}
+
+/* Single Badge Pass Card — Reduced & Compact */
 .ret-badge-pass {
   background: #ffffff;
-  border: 1.5px solid rgba(15, 44, 82, 0.16);
-  border-radius: 18px;
+  border: 1px solid rgba(15, 44, 82, 0.16);
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(6, 17, 33, 0.08);
+  box-shadow: 0 4px 14px rgba(6, 17, 33, 0.06);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -643,13 +664,13 @@ body {
 }
 
 .ret-badge-pass:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(6, 17, 33, 0.14);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(6, 17, 33, 0.12);
 }
 
-/* Top Lanyard Hole Guide */
+/* Top Lanyard Hole Guide — Compact */
 .ret-badge-top-lanyard {
-  height: 18px;
+  height: 12px;
   background: #061121;
   display: flex;
   align-items: center;
@@ -658,42 +679,42 @@ body {
 }
 
 .ret-badge-lanyard-hole {
-  width: 24px;
-  height: 6px;
+  width: 18px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.25);
-  border-radius: 4px;
+  border-radius: 3px;
   border: 1px dashed rgba(255, 255, 255, 0.4);
 }
 
-/* Badge Foil Banner Header */
+/* Badge Foil Banner Header — Compact */
 .ret-badge-header {
   background: linear-gradient(135deg, #061121 0%, #0f2c52 100%);
   color: #ffffff;
-  padding: 14px 16px;
+  padding: 6px 8px;
   text-align: center;
   position: relative;
-  border-bottom: 2px solid var(--accent-gold);
+  border-bottom: 1.5px solid var(--accent-gold);
 }
 
 .ret-badge-event-tag {
-  font-size: 10px;
+  font-size: 7.5px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent-gold);
 }
 
 .ret-badge-event-title {
   font-family: var(--font-heading);
-  font-size: 13.5px;
+  font-size: 10px;
   font-weight: 800;
-  margin: 3px 0 0;
-  line-height: 1.2;
+  margin: 1px 0 0;
+  line-height: 1.15;
 }
 
-/* Badge Body */
+/* Badge Body — Compact */
 .ret-badge-body {
-  padding: 18px 16px;
+  padding: 8px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -704,95 +725,108 @@ body {
 /* ─── THE STUDENT NAME ON TOP OF THE QR CODE ─── */
 .ret-badge-student-name {
   font-family: var(--font-heading);
-  font-size: 19px;
+  font-size: 12px;
   font-weight: 800;
   color: #061121;
-  line-height: 1.25;
-  margin: 0 0 4px;
+  line-height: 1.2;
+  margin: 0 0 2px;
   text-transform: uppercase;
   letter-spacing: -0.01em;
   word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .ret-badge-school-tag {
   display: inline-block;
   background: #f1f5fa;
   color: var(--primary-700);
-  font-size: 12px;
+  font-size: 8.5px;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 6px;
-  margin-bottom: 12px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-bottom: 5px;
   border: 1px solid rgba(15, 44, 82, 0.1);
+  white-space: nowrap;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* QR Code Container with High Contrast Framing */
+/* QR Code Container with High Contrast Framing — Compact */
 .ret-badge-qr-wrap {
   background: #ffffff;
-  padding: 10px;
-  border-radius: 12px;
-  border: 2px solid #061121;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  padding: 5px;
+  border-radius: 6px;
+  border: 1.5px solid #061121;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 5px;
 }
 
 .ret-badge-qr-wrap canvas,
 .ret-badge-qr-wrap img {
   display: block;
-  width: 140px;
-  height: 140px;
+  width: 95px !important;
+  height: 95px !important;
+  max-width: 100%;
 }
 
-/* Student ID & Details Bar */
+/* Student ID & Details Bar — Compact */
 .ret-badge-id-pill {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 13px;
+  font-size: 9.5px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: var(--primary-900);
   background: #f8fafc;
   border: 1px dashed #cbd5e1;
-  padding: 4px 12px;
-  border-radius: 6px;
-  margin-bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
 }
 
 .ret-badge-meta-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 4px;
+  font-size: 8px;
   color: #64748b;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 95%;
 }
 
-/* Badge Footer */
+/* Badge Footer — Compact */
 .ret-badge-footer {
   background: #f8fafc;
   border-top: 1px solid var(--border-subtle);
-  padding: 10px 14px;
+  padding: 5px 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 8.5px;
   color: #64748b;
 }
 
 .ret-badge-actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 
 .ret-badge-btn-mini {
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 11px;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 8.5px;
   font-weight: 700;
   cursor: pointer;
   color: var(--primary-700);
@@ -1043,10 +1077,15 @@ body {
    DEDICATED SCHOOL REGISTRATION PAGE STYLES (INDEX.HTML)
 ══════════════════════════════════════════════════════════════════════════ */
 .ret-reg-wrapper {
-  max-width: 860px;
-  margin: 36px auto 60px;
+  max-width: 1380px;
+  margin: 32px auto 60px;
   padding: 0 20px;
   width: 100%;
+}
+
+#registration-form-section {
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 .ret-reg-card {
@@ -1308,14 +1347,27 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   DEDICATED PRINT STYLES FOR BATCH STUDENT QR BADGES
-   Prints directly onto A4 / Letter badge sheets with cutting guides!
+   DEDICATED 1-PAGE PAPER PRINT STYLES FOR ALL STUDENT QR BADGES
+   Prints all QR passes on a single sheet of A4/Letter paper at once!
 ══════════════════════════════════════════════════════════════════════════ */
+.ret-print-only-header {
+  display: none;
+}
+
 @media print {
-  body {
+  @page {
+    size: portrait;
+    margin: 4mm 5mm;
+  }
+  
+  html, body {
     background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
+    height: auto !important;
+    font-size: 11px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
   .ret-header,
@@ -1331,21 +1383,69 @@ body {
   #view-attendance,
   #view-settings,
   .ret-showcase-actions,
+  .ret-showcase-banner,
   .ret-footer,
   .no-print {
     display: none !important;
   }
   
+  /* Print-only summary header at the top of the 1-page paper */
+  .ret-print-only-header {
+    display: block !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding: 0 0 4px 0 !important;
+    margin: 0 0 6px 0 !important;
+    font-family: Arial, sans-serif !important;
+  }
+  
+  .ret-print-header-top {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  
+  .ret-print-title {
+    font-size: 11.5px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.04em !important;
+    color: #0f172a !important;
+    text-transform: uppercase !important;
+  }
+  
+  .ret-print-badge-pill {
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    background: #0f172a !important;
+    color: #ffffff !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+  }
+  
+  .ret-print-meta-bar {
+    font-size: 9.5px !important;
+    color: #334155 !important;
+    margin-top: 2px !important;
+    display: flex !important;
+    gap: 10px !important;
+  }
+
   .ret-main,
   .ret-reg-wrapper {
     margin: 0 !important;
     padding: 0 !important;
     max-width: 100% !important;
+    width: 100% !important;
   }
   
   #badges-showcase-section,
   #view-badges {
     display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
   
   .ret-card,
@@ -1356,35 +1456,111 @@ body {
     padding: 0 !important;
   }
   
-  /* 2 columns x 3 rows grid on A4 / Letter paper */
+  /* Adaptive 1-Page Paper Grid Layout */
   .ret-badges-grid,
   #badges-grid-container {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 16px !important;
-    padding: 12px !important;
-  }
-  
-  .ret-badge-pass {
-    border: 1.5px dashed #000000 !important;
-    box-shadow: none !important;
-    border-radius: 8px !important;
+    gap: 5px !important;
+    padding: 0 !important;
+    margin: 0 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    margin-bottom: 12px !important;
+  }
+  
+  /* 5 on horizontal line for paper printing */
+  .ret-badges-grid,
+  #badges-grid-container {
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+
+  /* Compact pass card for 1-page paper fit */
+  .ret-badge-pass {
+    border: 1.2px dashed #000000 !important;
+    box-shadow: none !important;
+    border-radius: 4px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+  }
+
+  .ret-badge-header {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    padding: 2px 4px !important;
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  .ret-badge-event-tag {
+    font-size: 6.5px !important;
+    letter-spacing: 0.05em !important;
+    color: #cbd5e1 !important;
+  }
+
+  .ret-badge-event-title {
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    margin: 1px 0 0 !important;
+  }
+
+  .ret-badge-body {
+    padding: 3px 5px !important;
   }
   
   .ret-badge-student-name {
-    font-size: 18px !important;
+    font-size: 10.5px !important;
     color: #000000 !important;
     font-weight: 900 !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.01em !important;
+    text-transform: uppercase !important;
+  }
+
+  .ret-badge-school-tag {
+    font-size: 7.5px !important;
+    padding: 1px 4px !important;
+    margin-bottom: 2px !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 0.5px solid #cbd5e1 !important;
   }
   
-  .ret-badge-header {
-    background: #000000 !important;
-    color: #ffffff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  .ret-badge-qr-wrap {
+    padding: 2px !important;
+    margin-bottom: 2px !important;
+    border: 1px solid #000000 !important;
+    border-radius: 3px !important;
+    box-shadow: none !important;
+  }
+
+  .ret-badge-qr-wrap canvas,
+  .ret-badge-qr-wrap img {
+    width: 72px !important;
+    height: 72px !important;
+    max-width: 100% !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  .ret-badge-id-pill {
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    padding: 1px 5px !important;
+    margin-bottom: 2px !important;
+    border: 1px dashed #475569 !important;
+    background: #f8fafc !important;
+    color: #000000 !important;
+  }
+
+  .ret-badge-meta-row {
+    font-size: 7px !important;
+    color: #334155 !important;
+    margin-top: 1px !important;
+    gap: 3px !important;
   }
 }
+
 

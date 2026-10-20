@@ -939,21 +939,66 @@ class RetreatApp {
   }
 
   handleCsvFile(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target.result;
-      const parsed = this.parseStudentRosterText(text);
-      if (parsed.length > 0) {
-        const pasteArea = document.getElementById('roster-paste-textarea');
-        if (pasteArea) {
-          pasteArea.value = parsed.map((st) => `${st.full_name}, ${st.gender}, ${st.level_class}`).join('\n');
-          document.getElementById('paste-count-badge').textContent = `${parsed.length} students loaded from CSV`;
+    const isExcel =
+      /\.(xlsx|xls|xlsb|xlsm|ods)$/i.test(file.name) ||
+      (file.type && (file.type.includes('sheet') || file.type.includes('excel')));
+
+    if (isExcel && typeof XLSX !== 'undefined') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rawRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '', blankrows: false });
+          const students = [];
+          for (const row of rawRows) {
+            if (!Array.isArray(row) || row.length === 0) continue;
+            let name = String(row[0] || '').trim().replace(/^(\d+[\.\-\)]\s*)+/, '');
+            if (!name || name.length < 2) continue;
+            if (/^(name|full name|student|total|sn|no\.?)$/i.test(name)) continue;
+            let gender = 'Male';
+            let level = 'Student Delegate';
+            if (row[1]) {
+              const g = String(row[1]).trim().toLowerCase();
+              if (g.startsWith('f')) gender = 'Female';
+              else if (g.startsWith('m')) gender = 'Male';
+              else level = String(row[1]).trim();
+            }
+            if (row[2]) level = String(row[2]).trim();
+            students.push({ full_name: name, gender, level_class: level });
+          }
+          if (students.length > 0) {
+            const pasteArea = document.getElementById('roster-paste-textarea');
+            if (pasteArea) {
+              pasteArea.value = students.map((st) => `${st.full_name}, ${st.gender}, ${st.level_class}`).join('\n');
+              const badge = document.getElementById('paste-count-badge');
+              if (badge) badge.textContent = `${students.length} students loaded from Excel`;
+            }
+            document.querySelector('[data-method="paste"]')?.click();
+          }
+        } catch (err) {
+          console.error('Excel parse error:', err);
         }
-        // Switch to paste tab to show preview
-        document.querySelector('[data-method="paste"]')?.click();
-      }
-    };
-    reader.readAsText(file);
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const parsed = this.parseStudentRosterText(text);
+        if (parsed.length > 0) {
+          const pasteArea = document.getElementById('roster-paste-textarea');
+          if (pasteArea) {
+            pasteArea.value = parsed.map((st) => `${st.full_name}, ${st.gender}, ${st.level_class}`).join('\n');
+            const badge = document.getElementById('paste-count-badge');
+            if (badge) badge.textContent = `${parsed.length} students loaded from file`;
+          }
+          document.querySelector('[data-method="paste"]')?.click();
+        }
+      };
+      reader.readAsText(file);
+    }
   }
 }
 

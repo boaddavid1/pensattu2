@@ -134,6 +134,9 @@ const AdminRegistrations = lazyWithRetry(() => import('./admin/AdminRegistration
 const AdminNavigation = lazyWithRetry(() => import('./admin/AdminNavigation'));
 const AdminSermons = lazyWithRetry(() => import('./admin/AdminSermons'));
 const AdminPages = lazyWithRetry(() => import('./admin/AdminPages'));
+const SchoolRegister = lazyWithRetry(() => import('./school/SchoolRegister'));
+const SchoolAdmin = lazyWithRetry(() => import('./school/SchoolAdmin'));
+
 
 function DepartmentRedirect() {
   const { id } = useParams();
@@ -258,6 +261,22 @@ function App() {
         <Routes>
           <Route path="/control-panel/*" element={<AdminShell />} />
           <Route path="/register/*" element={<RegisterShell />} />
+          <Route
+            path="/school/admin"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <SchoolAdmin />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/school/*"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <SchoolRegister />
+              </Suspense>
+            }
+          />
           <Route path="/*" element={<AppShell />} />
         </Routes>
       </BrowserRouter>

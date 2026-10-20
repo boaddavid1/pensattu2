@@ -27,19 +27,39 @@ CLOUDINARY_UPLOAD_PRESET=pensattu
 DB_HOST=srv852.hstgr.io
 DB_PORT=3306
 DB_USER=u197926764_cop
-DB_PASSWORD=your_db_password
+DB_PASSWORD=Dwamena@90
 DB_NAME=u197926764_cop
-JWT_SECRET=your_jwt_secret
+SEC_DB_NAME=u197926764_pensattu
+SCHOOL_DB_HOST=srv852.hstgr.io
+SCHOOL_DB_PORT=3306
+SCHOOL_DB_USER=u197926764_sch
+SCHOOL_DB_PASSWORD=Dwamena@90
+SCHOOL_DB_NAME=u197926764_sch
+JWT_SECRET=pensattu_secret_jwt_key_2026_dev
 ```
 
-> Replace `your_db_password`, `your_api_key`, `your_api_secret`, and `your_jwt_secret` with the real values.
+> The databases are hosted at `srv852.hstgr.io`. Ensure Remote MySQL in Hostinger hPanel allows connections from `%` (or Render's IP).
 
-5. Click **Deploy**. Once it finishes, copy the Render URL (e.g., `https://pensa-ttu-api.onrender.com`).
-6. Paste that URL into the Vercel `VITE_API_URL` env var.
+5. Click **Deploy**. Once it finishes, copy your Render web service URL (e.g., `https://pensa-ttu-api.onrender.com`).
+6. Paste that URL into your Vercel `VITE_API_URL` environment variable:
+   `VITE_API_URL=https://pensa-ttu-api.onrender.com/api`
 
-## Database note
+## Deploying the School Retreat Module to Vercel
 
-Your MySQL database is hosted at `srv852.hstgr.io`. Make sure the database allows incoming connections from Render. You may need to whitelist Render's IP ranges in your database provider's firewall.
+You can deploy the **school** module in either of two ways:
+
+### Option A: Standalone Project on Vercel (Root Directory = `school`)
+1. In Vercel, click **Add New Project** and pick this repo.
+2. Under **Root Directory**, click **Edit** and select **`school`** (Vercel automatically detects it thanks to `school/package.json` and `school/vercel.json`).
+3. Click **Deploy**.
+4. The retreat portal will be live at `https://your-school-app.vercel.app` (with `/` for registration and `/admin` for gate scanner).
+
+### Option B: Monorepo Root (Unified with the Main PENSA site)
+1. Keep Root Directory as `./` in Vercel.
+2. The main site deploys at `/`, and the retreat portal is available at:
+   - Registration: `https://your-app.vercel.app/school`
+   - Gate Scanner: `https://your-app.vercel.app/school/admin`
+
 
 ## Cloudinary note
 

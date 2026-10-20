@@ -7,4 +7,6 @@ build/
 server/uploads/
 .git-commit-msg.txt
 client/src/prayer-admin/
+client/public/school/
 reg/config/database.php
+
