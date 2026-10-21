@@ -1,4 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.origin.includes('localhost')
+    ? 'http://localhost:3001/api'
+    : '/api');
+
 const API_ROOT = API_BASE.replace(/\/api\/?$/, '');
 
 export function getImageUrl(url, options = {}) {

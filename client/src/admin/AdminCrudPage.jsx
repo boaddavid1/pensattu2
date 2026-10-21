@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
-const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '');
+const API_ROOT = (
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.origin.includes('localhost')
+    ? 'http://localhost:3001/api'
+    : '/api')
+).replace(/\/api\/?$/, '');
+
 
 const fieldConfig = {
   ministries: [
