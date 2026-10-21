@@ -43,14 +43,14 @@ const fieldConfig = {
   events: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'event_date', label: 'Start Date', type: 'date', required: true },
-    { name: 'event_end_date', label: 'End Date', type: 'date' },
-    { name: 'event_time', label: 'Time', type: 'text' },
-    { name: 'location', label: 'Location', type: 'text' },
+    { name: 'event_end_date', label: 'End Date (optional for single day)', type: 'date' },
+    { name: 'event_time', label: 'Time', type: 'text', placeholder: 'e.g. 6:00 PM - 8:00 PM or 6:00 PM' },
+    { name: 'location', label: 'Location', type: 'text', placeholder: 'e.g. Main Auditorium' },
     { name: 'description', label: 'Description', type: 'textarea' },
-    { name: 'category', label: 'Category', type: 'text' },
+    { name: 'category', label: 'Category', type: 'text', placeholder: 'e.g. Youth, Prayer, Service' },
     { name: 'image_url', label: 'Image', type: 'image', folder: 'pensattu/events' },
     { name: 'featured', label: 'Featured', type: 'select', options: ['0', '1'] },
-    { name: 'status', label: 'Status', type: 'select', options: ['upcoming', 'ongoing', 'past'], required: true },
+    { name: 'status', label: 'Status (Auto-calculated from Time & Date)', type: 'select', options: ['upcoming', 'ongoing', 'past'] },
   ],
   notices: [
     { name: 'title', label: 'Title', type: 'text', required: true },
@@ -415,6 +415,7 @@ export default function AdminCrudPage({ entity, title }) {
                       value={form[field.name] || ''}
                       onChange={(e) => handleChange(field.name, e.target.value)}
                       required={field.required}
+                      placeholder={field.placeholder || ''}
                     />
                   ) : field.type === 'select' ? (
                     <select
@@ -433,6 +434,7 @@ export default function AdminCrudPage({ entity, title }) {
                       value={form[field.name] || ''}
                       onChange={(e) => handleChange(field.name, e.target.value)}
                       required={field.required}
+                      placeholder={field.placeholder || ''}
                     />
                   )}
                 </label>

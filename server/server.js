@@ -114,28 +114,42 @@ app.get('/api/team', async (req, res) => {
 app.get('/api/events', async (req, res) => {
   try {
     const past = req.query.past === '1' || req.query.past === 'true';
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
 
     // Automatically sync event statuses in database and memory
     await syncEventsDatabaseStatus(pool, events).catch(() => {});
 
-    const [rows] = await pool.query(
-      past
-        ? 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) < ? ORDER BY event_date DESC LIMIT 12'
-        : 'SELECT * FROM events WHERE COALESCE(event_end_date, event_date) >= ? ORDER BY (CASE WHEN status = "ongoing" THEN 0 ELSE 1 END), event_date ASC LIMIT 16',
-      [today]
-    );
+    // Query events from DB
+    const [rows] = await pool.query('SELECT * FROM events ORDER BY event_date ASC, id ASC');
 
     const enhanced = (rows || []).map((ev) => ({
       ...ev,
-      status: calculateEventStatus(ev),
+      status: calculateEventStatus(ev, now),
     }));
 
-    res.json(enhanced);
+    if (past) {
+      const pastList = enhanced
+        .filter((ev) => ev.status === 'past')
+        .sort((a, b) => new Date(b.event_date) - new Date(a.event_date))
+        .slice(0, 16);
+      return res.json(pastList);
+    }
+
+    const activeList = enhanced
+      .filter((ev) => ev.status === 'ongoing' || ev.status === 'upcoming')
+      .sort((a, b) => {
+        if (a.status === 'ongoing' && b.status !== 'ongoing') return -1;
+        if (a.status !== 'ongoing' && b.status === 'ongoing') return 1;
+        return new Date(a.event_date) - new Date(b.event_date);
+      })
+      .slice(0, 20);
+
+    res.json(activeList);
   } catch (err) {
+    const now = new Date();
     const fallback = (events || []).map((ev) => ({
       ...ev,
-      status: calculateEventStatus(ev),
+      status: calculateEventStatus(ev, now),
     }));
     const past = req.query.past === '1' || req.query.past === 'true';
     const filtered = fallback.filter((ev) => (past ? ev.status === 'past' : ev.status !== 'past'));

@@ -12,22 +12,68 @@ const fallbackPast = [
   { day: '29', month: 'JUN', year: '2026', title: 'Sunday Fellowship', img: '/images/pensafallback-bw.png' },
 ];
 
+function parseTimeMinutes(str, defaultMeridiem = null) {
+  if (!str) return null;
+  const match = str.trim().match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (!match) return null;
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2] ? parseInt(match[2], 10) : 0;
+  let meridiem = match[3] ? match[3].toLowerCase() : defaultMeridiem;
+  if (meridiem === 'pm' && hours < 12) hours += 12;
+  if (meridiem === 'am' && hours === 12) hours = 0;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
+function parseEventTimeRange(timeStr) {
+  if (!timeStr) return { startMinutes: null, endMinutes: null };
+  const parts = String(timeStr).split(/\s*(?:[-–—]|(?:\s+to\s+))\s*/i);
+  if (parts.length >= 2) {
+    const endMatch = parts[1].trim().match(/(am|pm)/i);
+    const endMeridiem = endMatch ? endMatch[1].toLowerCase() : null;
+    const startMatch = parts[0].trim().match(/(am|pm)/i);
+    const startMeridiemDefault = !startMatch && endMeridiem ? endMeridiem : null;
+
+    let startMinutes = parseTimeMinutes(parts[0], startMeridiemDefault);
+    let endMinutes = parseTimeMinutes(parts[1]);
+
+    if (startMinutes !== null && endMinutes !== null && !startMatch && startMinutes > endMinutes && endMeridiem === 'pm') {
+      startMinutes = parseTimeMinutes(parts[0], 'am');
+    }
+    if (endMinutes === null && startMinutes !== null) {
+      endMinutes = Math.min(startMinutes + 120, 23 * 60 + 59);
+    }
+    return { startMinutes, endMinutes };
+  } else {
+    const startMinutes = parseTimeMinutes(parts[0]);
+    if (startMinutes !== null) {
+      const endMinutes = Math.min(startMinutes + 120, 23 * 60 + 59);
+      return { startMinutes, endMinutes };
+    }
+  }
+  return { startMinutes: null, endMinutes: null };
+}
+
 /**
- * Determine event status: 'upcoming' | 'ongoing' | 'past'
+ * Determine event status dynamically based on current moment:
+ * - Before start time: 'upcoming'
+ * - At start time (e.g. 6:00 PM): 'ongoing'
+ * - As soon as end time passes: 'past'
  */
-function computeStatus(ev) {
+function computeStatus(ev, now = new Date()) {
+  if (!ev) return 'upcoming';
   if (ev.status === 'cancelled') return 'cancelled';
   if (!ev.event_date) return ev.status || 'upcoming';
 
-  const now = new Date();
+  const startD = new Date(ev.event_date);
+  if (isNaN(startD)) return ev.status || 'upcoming';
+
   const nowY = now.getFullYear();
   const nowM = String(now.getMonth() + 1).padStart(2, '0');
   const nowD = String(now.getDate()).padStart(2, '0');
   const todayYMD = `${nowY}-${nowM}-${nowD}`;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  const startD = new Date(ev.event_date);
-  if (isNaN(startD)) return ev.status || 'upcoming';
   const startYMD = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}-${String(startD.getDate()).padStart(2, '0')}`;
 
   const endD = ev.event_end_date ? new Date(ev.event_end_date) : startD;
@@ -42,28 +88,23 @@ function computeStatus(ev) {
   if (todayYMD > endYMD) return 'past';
 
   // 3. Today is within event dates!
-  // If today is the final day, check if end time has passed
-  if (todayYMD === endYMD && ev.event_time) {
-    const parts = ev.event_time.split(/\s*[-–]|(?:\s+to\s+)\s*/i);
-    if (parts.length >= 2) {
-      const match = parts[1].trim().match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
-      if (match) {
-        let h = parseInt(match[1], 10);
-        const m = match[2] ? parseInt(match[2], 10) : 0;
-        const mer = match[3]?.toLowerCase();
-        if (mer === 'pm' && h < 12) h += 12;
-        if (mer === 'am' && h === 12) h = 0;
-        const endMinutes = h * 60 + m;
-        if (currentMinutes > endMinutes) return 'past';
-      }
-    }
+  const { startMinutes, endMinutes } = parseEventTimeRange(ev.event_time);
+
+  // If today is the start date and start time hasn't arrived -> upcoming
+  if (todayYMD === startYMD && startMinutes !== null && currentMinutes < startMinutes) {
+    return 'upcoming';
   }
 
-  // Date of event has arrived -> ONGOING
+  // If today is the end date and end time has passed -> past
+  if (todayYMD === endYMD && endMinutes !== null && currentMinutes >= endMinutes) {
+    return 'past';
+  }
+
+  // Live moment: start time has arrived and end time hasn't passed -> ONGOING
   return 'ongoing';
 }
 
-function parseEvent(ev) {
+function parseEvent(ev, now = new Date()) {
   const startDate = ev.event_date ? new Date(ev.event_date) : null;
   const endDate = ev.event_end_date ? new Date(ev.event_end_date) : startDate;
   const startDay = startDate ? String(startDate.getDate()).padStart(2, '0') : '';
@@ -71,10 +112,10 @@ function parseEvent(ev) {
   const endDay = endDate ? String(endDate.getDate()).padStart(2, '0') : startDay;
   const endMonth = endDate ? endDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : startMonth;
   const year = startDate ? String(startDate.getFullYear()) : '';
-  const timeParts = (ev.event_time || '').split(/\s*[-–]\s*/);
+  const timeParts = (ev.event_time || '').split(/\s*[-–—]\s*/);
   const startTime = timeParts[0] || ev.event_time || '';
   const endTime = timeParts[1] || '';
-  const status = computeStatus(ev);
+  const status = computeStatus(ev, now);
 
   return {
     ...ev,
@@ -93,13 +134,44 @@ function parseEvent(ev) {
 
 export default function Events() {
   const [activeEvent, setActiveEvent] = useState(null);
-  const [eventsList, setEventsList] = useState([]);
+  const [rawEvents, setRawEvents] = useState([]);
   const [past, setPast] = useState(fallbackPast);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+
+  // Real-time ticker: update every 15 seconds so as soon as 6:00 PM strikes
+  // or end time arrives, the status updates live without needing a refresh!
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Compute parsed events with dynamic real-time status
+  const eventsList = useMemo(() => {
+    return rawEvents.map((ev) => parseEvent(ev, currentTime));
+  }, [rawEvents, currentTime]);
 
   // Split into ongoing and upcoming
   const ongoingEvents = useMemo(() => eventsList.filter((e) => e.status === 'ongoing'), [eventsList]);
-  const upcomingEvents = useMemo(() => eventsList.filter((e) => e.status !== 'ongoing'), [eventsList]);
+  const upcomingEvents = useMemo(() => eventsList.filter((e) => e.status === 'upcoming'), [eventsList]);
+
+  // Automatically include any event that finished earlier today into the past archive list
+  const combinedPast = useMemo(() => {
+    const todayEnded = eventsList
+      .filter((e) => e.status === 'past')
+      .map((ev) => ({
+        day: ev.startDay,
+        month: ev.startMonth,
+        year: ev.year,
+        title: ev.title,
+        img: ev.img,
+      }));
+    const existingTitles = new Set(todayEnded.map((e) => e.title));
+    const priorPast = past.filter((p) => !existingTitles.has(p.title));
+    return [...todayEnded, ...priorPast];
+  }, [eventsList, past]);
 
   const timeline = useMemo(() => {
     const groups = {};
@@ -130,8 +202,8 @@ export default function Events() {
 
   useEffect(() => {
     api.get('/events')
-      .then((data) => setEventsList((Array.isArray(data) ? data : []).map(parseEvent)))
-      .catch(() => setEventsList([]));
+      .then((data) => setRawEvents(Array.isArray(data) ? data : []))
+      .catch(() => setRawEvents([]));
 
     api.get('/events?past=1')
       .then((data) => {
@@ -299,7 +371,7 @@ export default function Events() {
             <h2>Past <em>events</em>.</h2>
           </div>
           <div className="past-events-grid">
-            {past.map((ev) => (
+            {combinedPast.map((ev) => (
               <article className="past-event-card" key={ev.title + ev.day + ev.month}>
                 <div className="past-event-img">
                   <img src={ev.img} alt={ev.title} />
@@ -315,27 +387,29 @@ export default function Events() {
       </section>
 
       {/* ── EVENT DETAILS MODAL ── */}
-      {activeEvent && (
-        <div className="event-modal-backdrop" onClick={() => setActiveEvent(null)}>
-          <div className="event-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="event-modal-close" aria-label="Close" onClick={() => setActiveEvent(null)}>✕</button>
-            <div className="event-modal-img">
-              <img src={activeEvent.img} alt={activeEvent.title} />
-            </div>
-            <div className="event-modal-body">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-                {activeEvent.status === 'ongoing' ? (
-                  <span className="event-modal-status-pill ongoing">
-                    <span className="live-pulse-dot" /> Ongoing Now
-                  </span>
-                ) : activeEvent.status === 'past' ? (
-                  <span className="event-modal-status-pill past">Past Event</span>
-                ) : (
-                  <span className="event-modal-status-pill upcoming">Upcoming Event</span>
-                )}
-                <span className="event-modal-range">{formatRange(activeEvent)}</span>
+      {activeEvent && (() => {
+        const activeStatus = computeStatus(activeEvent, currentTime);
+        return (
+          <div className="event-modal-backdrop" onClick={() => setActiveEvent(null)}>
+            <div className="event-modal" onClick={(e) => e.stopPropagation()}>
+              <button className="event-modal-close" aria-label="Close" onClick={() => setActiveEvent(null)}>✕</button>
+              <div className="event-modal-img">
+                <img src={activeEvent.img} alt={activeEvent.title} />
               </div>
-              <h3>{activeEvent.title}</h3>
+              <div className="event-modal-body">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+                  {activeStatus === 'ongoing' ? (
+                    <span className="event-modal-status-pill ongoing">
+                      <span className="live-pulse-dot" /> Ongoing Now
+                    </span>
+                  ) : activeStatus === 'past' ? (
+                    <span className="event-modal-status-pill past">Past Event</span>
+                  ) : (
+                    <span className="event-modal-status-pill upcoming">Upcoming Event</span>
+                  )}
+                  <span className="event-modal-range">{formatRange(activeEvent)}</span>
+                </div>
+                <h3>{activeEvent.title}</h3>
               <p>{activeEvent.body}</p>
               {activeEvent.location && (
                 <div className="event-cal-meta">
@@ -345,7 +419,8 @@ export default function Events() {
             </div>
           </div>
         </div>
-      )}
+      );
+    })()}
     </main>
   );
 }

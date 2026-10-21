@@ -28,9 +28,10 @@ export default function Feature() {
       .catch(() => {});
   }, []);
 
-  const featured = events.slice(0, 2);
-  const remaining = events.length - featured.length;
-  const featureImage = events.find((e) => e.image_url)?.image_url;
+  const activeEvents = events.filter((e) => e.status !== 'past');
+  const featured = activeEvents.slice(0, 2);
+  const remaining = activeEvents.length - featured.length;
+  const featureImage = activeEvents.find((e) => e.image_url)?.image_url;
   const imgSrc = featureImage ? getImageUrl(featureImage) : FALLBACK_IMAGE;
 
   const fmtDay = (dateStr) => new Date(dateStr).getDate();
