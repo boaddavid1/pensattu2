@@ -1,11 +1,22 @@
 {
   "buildCommand": "npm install && npm run build",
   "outputDirectory": "dist",
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://pensa-ttu-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/control-panel/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/control-panel",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/control-panel/",
+      "destination": "/index.html"
     },
     {
       "source": "/school",

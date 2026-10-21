@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node copy-prayer-admin.js && vite",
-    "build": "node copy-prayer-admin.js && vite build",
+    "build": "node copy-prayer-admin.js && vite build && node postbuild.js",
     "preview": "vite preview"
   },
   "dependencies": {
