@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import * as XLSX from 'xlsx';
 import { sound } from './sound';
@@ -11,6 +11,8 @@ const API_BASE = window.location.origin.includes('localhost')
   : '/api/school';
 
 export default function SchoolAdmin() {
+  const location = useLocation();
+  const isControlPanel = location.pathname.startsWith('/control-panel');
   const [activeTab, setActiveTab] = useState('scanner'); // 'scanner', 'attendance', 'schools'
   const [settings, setSettings] = useState({
     retreat_title: 'PENSA Schools & Campus Spiritual Retreat 2026',
@@ -235,27 +237,24 @@ export default function SchoolAdmin() {
   });
 
   return (
-    <div className="school-module-wrap" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* ─── Top Master Header Bar (No Global Footer) ─── */}
-      <header className="ret-header">
-        <div className="ret-header-inner">
-          <Link to="/school/admin" className="ret-brand">
-            <div className="ret-brand-icon">🕊️</div>
-            <div className="ret-brand-text">
-              <h1>{settings.retreat_title}</h1>
-              <p>
-                <span className="ret-live-pill"><span className="ret-live-dot"></span> ORGANIZER COMMAND CENTER</span>
-                <span>• Gate Scanner &amp; Live Attendance</span>
-              </p>
-            </div>
-          </Link>
+    <div className="school-module-wrap" style={{ minHeight: isControlPanel ? 'auto' : '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* ─── Top Master Header Bar (Hidden in Control Panel, shown in standalone) ─── */}
+      {isControlPanel ? (
+        <div className="admin-page-header no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
+          <div>
+            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#1a1a2e', margin: 0 }}>
+              📷 Organizer Gate Scanner Terminal
+            </h2>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '13.5px' }}>
+              Live delegate check-in, real-time headcount, camera QR reader, and retreat attendance database.
+            </p>
+          </div>
 
-          <div className="ret-header-actions no-print">
-            {/* Session Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <select
               value={settings.active_session}
               onChange={(e) => setSettings((prev) => ({ ...prev, active_session: e.target.value }))}
-              className="ret-session-select"
+              style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', background: '#ffffff', color: '#0f172a' }}
             >
               {settings.sessions.map((sess) => (
                 <option key={sess.id} value={sess.name}>
@@ -264,43 +263,100 @@ export default function SchoolAdmin() {
               ))}
             </select>
 
-            <Link to="/school" className="ret-btn ret-btn-gold" style={{ textDecoration: 'none', fontSize: '13px' }}>
-              <span>➕ Register Schools</span>
+            <Link to="/school" target="_blank" className="ret-btn ret-btn-gold" style={{ textDecoration: 'none', fontSize: '13px' }}>
+              <span>➕ Delegate Intake Form ↗</span>
             </Link>
           </div>
         </div>
-      </header>
+      ) : (
+        <header className="ret-header">
+          <div className="ret-header-inner">
+            <Link to="/school/admin" className="ret-brand">
+              <div className="ret-brand-icon">🕊️</div>
+              <div className="ret-brand-text">
+                <h1>{settings.retreat_title}</h1>
+                <p>
+                  <span className="ret-live-pill"><span className="ret-live-dot"></span> ORGANIZER COMMAND CENTER</span>
+                  <span>• Gate Scanner &amp; Live Attendance</span>
+                </p>
+              </div>
+            </Link>
 
-      {/* ─── Masthead with Live Stat Counters ─── */}
-      <section className="ret-masthead no-print">
-        <div className="ret-masthead-inner">
-          <div className="ret-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginTop: '10px' }}>
-            <div className="ret-stat-card" style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.12)' }}>
-              <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registered Delegates</div>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', marginTop: '4px' }}>{totalStudents}</div>
-            </div>
+            <div className="ret-header-actions no-print">
+              <select
+                value={settings.active_session}
+                onChange={(e) => setSettings((prev) => ({ ...prev, active_session: e.target.value }))}
+                className="ret-session-select"
+              >
+                {settings.sessions.map((sess) => (
+                  <option key={sess.id} value={sess.name}>
+                    {sess.name}
+                  </option>
+                ))}
+              </select>
 
-            <div className="ret-stat-card" style={{ background: 'rgba(16,185,129,0.12)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(16,185,129,0.25)' }}>
-              <div style={{ fontSize: '12px', color: '#6ee7b7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🟢 Clocked In Now</div>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: '#34d399', marginTop: '4px' }}>{clockedInNow}</div>
-            </div>
-
-            <div className="ret-stat-card" style={{ background: 'rgba(239,68,68,0.12)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(239,68,68,0.25)' }}>
-              <div style={{ fontSize: '12px', color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🔴 Clocked Out</div>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: '#f87171', marginTop: '4px' }}>{clockedOut}</div>
-            </div>
-
-            <div className="ret-stat-card" style={{ background: 'rgba(245,158,11,0.12)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(245,158,11,0.25)' }}>
-              <div style={{ fontSize: '12px', color: '#fcd34d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🏫 Schools / Campuses</div>
-              <div style={{ fontSize: '28px', fontWeight: '800', color: '#fbbf24', marginTop: '4px' }}>{totalSchools}</div>
+              <Link to="/school" className="ret-btn ret-btn-gold" style={{ textDecoration: 'none', fontSize: '13px' }}>
+                <span>➕ Register Schools</span>
+              </Link>
             </div>
           </div>
+        </header>
+      )}
+
+      {/* ─── Masthead with Live Stat Counters ─── */}
+      {isControlPanel ? (
+        <div className="ret-stats-grid no-print" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '20px' }}>
+          <div style={{ background: '#ffffff', borderRadius: '12px', padding: '16px 20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>Registered Delegates</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a', marginTop: '4px' }}>{totalStudents}</div>
+          </div>
+
+          <div style={{ background: '#f0fdf4', borderRadius: '12px', padding: '16px 20px', border: '1px solid #bbf7d0' }}>
+            <div style={{ fontSize: '12px', color: '#166534', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>🟢 Clocked In Now</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#15803d', marginTop: '4px' }}>{clockedInNow}</div>
+          </div>
+
+          <div style={{ background: '#fef2f2', borderRadius: '12px', padding: '16px 20px', border: '1px solid #fecaca' }}>
+            <div style={{ fontSize: '12px', color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>🔴 Clocked Out</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#b91c1c', marginTop: '4px' }}>{clockedOut}</div>
+          </div>
+
+          <div style={{ background: '#fffbeb', borderRadius: '12px', padding: '16px 20px', border: '1px solid #fde68a' }}>
+            <div style={{ fontSize: '12px', color: '#92400e', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: '700' }}>🏫 Schools / Campuses</div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: '#b45309', marginTop: '4px' }}>{totalSchools}</div>
+          </div>
         </div>
-      </section>
+      ) : (
+        <section className="ret-masthead no-print">
+          <div className="ret-masthead-inner">
+            <div className="ret-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginTop: '10px' }}>
+              <div className="ret-stat-card" style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(255,255,255,0.12)' }}>
+                <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registered Delegates</div>
+                <div style={{ fontSize: '28px', fontWeight: '800', color: '#ffffff', marginTop: '4px' }}>{totalStudents}</div>
+              </div>
+
+              <div className="ret-stat-card" style={{ background: 'rgba(16,185,129,0.12)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(16,185,129,0.25)' }}>
+                <div style={{ fontSize: '12px', color: '#6ee7b7', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🟢 Clocked In Now</div>
+                <div style={{ fontSize: '28px', fontWeight: '800', color: '#34d399', marginTop: '4px' }}>{clockedInNow}</div>
+              </div>
+
+              <div className="ret-stat-card" style={{ background: 'rgba(239,68,68,0.12)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(239,68,68,0.25)' }}>
+                <div style={{ fontSize: '12px', color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🔴 Clocked Out</div>
+                <div style={{ fontSize: '28px', fontWeight: '800', color: '#f87171', marginTop: '4px' }}>{clockedOut}</div>
+              </div>
+
+              <div className="ret-stat-card" style={{ background: 'rgba(245,158,11,0.12)', borderRadius: '12px', padding: '16px', border: '1px solid rgba(245,158,11,0.25)' }}>
+                <div style={{ fontSize: '12px', color: '#fcd34d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🏫 Schools / Campuses</div>
+                <div style={{ fontSize: '28px', fontWeight: '800', color: '#fbbf24', marginTop: '4px' }}>{totalSchools}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ─── Tab Navigation Bar ─── */}
-      <div className="ret-tabs-bar no-print" style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '0 24px' }}>
-        <div style={{ maxWidth: '1380px', margin: '0 auto', display: 'flex', gap: '8px' }}>
+      <div className="ret-tabs-bar no-print" style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', borderRadius: isControlPanel ? '12px' : '0', marginBottom: isControlPanel ? '20px' : '0', padding: isControlPanel ? '0 16px' : '0 24px' }}>
+        <div style={{ maxWidth: isControlPanel ? '100%' : '1380px', margin: isControlPanel ? '0' : '0 auto', display: 'flex', gap: '8px' }}>
           {[
             { id: 'scanner', label: '📷 Gate Scanner Terminal' },
             { id: 'attendance', label: `📋 Live Attendance (${attendance.length})` },
@@ -327,8 +383,8 @@ export default function SchoolAdmin() {
       </div>
 
       {/* ─── Main Tab Body ─── */}
-      <main style={{ flex: 1, padding: '24px 16px', background: '#f8fafc' }}>
-        <div style={{ maxWidth: '1380px', margin: '0 auto' }}>
+      <main style={{ flex: 1, padding: isControlPanel ? '0' : '24px 16px', background: isControlPanel ? 'transparent' : '#f8fafc' }}>
+        <div style={{ maxWidth: isControlPanel ? '100%' : '1380px', margin: isControlPanel ? '0' : '0 auto' }}>
 
           {/* TAB 1: SCANNER */}
           {activeTab === 'scanner' && (

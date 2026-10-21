@@ -1561,6 +1561,25 @@ body {
     margin-top: 1px !important;
     gap: 3px !important;
   }
+
+  /* Hide Admin Portal Shell elements when printing from control panel */
+  .admin-sidebar,
+  .admin-topbar,
+  .admin-overlay,
+  .admin-page-header,
+  .admin-sidebar-head,
+  .admin-sidebar-foot {
+    display: none !important;
+  }
+
+  .admin-main,
+  .admin-content,
+  .admin-layout {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
 }
 
 

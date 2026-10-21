@@ -14,6 +14,7 @@ const statCards = [
   { key: 'books', label: 'Library Books', to: '/control-panel/books' },
   { key: 'prayers', label: 'Prayer Requests', to: '/control-panel/prayers' },
   { key: 'registrations', label: 'Registrations', to: '/control-panel/registrations' },
+  { key: 'gate_scanner', label: 'Gate Scanner Terminal', to: '/control-panel/gate-scanner', isAction: true, icon: '📷' },
   { key: 'visits', label: 'Visit Plans', to: '/control-panel/visits' },
   { key: 'subscribers', label: 'Subscribers', to: '/control-panel/subscribers' },
   { key: 'contacts', label: 'Messages', to: '/control-panel/contacts' },
@@ -49,7 +50,7 @@ export default function AdminDashboard() {
           <div className="admin-stats-grid">
             {statCards.map((card) => (
               <Link key={card.key} to={card.to} className="admin-stat-card">
-                <strong>{card.isAction ? '⚙' : (stats[card.key] ?? 0)}</strong>
+                <strong>{card.icon ? card.icon : card.isAction ? '⚙' : (stats[card.key] ?? 0)}</strong>
                 <span>{card.label}</span>
               </Link>
             ))}

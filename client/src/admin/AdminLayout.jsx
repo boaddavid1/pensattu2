@@ -25,6 +25,7 @@ const navItems = [
   { to: '/control-panel/books', label: 'Books' },
   { to: '/control-panel/prayers', label: 'Prayers' },
   { to: '/control-panel/registrations', label: 'Registrations' },
+  { to: '/control-panel/gate-scanner', label: '📷 Gate Scanner Terminal' },
   { to: '/control-panel/visits', label: 'Visits' },
   { to: '/control-panel/subscribers', label: 'Subscribers' },
   { to: '/control-panel/contacts', label: 'Messages' },

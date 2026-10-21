@@ -246,6 +246,10 @@ function AdminShell() {
             <Route path="books" element={<AdminBooks />} />
             <Route path="prayers" element={<AdminPrayers />} />
             <Route path="registrations" element={<AdminRegistrations />} />
+            <Route path="gate-scanner" element={<SchoolAdmin />} />
+            <Route path="scanner" element={<Navigate to="/control-panel/gate-scanner" replace />} />
+            <Route path="retreat-scanner" element={<Navigate to="/control-panel/gate-scanner" replace />} />
+            <Route path="school-scanner" element={<Navigate to="/control-panel/gate-scanner" replace />} />
             <Route path="users" element={<AdminUsers />} />
           </Route>
         </Routes>
