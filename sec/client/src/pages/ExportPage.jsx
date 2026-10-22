@@ -21,20 +21,32 @@ export default function ExportPage() {
 
   const handleExport = () => {
     const url = secApi.exportUrl(buildParams());
-    // Open with auth token via fetch
     const token = sessionStorage.getItem('sec_admin_token');
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.blob())
+    fetch(url, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } })
+      .then(r => {
+        if (!r.ok) throw new Error(`Export failed: ${r.status}`);
+        return r.blob();
+      })
       .then(blob => {
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `members_export_${Date.now()}.csv`;
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+        a.download = filter === 'newbies'
+          ? `newbies_export_${Date.now()}.csv`
+          : `members_export_${Date.now()}.csv`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+      })
+      .catch(err => {
+        alert(err.message || 'Export failed');
       });
   };
 
   const exportOptions = [
     { value: 'all', label: 'All Members', desc: 'Export every registered member' },
+    { value: 'newbies', label: 'Newbie Registrations', desc: 'Export all registered newbies/freshers queue' },
     { value: 'hall', label: 'By Hall', desc: 'Export members from a specific hall' },
     { value: 'level', label: 'By Level', desc: 'Export members at a specific education level' },
     { value: 'duration', label: 'By Program Duration', desc: 'Export HND, B-TECH, etc.' },

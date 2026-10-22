@@ -1922,4 +1922,219 @@ router.delete('/newbies/:id', requireSecAuth, requireSecAdmin, async (req, res) 
   }
 });
 
+// ─── Export Newbie Registrations (CSV) ──────────────────────
+router.get('/newbies/export', requireSecAuth, requireSecAdmin, async (req, res) => {
+  try {
+    const { search, status } = req.query;
+    const where = [];
+    const args = [];
+    if (search) {
+      where.push('(name LIKE ? OR contact LIKE ? OR program LIKE ? OR residence LIKE ?)');
+      const term = `%${search}%`;
+      args.push(term, term, term, term);
+    }
+    if (status) {
+      where.push('status = ?');
+      args.push(status);
+    }
+    const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    const [rows] = await secPool.query(
+      `SELECT * FROM newbie_registrations ${clause} ORDER BY created_at DESC`,
+      args
+    );
+
+    const safeStatus = status ? `${status}_` : '';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const filename = `newbies_export_${safeStatus}${dateStr}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // UTF-8 BOM for Microsoft Excel / Google Sheets UTF-8 compatibility
+    res.write('\uFEFF');
+
+    const headers = [
+      'ID',
+      'Name',
+      'Contact',
+      'Residence',
+      'Program',
+      'Membership',
+      'Status',
+      'Registered Date',
+      'Pushed Date',
+      'Pushed By',
+    ];
+    res.write(headers.map((h) => `"${h}"`).join(',') + '\r\n');
+
+    for (const r of rows) {
+      // Build location detail if sub-fields were populated
+      const locationParts = [
+        r.residence,
+        r.campus_hall ? `Hall: ${r.campus_hall}` : '',
+        r.room_campus ? `Room: ${r.room_campus}` : '',
+        r.offcampus_location ? `Location: ${r.offcampus_location}` : '',
+        r.landmark ? `Landmark: ${r.landmark}` : '',
+      ].filter(Boolean);
+      const location = locationParts.length ? locationParts.join(' | ') : (r.residence || '');
+
+      const line = [
+        r.id ?? '',
+        r.name ?? '',
+        r.contact ?? '',
+        location,
+        r.program ?? '',
+        r.membership ?? '',
+        r.status ?? 'pending',
+        r.created_at ? new Date(r.created_at).toLocaleString() : '',
+        r.pushed_at ? new Date(r.pushed_at).toLocaleString() : '',
+        r.pushed_by ?? '',
+      ];
+      res.write(line.map((val) => `"${String(val ?? '').replace(/"/g, '""')}"`).join(',') + '\r\n');
+    }
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'EXPORT_NEWBIES',
+      `Exported ${rows.length} newbie registration(s) as CSV${status ? ` (status: ${status})` : ''}`,
+      req
+    );
+
+    res.end();
+  } catch (err) {
+    console.error('Error exporting newbies:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── General Export Endpoint (CSV) ─────────────────────────
+router.get('/export', requireSecAuth, requireSecAdmin, async (req, res) => {
+  try {
+    const { filter = 'all', hall, level, duration, format = 'csv' } = req.query;
+
+    if (filter === 'newbies') {
+      // Redirect to newbie export
+      const [rows] = await secPool.query('SELECT * FROM newbie_registrations ORDER BY created_at DESC');
+      const filename = `newbies_export_${new Date().toISOString().slice(0, 10)}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.write('\uFEFF');
+      const headers = ['ID', 'Name', 'Contact', 'Residence', 'Program', 'Membership', 'Status', 'Registered Date', 'Pushed Date', 'Pushed By'];
+      res.write(headers.map((h) => `"${h}"`).join(',') + '\r\n');
+      for (const r of rows) {
+        const line = [
+          r.id ?? '',
+          r.name ?? '',
+          r.contact ?? '',
+          r.residence ?? '',
+          r.program ?? '',
+          r.membership ?? '',
+          r.status ?? 'pending',
+          r.created_at ? new Date(r.created_at).toLocaleString() : '',
+          r.pushed_at ? new Date(r.pushed_at).toLocaleString() : '',
+          r.pushed_by ?? '',
+        ];
+        res.write(line.map((val) => `"${String(val ?? '').replace(/"/g, '""')}"`).join(',') + '\r\n');
+      }
+      return res.end();
+    }
+
+    // Export members from registrations
+    let sql = 'SELECT * FROM registrations WHERE graduated = 0';
+    const params = [];
+
+    if (filter === 'hall' && hall) {
+      sql += ' AND campus_hall = ?';
+      params.push(hall);
+    } else if (filter === 'level' && level) {
+      sql += ' AND education_level = ?';
+      params.push(level);
+    } else if (filter === 'duration' && duration) {
+      sql += ' AND program_duration = ?';
+      params.push(duration);
+    } else if (filter === 'final') {
+      sql += ' AND ((program_duration = "HND" AND education_level = "300") OR (program_duration = "B-TECH" AND education_level = "400"))';
+    }
+
+    sql += ' ORDER BY surname ASC, othernames ASC';
+    const [rows] = await secPool.query(sql, params);
+
+    const filename = `members_export_${filter}_${new Date().toISOString().slice(0, 10)}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.write('\uFEFF');
+
+    const headers = [
+      'ID',
+      'Surname',
+      'Othernames',
+      'Gender',
+      'Date of Birth',
+      'Contact',
+      'Residence',
+      'Room',
+      'Program',
+      'Duration',
+      'Level',
+      'Membership',
+      'Campus Residence',
+      'Hall',
+      'Off-Campus Location',
+      'Landmark',
+      'District',
+      'Pastor',
+      'Guardian',
+      'Guardian Contact',
+      'Departments',
+      'Registered Date',
+    ];
+    res.write(headers.map((h) => `"${h}"`).join(',') + '\r\n');
+
+    for (const r of rows) {
+      const line = [
+        r.id ?? '',
+        r.surname ?? '',
+        r.othernames ?? '',
+        r.gender ?? '',
+        r.dob ? new Date(r.dob).toLocaleDateString() : '',
+        r.contact ?? '',
+        r.residence ?? '',
+        r.room ?? '',
+        r.program ?? '',
+        r.program_duration ?? '',
+        r.education_level ?? '',
+        r.membership_type ?? '',
+        r.campus_residence ?? '',
+        r.campus_hall ?? '',
+        r.offcampus_location ?? '',
+        r.landmark ?? '',
+        r.district ?? '',
+        r.pastor ?? '',
+        r.guardian ?? '',
+        r.guardian_contact ?? '',
+        r.departments ?? '',
+        r.created_at ? new Date(r.created_at).toLocaleString() : '',
+      ];
+      res.write(line.map((val) => `"${String(val ?? '').replace(/"/g, '""')}"`).join(',') + '\r\n');
+    }
+
+    await logActivity(
+      secPool,
+      req.user.id,
+      req.user.username,
+      'EXPORT_MEMBERS',
+      `Exported ${rows.length} member(s) as CSV (filter: ${filter})`,
+      req
+    );
+
+    res.end();
+  } catch (err) {
+    console.error('Error in general export:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

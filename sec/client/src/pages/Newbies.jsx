@@ -13,6 +13,7 @@ export default function Newbies() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [pushingId, setPushingId] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   const fetchNewbies = useCallback(async () => {
     setLoading(true);
@@ -71,6 +72,37 @@ export default function Newbies() {
     }
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    setError('');
+    setSuccess('');
+    try {
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+
+      const blob = await secApi.downloadNewbiesCsv(params.toString());
+      const safeStatus = status ? `${status}_` : '';
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const filename = `newbies_export_${safeStatus}${dateStr}.csv`;
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 2000);
+
+      setSuccess(`✓ Exported ${total} newbie registration(s) as CSV successfully!`);
+    } catch (err) {
+      setError(err.message || 'Failed to export newbies list');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const getStatusBadge = (s) => {
     switch (s) {
       case 'pushed':
@@ -93,15 +125,36 @@ export default function Newbies() {
             <li><a>Newbie Registrations</a></li>
           </ul>
         </div>
-        <button
-          type="button"
-          className="btn-download"
-          onClick={() => fetchNewbies()}
-          disabled={loading}
-          style={{ cursor: 'pointer', border: 'none' }}
-        >
-          <i className="bx bx-refresh"></i> Refresh
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-download"
+            onClick={handleExport}
+            disabled={exporting || loading || total === 0}
+            style={{
+              cursor: exporting || total === 0 ? 'not-allowed' : 'pointer',
+              border: 'none',
+              background: '#27ae60',
+              color: '#fff',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+            title="Export all or filtered newbie registrations to CSV"
+          >
+            <i className={exporting ? 'bx bx-loader-alt bx-spin' : 'bx bx-download'}></i>
+            {exporting ? 'Exporting...' : 'Export Newbies (CSV)'}
+          </button>
+          <button
+            type="button"
+            className="btn-download"
+            onClick={() => fetchNewbies()}
+            disabled={loading}
+            style={{ cursor: 'pointer', border: 'none' }}
+          >
+            <i className="bx bx-refresh"></i> Refresh
+          </button>
+        </div>
       </div>
 
       {error && <div className="error-msg">{error}</div>}
@@ -174,8 +227,31 @@ export default function Newbies() {
       {/* Newbies Table */}
       <div className="table-data" style={{ marginTop: 24 }}>
         <div className="order">
-          <div className="head">
+          <div className="head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
             <h3>Registered Newbies ({total})</h3>
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting || total === 0}
+              className="btn"
+              style={{
+                fontSize: 12.5,
+                fontWeight: 600,
+                padding: '6px 12px',
+                background: 'var(--light-blue)',
+                color: 'var(--blue)',
+                borderRadius: 6,
+                border: 'none',
+                cursor: exporting || total === 0 ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+              title="Export newbie registrations to CSV file"
+            >
+              <i className={exporting ? 'bx bx-loader-alt bx-spin' : 'bx bx-export'}></i>
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
           </div>
 
           {loading ? (

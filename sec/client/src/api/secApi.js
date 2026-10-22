@@ -139,6 +139,21 @@ export const secApi = {
   listNewbies: (params = '') => request(`/newbies${params ? `?${params}` : ''}`),
   pushNewbie: (id) => request(`/newbies/${id}/push`, { method: 'POST' }),
   deleteNewbie: (id) => request(`/newbies/${id}`, { method: 'DELETE' }),
+  exportNewbiesUrl: (params = '') => `${API_BASE}/newbies/export${params ? `?${params}` : ''}`,
+  downloadNewbiesCsv: async (params = '') => {
+    const token = getToken();
+    const url = `${API_BASE}/newbies/export${params ? `?${params}` : ''}`;
+    const res = await fetch(url, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Export failed: ${res.status}`);
+    }
+    return res.blob();
+  },
 
   // Attendance
   listSessions: () => request('/attendance/sessions'),
