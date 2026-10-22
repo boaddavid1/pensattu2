@@ -25,7 +25,7 @@ export function getPhotoId(item, index = 0) {
 }
 
 /**
- * Format a clean filename for download (e.g. PENSA-TTU-worship-photo.jpg)
+ * Format a clean filename for download (e.g. PENSA-TTU-worship-photo.jpg or .png)
  */
 export function formatDownloadFilename(title = '', albumTitle = '', ext = 'jpg') {
   const parts = ['PENSA-TTU'];
@@ -37,13 +37,15 @@ export function formatDownloadFilename(title = '', albumTitle = '', ext = 'jpg')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
   
-  return `${raw || 'pensa-gallery-photo'}.${ext}`;
+  const cleanExt = (ext || 'jpg').toLowerCase().replace(/^\./, '');
+  const finalExt = cleanExt === 'png' ? 'png' : 'jpg';
+  return `${raw || 'pensa-gallery-photo'}.${finalExt}`;
 }
 
 /**
- * Get Cloudinary direct attachment download URL
+ * Get Cloudinary direct attachment download URL with format transformation
  */
-export function getCloudinaryAttachmentUrl(url, cleanFilename = '') {
+export function getCloudinaryAttachmentUrl(url, cleanFilename = '', format = 'jpg') {
   if (!url || typeof url !== 'string') return url;
   if (!url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) {
     return url;
@@ -53,49 +55,138 @@ export function getCloudinaryAttachmentUrl(url, cleanFilename = '') {
   if (uploadIndex === -1) return url;
 
   const prefix = url.slice(0, uploadIndex + 14);
-  const rest = url.slice(uploadIndex + 14);
+  let rest = url.slice(uploadIndex + 14);
 
-  // If already has fl_attachment, return as is
-  if (rest.includes('fl_attachment')) return url;
+  // If rest starts with an existing transformation segment (e.g. f_auto,q_auto,w_700/...),
+  // strip it so we download the full-resolution original photo!
+  const segments = rest.split('/');
+  if (segments.length > 1 && /(^|,)(f_|q_|w_|c_|fl_|h_|b_)/.test(segments[0])) {
+    segments.shift();
+    rest = segments.join('/');
+  }
 
-  // Add attachment flag with optional filename
-  const safeName = cleanFilename ? cleanFilename.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_') : '';
-  const flag = safeName ? `fl_attachment:${safeName}` : 'fl_attachment';
+  const targetFormat = format?.toLowerCase() === 'png' ? 'png' : 'jpg';
+  const safeName = cleanFilename
+    ? cleanFilename.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_')
+    : 'pensa_photo';
 
-  return `${prefix}${flag}/${rest}`;
+  const transformFlags = [`fl_attachment:${safeName}`, `f_${targetFormat}`];
+  if (targetFormat === 'jpg') {
+    transformFlags.push('q_auto:best');
+  }
+
+  // Also replace any file extension at the end of the public_id with the target format
+  const restWithExt = rest.replace(/\.[a-zA-Z0-9]+$/, `.${targetFormat}`);
+
+  return `${prefix}${transformFlags.join(',')}/${restWithExt}`;
+}
+
+/**
+ * Converts any image blob (WebP, AVIF, PNG, JPG) to the requested format ('jpg' or 'png')
+ * using an HTML5 Canvas. Transparent backgrounds in PNG/WebP become solid white in JPG.
+ */
+export async function convertBlobToFormat(blob, targetFormat = 'jpg', quality = 0.95) {
+  const normFormat = targetFormat?.toLowerCase() === 'png' ? 'png' : 'jpg';
+  const mimeType = normFormat === 'png' ? 'image/png' : 'image/jpeg';
+
+  // If already exactly that type, return immediately
+  if (blob && blob.type === mimeType) {
+    return blob;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      const objectUrl = window.URL.createObjectURL(blob);
+
+      img.onload = () => {
+        window.URL.revokeObjectURL(objectUrl);
+        try {
+          const width = img.naturalWidth || img.width;
+          const height = img.naturalHeight || img.height;
+          if (!width || !height) {
+            resolve(blob);
+            return;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+
+          if (mimeType === 'image/jpeg') {
+            // Fill background with white so transparent PNG/WebP doesn't turn black
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (convertedBlob) => {
+              if (convertedBlob) {
+                resolve(convertedBlob);
+              } else {
+                resolve(blob);
+              }
+            },
+            mimeType,
+            quality
+          );
+        } catch (err) {
+          console.warn('Canvas conversion error, using original blob:', err);
+          resolve(blob);
+        }
+      };
+
+      img.onerror = () => {
+        window.URL.revokeObjectURL(objectUrl);
+        resolve(blob);
+      };
+
+      img.src = objectUrl;
+    } catch (e) {
+      console.warn('convertBlobToFormat exception:', e);
+      resolve(blob);
+    }
+  });
 }
 
 /**
  * Robust image download that handles cross-origin images (Cloudinary, local, external)
+ * with support for JPG and PNG format selection and real MIME conversion.
  */
-export async function downloadImage(url, filename = 'pensa-photo.jpg') {
+export async function downloadImage(url, filename = 'pensa-photo.jpg', format = 'jpg') {
   if (!url) throw new Error('No image URL provided');
 
+  const normFormat = format?.toLowerCase() === 'png' ? 'png' : 'jpg';
   const resolvedUrl = getImageUrl(url);
-  const cleanFilename = filename.endsWith('.jpg') || filename.endsWith('.png') || filename.endsWith('.webp')
+  const cleanFilename = filename.toLowerCase().endsWith(`.${normFormat}`)
     ? filename
-    : `${filename}.jpg`;
+    : filename.replace(/\.[^/.]+$/, '') + `.${normFormat}`;
 
-  // 1. If it's a Cloudinary URL, the most reliable and direct way is using fl_attachment
+  // 1. If it's a Cloudinary URL, we can fetch high-res transcoded to target format directly
+  let fetchTargetUrl = resolvedUrl;
   if (resolvedUrl.includes('res.cloudinary.com') && resolvedUrl.includes('/image/upload/')) {
-    try {
-      const attachmentUrl = getCloudinaryAttachmentUrl(resolvedUrl, cleanFilename);
-      const link = document.createElement('a');
-      link.href = attachmentUrl;
-      link.download = cleanFilename;
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      return { success: true, method: 'direct' };
-    } catch (e) {
-      console.warn('Cloudinary direct attachment failed, falling back to blob:', e);
+    const uploadIndex = resolvedUrl.indexOf('/image/upload/');
+    const prefix = resolvedUrl.slice(0, uploadIndex + 14);
+    let rest = resolvedUrl.slice(uploadIndex + 14);
+
+    // Strip thumbnail flags if any
+    const segments = rest.split('/');
+    if (segments.length > 1 && /(^|,)(f_|q_|w_|c_|fl_|h_|b_)/.test(segments[0])) {
+      segments.shift();
+      rest = segments.join('/');
     }
+
+    const restWithExt = rest.replace(/\.[a-zA-Z0-9]+$/, `.${normFormat}`);
+    const transformFlag = normFormat === 'png' ? 'f_png' : 'f_jpg,q_auto:best';
+    fetchTargetUrl = `${prefix}${transformFlag}/${restWithExt}`;
   }
 
-  // 2. Fetch as blob (ensures cross-origin download dialog opens in browser)
+  // 2. Fetch as blob & ensure exact format conversion
   try {
-    const response = await fetch(resolvedUrl, {
+    const response = await fetch(fetchTargetUrl, {
       method: 'GET',
       mode: 'cors',
       cache: 'no-cache',
@@ -103,8 +194,10 @@ export async function downloadImage(url, filename = 'pensa-photo.jpg') {
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    const blob = await response.blob();
-    const objectUrl = window.URL.createObjectURL(blob);
+    const rawBlob = await response.blob();
+    const finalBlob = await convertBlobToFormat(rawBlob, normFormat);
+
+    const objectUrl = window.URL.createObjectURL(finalBlob);
     const link = document.createElement('a');
     link.href = objectUrl;
     link.download = cleanFilename;
@@ -114,26 +207,43 @@ export async function downloadImage(url, filename = 'pensa-photo.jpg') {
 
     setTimeout(() => {
       window.URL.revokeObjectURL(objectUrl);
-    }, 1000);
+    }, 4000);
 
-    return { success: true, method: 'blob' };
+    return { success: true, method: 'blob', format: normFormat, filename: cleanFilename };
   } catch (err) {
-    console.warn('Blob fetch failed, falling back to anchor trigger / tab:', err);
+    console.warn('Direct blob fetch failed, trying direct attachment or anchor:', err);
 
-    // 3. Fallback: try anchor click or open in new tab
+    // 3. Fallback for Cloudinary: direct attachment flag triggers download dialog
+    if (resolvedUrl.includes('res.cloudinary.com') && resolvedUrl.includes('/image/upload/')) {
+      try {
+        const attachmentUrl = getCloudinaryAttachmentUrl(resolvedUrl, cleanFilename, normFormat);
+        const link = document.createElement('a');
+        link.href = attachmentUrl;
+        link.download = cleanFilename;
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        return { success: true, method: 'attachment', format: normFormat, filename: cleanFilename };
+      } catch (e) {
+        console.warn('Cloudinary attachment fallback failed:', e);
+      }
+    }
+
+    // 4. Ultimate fallback: anchor click or open in new tab
     try {
       const link = document.createElement('a');
-      link.href = resolvedUrl;
+      link.href = fetchTargetUrl || resolvedUrl;
       link.download = cleanFilename;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      return { success: true, method: 'anchor' };
+      return { success: true, method: 'anchor', format: normFormat, filename: cleanFilename };
     } catch {
-      window.open(resolvedUrl, '_blank');
-      return { success: true, method: 'tab' };
+      window.open(fetchTargetUrl || resolvedUrl, '_blank');
+      return { success: true, method: 'tab', format: normFormat, filename: cleanFilename };
     }
   }
 }

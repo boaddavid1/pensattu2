@@ -482,6 +482,7 @@
 
 .g-action-pill.download:hover {
   background: #16a34a;
+  transform: scale(1.14);
 }
 
 /* Enhanced Lightbox Viewer */
@@ -578,6 +579,22 @@
 
 .lightbox-btn.btn-download:hover {
   background: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+}
+
+.lightbox-btn.btn-download:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.ag-spin {
+  animation: agSpin 0.9s linear infinite;
+}
+
+@keyframes agSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .lightbox-btn.btn-close {

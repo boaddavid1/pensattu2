@@ -3,6 +3,7 @@ import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 import AdminGalleryBulkModal from './AdminGalleryBulkModal';
 import AdminGalleryBulkBar from './AdminGalleryBulkBar';
+import { downloadImage, formatDownloadFilename } from '../utils/galleryHelpers';
 import './admin-gallery.css';
 
 const DEFAULT_CATEGORIES = [
@@ -1929,6 +1930,23 @@ export default function AdminGallery() {
                 {lightboxPhoto.title || 'Photo Preview'}
               </h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  type="button"
+                  className="ag-icon-btn"
+                  style={{ color: '#fbbf24', background: 'rgba(245, 158, 11, 0.15)', border: '1px solid rgba(245, 158, 11, 0.35)', padding: '4px 10px', width: 'auto', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                  onClick={() => {
+                    const filename = formatDownloadFilename(lightboxPhoto.title || 'gallery-image', getAlbumName(lightboxPhoto.album_id), 'jpg');
+                    downloadImage(lightboxPhoto.image_url, filename, 'jpg');
+                  }}
+                  title="Download photo as JPG"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'monospace' }}>Download JPG</span>
+                </button>
                 <button
                   type="button"
                   className="ag-icon-btn"

@@ -119,12 +119,17 @@ export default function AlbumDetail() {
       if (e.key === 'Escape') closeLightbox();
       if (e.key === 'ArrowRight') nextPhoto();
       if (e.key === 'ArrowLeft') prevPhoto();
+      if (e.key === 'd' || e.key === 'D' || (e.shiftKey && (e.key === 'J' || e.key === 'j'))) {
+        e.preventDefault();
+        const photo = album?.items?.[activePhotoIndex];
+        if (photo) handleDownload(photo, activePhotoIndex);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [activePhotoIndex, nextPhoto, prevPhoto]);
+  }, [activePhotoIndex, nextPhoto, prevPhoto, album]);
 
-  // Download photo handler
+  // Download photo handler (JPG only)
   const handleDownload = async (item, index, e) => {
     if (e) {
       e.preventDefault();
@@ -132,13 +137,15 @@ export default function AlbumDetail() {
     }
     const cleanFilename = formatDownloadFilename(
       item.caption || item.alt || `photo-${index + 1}`,
-      album?.title || 'album'
+      album?.title || 'album',
+      'jpg'
     );
-    showToast('Starting download...');
+
+    showToast('Downloading photo as JPG...');
     try {
       setDownloading(true);
-      await downloadImage(item.src, cleanFilename);
-      showToast('✓ Photo downloaded successfully!');
+      await downloadImage(item.src, cleanFilename, 'jpg');
+      showToast('✓ Photo downloaded as JPG successfully!');
     } catch (err) {
       showToast('Opening high-res image...');
       window.open(getImageUrl(item.src), '_blank');
@@ -367,8 +374,8 @@ export default function AlbumDetail() {
                     type="button"
                     className="g-action-pill download"
                     onClick={(e) => handleDownload(item, i, e)}
-                    title="Download high-resolution photo"
-                    aria-label="Download photo"
+                    title="Download photo as JPG"
+                    aria-label="Download photo as JPG"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -434,20 +441,26 @@ export default function AlbumDetail() {
                 Share Photo
               </button>
 
-              {/* Download Photo Button */}
+              {/* Download Photo Button (JPG) */}
               <button
                 type="button"
                 className="lightbox-btn btn-download"
-                onClick={() => handleDownload(currentPhoto, activePhotoIndex)}
+                onClick={(e) => handleDownload(currentPhoto, activePhotoIndex, e)}
                 disabled={downloading}
-                title="Download this high-resolution photo"
+                title="Download high-resolution JPG image (D)"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                {downloading ? 'Downloading...' : 'Download'}
+                {downloading ? (
+                  <svg className="ag-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="12" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                )}
+                <span>{downloading ? 'Downloading JPG...' : 'Download JPG'}</span>
               </button>
 
               {/* Fullscreen Toggle */}
