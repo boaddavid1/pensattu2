@@ -392,10 +392,9 @@ export default function AlbumDetail() {
                   decoding="async"
                 />
 
-                {(item.category || item.caption) && (
+                {item.caption && (
                   <div className="g-item-cap">
-                    {item.category && <span>{item.category}</span>}
-                    {item.caption && <strong>{item.caption}</strong>}
+                    <strong>{item.caption}</strong>
                   </div>
                 )}
               </div>
@@ -413,11 +412,6 @@ export default function AlbumDetail() {
               <span className="lightbox-counter">
                 {activePhotoIndex + 1} / {items.length}
               </span>
-              {currentPhoto.category && (
-                <span className="lightbox-category-tag">
-                  {currentPhoto.category}
-                </span>
-              )}
               <span className="lightbox-title" title={currentPhoto.caption || currentPhoto.alt || album.title}>
                 {currentPhoto.caption || currentPhoto.alt || album.title}
               </span>
