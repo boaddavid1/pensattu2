@@ -9,7 +9,7 @@
     },
     {
       "source": "/api/:path*",
-      "destination": "https://pensa-ttu-api.onrender.com/api/:path*"
+      "destination": "/api/:path*"
     }
   ]
 }

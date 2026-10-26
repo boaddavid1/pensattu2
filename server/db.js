@@ -16,7 +16,11 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'grace_harbor',
   waitForConnections: true,
-  connectionLimit: 20,
+  connectionLimit: 15,
+  maxIdle: 10,
+  idleTimeout: 60000,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
   queueLimit: 0,
   connectTimeout: 30000,
 });

@@ -12,7 +12,8 @@
     "start": "node server/server.js",
     "dev:server": "node --watch server/server.js",
     "dev:client": "npm --prefix client run dev",
-    "build:client": "npm --prefix client run build"
+    "build:client": "npm --prefix client run build",
+    "build": "npm --prefix client run build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

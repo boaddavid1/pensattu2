@@ -8,5 +8,7 @@ server/uploads/
 .git-commit-msg.txt
 client/src/prayer-admin/
 client/public/school/
+client/public/operation-paga/
+client/public/student-prayers/
 reg/config/database.php
 

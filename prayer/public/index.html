@@ -696,8 +696,10 @@
     </footer>
 
 <script>
-    // API base — uses Render API in production, localhost in dev
-    const API_BASE = 'https://pensa-ttu-api.onrender.com/api';
+    // API base — uses local /api in production, localhost in dev
+    const API_BASE = window.location.origin.includes('localhost')
+        ? 'http://localhost:3001/api'
+        : '/api';
 
     document.getElementById('prayerText').addEventListener('input', function() {
         document.getElementById('charCount').textContent = this.value.length;

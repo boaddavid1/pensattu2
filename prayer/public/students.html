@@ -374,8 +374,10 @@
     </div>
 
 <script>
-    // API base — uses Render API in production, localhost in dev
-    const API_BASE = 'https://pensa-ttu-api.onrender.com/api';
+    // API base — uses local /api in production, localhost in dev
+    const API_BASE = window.location.origin.includes('localhost')
+        ? 'http://localhost:3001/api'
+        : '/api';
 
     const TOKEN_KEY = 'pensa_prayer_admin_token';
     const USER_STATUS = 'Student';

@@ -5,7 +5,7 @@ dotenv.config();
 
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || 'pensattu';
-const BACKEND_URL = (process.env.BACKEND_URL || 'https://pensa-ttu-api.onrender.com').replace(/\/$/, '');
+const BACKEND_URL = (process.env.BACKEND_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 async function uploadToCloudinary(buffer, filename, albumSlug) {
   const folder = `pensattu/gallery${albumSlug ? '/' + albumSlug : ''}`;

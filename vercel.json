@@ -1,22 +1,20 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
+      "source": "/api",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/api/:path*",
-      "destination": "https://pensa-ttu-api.onrender.com/api/:path*"
-    },
-    {
-      "source": "/control-panel/:path*",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/control-panel",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/control-panel/",
-      "destination": "/index.html"
+      "destination": "/api/index.js"
     },
     {
       "source": "/school",
@@ -29,6 +27,34 @@
     {
       "source": "/school/:path*",
       "destination": "/school/:path*"
+    },
+    {
+      "source": "/operation-paga",
+      "destination": "/operation-paga/index.html"
+    },
+    {
+      "source": "/operation-paga/:path*",
+      "destination": "/operation-paga/:path*"
+    },
+    {
+      "source": "/student-prayers",
+      "destination": "/student-prayers/index.html"
+    },
+    {
+      "source": "/student-prayers/:path*",
+      "destination": "/student-prayers/:path*"
+    },
+    {
+      "source": "/control-panel/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/control-panel",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/control-panel/",
+      "destination": "/index.html"
     },
     {
       "source": "/(.*)",

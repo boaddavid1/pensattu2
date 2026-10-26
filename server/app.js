@@ -1,0 +1,867 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import webPush from 'web-push';
+import pool from './db.js';
+import adminRoutes, { getActiveNavigation, getLeadershipMemory, getPageSettingsMemory, getGalleryAlbumsMemory, getGalleryPhotosMemory } from './adminRoutes.js';
+import prayerRoutes from '../prayer/routes.js';
+import secRoutes from './secRoutes.js';
+import alumniRoutes from './alumniRoutes.js';
+import regRoutes from './regRoutes.js';
+import schoolRoutes, { syncRetreatSchema } from './schoolRoutes.js';
+import { requireAuth, hashPassword, comparePassword, generateToken, verifyToken } from './auth.js';
+import syncSchema from './syncSchema.js';
+import secSyncSchema from './secSyncSchema.js';
+import alumniSyncSchema from './alumniSyncSchema.js';
+import regSyncSchema from './regSyncSchema.js';
+import cloudinary from './cloudinary.js';
+import {
+  ministries, sermons, team, events,
+  addVisit, addSubscriber, addContact,
+  notices, galleryAlbums,
+  defaultNavigation,
+} from './data.js';
+import { calculateEventStatus, syncEventsDatabaseStatus } from './eventStatusHelper.js';
+
+dotenv.config();
+
+const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:hello@pensattu.example';
+
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
+
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
+// Ensure incoming requests have the /api prefix so Express route patterns match,
+// even if a reverse proxy / serverless rewrite stripped the prefix.
+app.use((req, res, next) => {
+  if (req.url && !req.url.startsWith('/api')) {
+    req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+  }
+  next();
+});
+
+// Ensure required tables exist (run in background; server stays operational)
+pool.on('error', () => {});
+syncSchema().catch(() => {});
+secSyncSchema().catch(() => {});
+alumniSyncSchema().catch(() => {});
+regSyncSchema().catch(() => {});
+syncRetreatSchema().catch(() => {});
+
+// Root API status endpoint
+app.get(['/api', '/api/'], (req, res) => {
+  res.json({ ok: true, name: 'PENSA TTU API', status: 'online' });
+});
+
+// Health check
+app.get('/api/health', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT 1 + 1 AS result');
+    res.json({ ok: true, db: rows[0].result === 2 });
+  } catch (err) {
+    res.status(200).json({ ok: false, error: err.message, fallback: true });
+  }
+});
+
+// Departments & Teams / Core Values (mapped from ministries)
+app.get(['/api/ministries', '/api/departments', '/api/departments-teams'], async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM core_values WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json(ministries);
+  }
+});
+
+app.get(['/api/ministries/:id', '/api/departments/:id'], async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM core_values WHERE id = ?', [req.params.id]);
+    if (rows && rows.length > 0) return res.json(rows[0]);
+  } catch (err) {
+    // Falls through to fallback
+  }
+  const item = ministries.find((m) => String(m.id) === String(req.params.id));
+  if (item) return res.json(item);
+  res.status(404).json({ error: 'Ministry not found' });
+});
+
+// Sermons / messages
+app.get('/api/sermons', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM sermons WHERE is_active = 1 ORDER BY date_preached DESC LIMIT 6'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.json(sermons);
+  }
+});
+
+// Leadership
+app.get('/api/team', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM leadership WHERE COALESCE(is_active, 1) = 1 ORDER BY display_order, id');
+    if (rows && rows.length) return res.json(rows);
+    const mem = getLeadershipMemory ? getLeadershipMemory() : [];
+    if (mem && mem.length) return res.json(mem);
+    res.json(rows || []);
+  } catch (err) {
+    const mem = getLeadershipMemory ? getLeadershipMemory() : [];
+    res.json(mem && mem.length ? mem : team);
+  }
+});
+
+// Events
+app.get('/api/events', async (req, res) => {
+  try {
+    const past = req.query.past === '1' || req.query.past === 'true';
+    const now = new Date();
+
+    // Automatically sync event statuses in database and memory
+    await syncEventsDatabaseStatus(pool, events).catch(() => {});
+
+    // Query events from DB
+    const [rows] = await pool.query('SELECT * FROM events ORDER BY event_date ASC, id ASC');
+
+    const enhanced = (rows || []).map((ev) => ({
+      ...ev,
+      status: calculateEventStatus(ev, now),
+    }));
+
+    if (past) {
+      const pastList = enhanced
+        .filter((ev) => ev.status === 'past')
+        .sort((a, b) => new Date(b.event_date) - new Date(a.event_date))
+        .slice(0, 16);
+      return res.json(pastList);
+    }
+
+    const activeList = enhanced
+      .filter((ev) => ev.status === 'ongoing' || ev.status === 'upcoming')
+      .sort((a, b) => {
+        if (a.status === 'ongoing' && b.status !== 'ongoing') return -1;
+        if (a.status !== 'ongoing' && b.status === 'ongoing') return 1;
+        return new Date(a.event_date) - new Date(b.event_date);
+      })
+      .slice(0, 20);
+
+    res.json(activeList);
+  } catch (err) {
+    const now = new Date();
+    const fallback = (events || []).map((ev) => ({
+      ...ev,
+      status: calculateEventStatus(ev, now),
+    }));
+    const past = req.query.past === '1' || req.query.past === 'true';
+    const filtered = fallback.filter((ev) => (past ? ev.status === 'past' : ev.status !== 'past'));
+    res.json(filtered.length ? filtered : fallback);
+  }
+});
+
+// Visitor form
+app.post('/api/visits', async (req, res) => {
+  const { first_name, last_name, email, phone, service, notes } = req.body;
+  if (!first_name || !last_name || !email || !service) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  try {
+    await pool.query(
+      'INSERT INTO visits (first_name, last_name, email, phone, service, notes) VALUES (?, ?, ?, ?, ?, ?)',
+      [first_name, last_name, email, phone || null, service, notes || null]
+    );
+    res.status(201).json({ message: 'Visit planned successfully' });
+  } catch (err) {
+    addVisit(req.body);
+    res.status(201).json({ message: 'Visit planned successfully (demo mode)' });
+  }
+});
+
+// Newsletter subscriber
+app.post('/api/subscribers', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  try {
+    await pool.query(
+      'INSERT INTO subscribers (email) VALUES (?) ON DUPLICATE KEY UPDATE subscribed_at = CURRENT_TIMESTAMP',
+      [email]
+    );
+    res.status(201).json({ message: 'Subscribed successfully' });
+  } catch (err) {
+    addSubscriber(email);
+    res.status(201).json({ message: 'Subscribed successfully (demo mode)' });
+  }
+});
+
+// Contact form
+app.post('/api/contact', async (req, res) => {
+  const { name, email, message, phone } = req.body;
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  try {
+    await pool.query(
+      'INSERT INTO contact_messages (name, email, message, phone) VALUES (?, ?, ?, ?)',
+      [name, email, message, phone || null]
+    );
+    res.status(201).json({ message: 'Message sent' });
+  } catch (err) {
+    addContact(req.body);
+    res.status(201).json({ message: 'Message sent (demo mode)' });
+  }
+});
+
+// Public managed content endpoints
+app.get('/api/notices', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, excerpt, content AS body, image_url FROM news WHERE category = "Notice" ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.json(notices);
+  }
+});
+
+app.get('/api/notices/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, DATE_FORMAT(created_at, "%b %e, %Y") AS date, title, excerpt, content AS body, image_url FROM news WHERE category = "Notice" AND id = ?',
+      [req.params.id]
+    );
+    if (rows.length) res.json(rows[0]);
+    else res.status(404).json({ error: 'Notice not found' });
+  } catch (err) {
+    const item = notices.find((n) => String(n.id) === String(req.params.id));
+    if (item) res.json(item);
+    else res.status(404).json({ error: 'Notice not found' });
+  }
+});
+
+app.get('/api/gallery', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=600');
+  try {
+    let albums = [];
+    try {
+      const [rows] = await pool.query(
+        'SELECT id, name AS title, name, description, cover_image AS cover, cover_image, parent_id FROM albums ORDER BY id'
+      );
+      albums = rows;
+    } catch {
+      const [rows] = await pool.query(
+        'SELECT id, name AS title, name, description, cover_image AS cover, cover_image FROM albums ORDER BY id'
+      );
+      albums = rows.map((r) => ({ ...r, parent_id: null }));
+    }
+
+    const [photos] = await pool.query(
+      'SELECT id, album_id, image_url AS src, title AS alt, category, description AS caption FROM gallery ORDER BY id'
+    );
+
+    const albumsMap = {};
+    albums.forEach((album) => {
+      const albumPhotos = photos.filter((p) => String(p.album_id) === String(album.id));
+      albumsMap[album.id] = {
+        ...album,
+        id: album.id,
+        title: album.title || album.name || 'Untitled Album',
+        name: album.name || album.title || 'Untitled Album',
+        cover: album.cover || album.cover_image || '/images/pensafallback-bw.png',
+        cover_image: album.cover_image || album.cover || '/images/pensafallback-bw.png',
+        parent_id: album.parent_id ? Number(album.parent_id) : null,
+        count: `${albumPhotos.length} photo${albumPhotos.length !== 1 ? 's' : ''}`,
+        items: albumPhotos,
+        sub_albums: [],
+      };
+    });
+
+    Object.values(albumsMap).forEach((album) => {
+      if (album.parent_id && albumsMap[album.parent_id]) {
+        albumsMap[album.parent_id].sub_albums.push(album);
+        album.parent_title = albumsMap[album.parent_id].title;
+      }
+    });
+
+    res.json(Object.values(albumsMap));
+  } catch (err) {
+    const memAlbums = (getGalleryAlbumsMemory ? getGalleryAlbumsMemory() : []) || [];
+    const memPhotos = (getGalleryPhotosMemory ? getGalleryPhotosMemory() : []) || [];
+    const sourceAlbums = memAlbums.length > 0 ? memAlbums : (galleryAlbums || []);
+
+    const albumsMap = {};
+    sourceAlbums.forEach((album) => {
+      const albumPhotos = memPhotos.filter((p) => String(p.album_id) === String(album.id));
+      albumsMap[album.id] = {
+        ...album,
+        id: album.id,
+        title: album.title || album.name || 'Untitled Album',
+        name: album.name || album.title || 'Untitled Album',
+        cover: album.cover || album.cover_image || '/images/pensafallback-bw.png',
+        cover_image: album.cover_image || album.cover || '/images/pensafallback-bw.png',
+        parent_id: album.parent_id || null,
+        count: `${albumPhotos.length} photo${albumPhotos.length !== 1 ? 's' : ''}`,
+        items: albumPhotos.length > 0 ? albumPhotos : (album.items || []),
+        sub_albums: [],
+      };
+    });
+
+    Object.values(albumsMap).forEach((album) => {
+      if (album.parent_id && albumsMap[album.parent_id]) {
+        albumsMap[album.parent_id].sub_albums.push(album);
+        album.parent_title = albumsMap[album.parent_id].title;
+      }
+    });
+
+    res.json(Object.values(albumsMap));
+  }
+});
+
+// Home Settings
+app.get('/api/home-settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM home_settings');
+    const settings = {};
+    rows.forEach(row => {
+      try {
+        settings[row.setting_key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[row.setting_key] = row.setting_value;
+      }
+    });
+    res.json(settings);
+  } catch (err) {
+    res.json(getPageSettingsMemory ? getPageSettingsMemory('home') : {});
+  }
+});
+
+// Hero Slider
+app.get('/api/hero-slider', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM hero_slider WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Navigation & Footer Settings (Public)
+app.get('/api/navigation', async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT setting_value FROM navigation_settings WHERE setting_key = 'main_navigation' LIMIT 1");
+    if (rows && rows.length > 0 && rows[0].setting_value) {
+      const parsed = JSON.parse(rows[0].setting_value);
+      return res.json(parsed);
+    }
+  } catch (err) {
+    // Falls through to fallback
+  }
+  res.json(getActiveNavigation ? getActiveNavigation() : defaultNavigation);
+});
+
+// About Settings
+app.get('/api/about-settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM about_settings');
+    const settings = {};
+    rows.forEach(row => {
+      try {
+        settings[row.setting_key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[row.setting_key] = row.setting_value;
+      }
+    });
+    res.json(settings);
+  } catch (err) {
+    res.json(getPageSettingsMemory ? getPageSettingsMemory('about') : {});
+  }
+});
+
+// About Gallery
+app.get('/api/about-gallery', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM about_gallery WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Contact Settings
+app.get('/api/contact-settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM contact_settings');
+    const settings = {};
+    rows.forEach(row => {
+      try {
+        settings[row.setting_key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[row.setting_key] = row.setting_value;
+      }
+    });
+    res.json(settings);
+  } catch (err) {
+    res.json(getPageSettingsMemory ? getPageSettingsMemory('contact') : {});
+  }
+});
+
+// Services
+app.get('/api/services', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM services WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Videos
+app.get('/api/videos', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM videos ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Timeline Events
+app.get('/api/timeline', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM timeline_events WHERE is_active = 1 ORDER BY display_order');
+    res.json(rows);
+  } catch (err) {
+    res.json([]);
+  }
+});
+
+// Push notifications
+app.get('/api/vapid-public-key', (req, res) => {
+  res.json({ publicKey: VAPID_PUBLIC_KEY || null });
+});
+
+app.post('/api/push-subscribe', async (req, res) => {
+  try {
+    const { endpoint, keys } = req.body;
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ error: 'Invalid subscription' });
+    }
+    await pool.query(
+      'INSERT INTO push_subscriptions (endpoint, p256dh, auth) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE p256dh = VALUES(p256dh), auth = VALUES(auth)',
+      [endpoint, keys.p256dh, keys.auth]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/push-unsubscribe', async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) return res.status(400).json({ error: 'Endpoint required' });
+    await pool.query('DELETE FROM push_subscriptions WHERE endpoint = ?', [endpoint]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/cp/send-notification', requireAuth, async (req, res) => {
+  try {
+    const { title, body, url = '/' } = req.body;
+    if (!title || !body) return res.status(400).json({ error: 'Title and body required' });
+
+    const [rows] = await pool.query('SELECT * FROM push_subscriptions');
+    const payload = JSON.stringify({ title, body, url });
+
+    const results = await Promise.allSettled(
+      rows.map((sub) =>
+        webPush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          payload
+        ).catch((err) => {
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            pool.query('DELETE FROM push_subscriptions WHERE endpoint = ?', [sub.endpoint]);
+          }
+          throw err;
+        })
+      )
+    );
+
+    const sent = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    res.json({ ok: true, sent, failed, total: rows.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin routes (mounted at /api/cp)
+app.use('/api/cp', adminRoutes);
+
+// Operation Paga prayer request routes
+app.use('/api/prayers', prayerRoutes);
+
+// SEC member management routes
+app.use('/api/sec', secRoutes);
+
+// Alumni portal routes
+app.use('/api/alumni', alumniRoutes);
+
+// Member registration routes
+app.use('/api/reg', regRoutes);
+
+// Retreat school registration, QR badges & clock-in/out attendance terminal
+app.use('/api/school', schoolRoutes);
+
+// Library user auth
+app.post('/api/library/register', async (req, res) => {
+  try {
+    const { full_name, email, password } = req.body;
+    if (!full_name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+    const [existing] = await pool.query('SELECT id FROM library_users WHERE email = ?', [email]);
+    if (existing[0]) {
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+    const hashed = await hashPassword(password);
+    const [result] = await pool.query(
+      'INSERT INTO library_users (full_name, email, password) VALUES (?, ?, ?)',
+      [full_name, email, hashed]
+    );
+    const token = generateToken({ id: result.insertId, email, name: full_name, role: 'library_user' });
+    res.status(201).json({ token, user: { id: result.insertId, full_name, email } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/library/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    const [rows] = await pool.query('SELECT * FROM library_users WHERE email = ?', [email]);
+    const user = rows[0];
+    if (!user || !(await comparePassword(password, user.password))) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    const token = generateToken({ id: user.id, email: user.email, name: user.full_name, role: 'library_user' });
+    res.json({ token, user: { id: user.id, full_name: user.full_name, email: user.email } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/library/me', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, full_name, email, profile_picture, created_at FROM library_users WHERE id = ?',
+      [user.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'User not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update profile (name, email, profile picture)
+app.put('/api/library/me', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const { full_name, email, profile_picture } = req.body;
+    if (!full_name || !email) {
+      return res.status(400).json({ error: 'Name and email are required' });
+    }
+    const [existing] = await pool.query(
+      'SELECT id FROM library_users WHERE email = ? AND id != ?',
+      [email, user.id]
+    );
+    if (existing[0]) {
+      return res.status(409).json({ error: 'That email is already in use' });
+    }
+    await pool.query(
+      'UPDATE library_users SET full_name = ?, email = ?, profile_picture = ? WHERE id = ?',
+      [full_name, email, profile_picture || null, user.id]
+    );
+    const newToken = generateToken({ id: user.id, email, name: full_name, role: 'library_user' });
+    res.json({
+      token: newToken,
+      user: { id: user.id, full_name, email, profile_picture: profile_picture || null },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Change password
+app.put('/api/library/me/password', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: 'Current and new passwords are required' });
+    }
+    if (new_password.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+    const [rows] = await pool.query('SELECT password FROM library_users WHERE id = ?', [user.id]);
+    if (!rows[0] || !(await comparePassword(current_password, rows[0].password))) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+    const hashed = await hashPassword(new_password);
+    await pool.query('UPDATE library_users SET password = ? WHERE id = ?', [hashed, user.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Download history for the logged-in user
+app.get('/api/library/me/downloads', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const [rows] = await pool.query(
+      `SELECT dh.resource_type, dh.resource_id, dh.downloaded_at,
+              pq.course_code, pq.course_title, pq.year, pq.semester,
+              b.title AS book_title, b.author AS book_author
+       FROM download_history dh
+       LEFT JOIN past_questions pq ON dh.resource_type = 'past_question' AND dh.resource_id = pq.id
+       LEFT JOIN library_books b ON dh.resource_type = 'book' AND dh.resource_id = b.id
+       WHERE dh.user_id = ?
+       ORDER BY dh.downloaded_at DESC
+       LIMIT 100`,
+      [user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Past Questions - public endpoints
+app.get('/api/past-questions', async (req, res) => {
+  try {
+    const { search, year, semester, level, programme, exam_type } = req.query;
+    let sql = 'SELECT * FROM past_questions WHERE is_active = 1';
+    const params = [];
+
+    if (search) {
+      sql += ' AND (course_code LIKE ? OR course_title LIKE ?)';
+      const term = `%${search}%`;
+      params.push(term, term);
+    }
+    if (year) { sql += ' AND year = ?'; params.push(Number(year)); }
+    if (semester) { sql += ' AND semester = ?'; params.push(semester); }
+    if (level) { sql += ' AND level = ?'; params.push(level); }
+    if (programme) { sql += ' AND programme LIKE ?'; params.push(`%${programme}%`); }
+    if (exam_type) { sql += ' AND exam_type = ?'; params.push(exam_type); }
+
+    sql += ' ORDER BY year DESC, course_code ASC';
+    const [rows] = await pool.query(sql, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/past-questions/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM past_questions WHERE id = ? AND is_active = 1', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Helper for download URL resolution
+function getDownloadUrl(fileUrl) {
+  if (!fileUrl) return null;
+  if (!fileUrl.includes('cloudinary.com')) return fileUrl;
+  if (fileUrl.includes('/raw/upload/')) {
+    const encoded = encodeURIComponent(fileUrl);
+    return `/api/proxy-download?url=${encoded}`;
+  }
+  return fileUrl;
+}
+
+// Proxy endpoint for Cloudinary raw files that aren't publicly accessible
+app.get('/api/proxy-download', async (req, res) => {
+  const { url } = req.query;
+  if (!url || !url.includes('cloudinary.com')) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+  try {
+    const match = url.match(/\/raw\/upload\/(?:v\d+\/)?(.+)$/);
+    if (!match) {
+      return res.redirect(url);
+    }
+    const publicId = match[1];
+    const realNow = Date.now;
+    const offset = 4 * 60 * 60 * 1000;
+    Date.now = () => realNow() + offset;
+    const origGetTime = Date.prototype.getTime;
+    Date.prototype.getTime = function () { return realNow() + offset; };
+    try {
+      var signedUrl = cloudinary.utils.private_download_url(publicId, 'raw', {
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
+        resource_type: 'raw',
+      });
+    } finally {
+      Date.now = realNow;
+      Date.prototype.getTime = origGetTime;
+    }
+    res.redirect(signedUrl);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate download URL: ' + err.message });
+  }
+});
+
+app.post('/api/past-questions/:id/download', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Please log in to download past questions' });
+  }
+  try {
+    const [rows] = await pool.query('SELECT file_url FROM past_questions WHERE id = ?', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    await pool.query('UPDATE past_questions SET downloads = downloads + 1 WHERE id = ?', [req.params.id]);
+    await pool.query(
+      'INSERT INTO download_history (user_id, resource_type, resource_id) VALUES (?, ?, ?)',
+      [user.id, 'past_question', req.params.id]
+    );
+    const downloadUrl = getDownloadUrl(rows[0].file_url);
+    res.json({ ok: true, download_url: downloadUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/past-questions-meta', async (req, res) => {
+  try {
+    const [years] = await pool.query('SELECT DISTINCT year FROM past_questions WHERE is_active = 1 ORDER BY year DESC');
+    const [semesters] = await pool.query('SELECT DISTINCT semester FROM past_questions WHERE is_active = 1 ORDER BY semester');
+    const [levels] = await pool.query('SELECT DISTINCT level FROM past_questions WHERE is_active = 1 ORDER BY level');
+    const [examTypes] = await pool.query('SELECT DISTINCT exam_type FROM past_questions WHERE is_active = 1 ORDER BY exam_type');
+    const [programmes] = await pool.query('SELECT DISTINCT programme FROM past_questions WHERE is_active = 1 AND programme IS NOT NULL ORDER BY programme');
+    res.json({
+      years: years.map(r => r.year),
+      semesters: semesters.map(r => r.semester),
+      levels: levels.map(r => r.level),
+      examTypes: examTypes.map(r => r.exam_type),
+      programmes: programmes.map(r => r.programme),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Library Books - public endpoints
+app.get('/api/books', async (req, res) => {
+  try {
+    const { search, category } = req.query;
+    let sql = 'SELECT id, title, author, category, description, cover_image, file_type, pages, is_readable, downloads, created_at FROM library_books WHERE is_active = 1';
+    const params = [];
+    if (search) {
+      sql += ' AND (title LIKE ? OR author LIKE ?)';
+      const term = `%${search}%`;
+      params.push(term, term);
+    }
+    if (category) { sql += ' AND category = ?'; params.push(category); }
+    sql += ' ORDER BY created_at DESC';
+    const [rows] = await pool.query(sql, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/books/:id', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM library_books WHERE id = ? AND is_active = 1', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/books/:id/download', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const user = verifyToken(token);
+  if (!user || user.role !== 'library_user') {
+    return res.status(401).json({ error: 'Please log in to download books' });
+  }
+  try {
+    const [rows] = await pool.query('SELECT file_url FROM library_books WHERE id = ?', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    await pool.query('UPDATE library_books SET downloads = downloads + 1 WHERE id = ?', [req.params.id]);
+    await pool.query(
+      'INSERT INTO download_history (user_id, resource_type, resource_id) VALUES (?, ?, ?)',
+      [user.id, 'book', req.params.id]
+    );
+    const downloadUrl = getDownloadUrl(rows[0].file_url);
+    res.json({ ok: true, download_url: downloadUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/books-categories', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT DISTINCT category FROM library_books WHERE is_active = 1 AND category IS NOT NULL ORDER BY category');
+    res.json(rows.map(r => r.category));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 404 for any unhandled /api endpoint
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found', path: req.originalUrl || req.url });
+});
+
+export default app;
