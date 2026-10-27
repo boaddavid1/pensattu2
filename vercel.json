@@ -3,19 +3,11 @@
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
   "functions": {
-    "api/index.js": {
+    "api/**/*.js": {
       "maxDuration": 30
     }
   },
   "rewrites": [
-    {
-      "source": "/api",
-      "destination": "/api"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
     {
       "source": "/school",
       "destination": "/school/index.html"
