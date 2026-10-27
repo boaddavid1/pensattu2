@@ -1,56 +1,73 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd client && npm install && npm run build",
-  "outputDirectory": "client/dist",
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 30
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
-  },
-  "rewrites": [
+  ],
+  "routes": [
     {
-      "source": "/school",
-      "destination": "/school/index.html"
+      "src": "/api/health",
+      "dest": "/api/health.js"
     },
     {
-      "source": "/school/admin",
-      "destination": "/school/admin.html"
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
     },
     {
-      "source": "/school/:path*",
-      "destination": "/school/:path*"
+      "src": "/api",
+      "dest": "/api/index.js"
     },
     {
-      "source": "/operation-paga",
-      "destination": "/operation-paga/index.html"
+      "src": "/school",
+      "dest": "/school/index.html"
     },
     {
-      "source": "/operation-paga/:path*",
-      "destination": "/operation-paga/:path*"
+      "src": "/school/admin",
+      "dest": "/school/admin.html"
     },
     {
-      "source": "/student-prayers",
-      "destination": "/student-prayers/index.html"
+      "src": "/school/(.*)",
+      "dest": "/school/$1"
     },
     {
-      "source": "/student-prayers/:path*",
-      "destination": "/student-prayers/:path*"
+      "src": "/operation-paga",
+      "dest": "/operation-paga/index.html"
     },
     {
-      "source": "/control-panel/:path*",
-      "destination": "/index.html"
+      "src": "/operation-paga/(.*)",
+      "dest": "/operation-paga/$1"
     },
     {
-      "source": "/control-panel",
-      "destination": "/index.html"
+      "src": "/student-prayers",
+      "dest": "/student-prayers/index.html"
     },
     {
-      "source": "/control-panel/",
-      "destination": "/index.html"
+      "src": "/student-prayers/(.*)",
+      "dest": "/student-prayers/$1"
     },
     {
-      "source": "/((?!api(?:/|$)).*)",
-      "destination": "/index.html"
+      "src": "/control-panel/(.*)",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/control-panel",
+      "dest": "/index.html"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
