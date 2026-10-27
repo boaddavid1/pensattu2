@@ -5,6 +5,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import webPush from 'web-push';
 import pool from './db.js';
+import secPool from './secDb.js';
+import schoolPool from './schoolDb.js';
 import adminRoutes, { getActiveNavigation, getLeadershipMemory, getPageSettingsMemory, getGalleryAlbumsMemory, getGalleryPhotosMemory } from './adminRoutes.js';
 import prayerRoutes from '../prayer/routes.js';
 import secRoutes from './secRoutes.js';
@@ -42,10 +44,14 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Ensure incoming requests have the /api prefix so Express route patterns match,
-// even if a reverse proxy / serverless rewrite stripped the prefix.
+// Ensure incoming requests have the correct /api path so Express route patterns match.
+// When Vercel rewrites to a serverless function, req.originalUrl retains the client's
+// requested path (e.g. /api/events), while req.url may reflect the destination (/api/index.js).
 app.use((req, res, next) => {
-  if (req.url && !req.url.startsWith('/api')) {
+  const original = req.originalUrl || req.url;
+  if (original && original.startsWith('/api') && !original.startsWith('/api/index.js')) {
+    req.url = original;
+  } else if (req.url && !req.url.startsWith('/api')) {
     req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
   }
   next();
@@ -64,14 +70,47 @@ app.get(['/api', '/api/'], (req, res) => {
   res.json({ ok: true, name: 'PENSA TTU API', status: 'online' });
 });
 
-// Health check
+// Comprehensive health & diagnostic check
 app.get('/api/health', async (req, res) => {
+  const envCheck = {
+    db_host: process.env.DB_HOST ? `${process.env.DB_HOST}:${process.env.DB_PORT || 3306}` : 'MISSING (defaulting to localhost)',
+    db_user: process.env.DB_USER || 'MISSING',
+    db_name: process.env.DB_NAME || 'MISSING',
+    sec_db_host: (process.env.SEC_DB_HOST || process.env.DB_HOST) ? 'configured' : 'MISSING',
+    school_db_host: (process.env.SCHOOL_DB_HOST || process.env.DB_HOST) ? 'configured' : 'MISSING',
+  };
+
+  const databases = {};
+
   try {
     const [rows] = await pool.query('SELECT 1 + 1 AS result');
-    res.json({ ok: true, db: rows[0].result === 2 });
+    databases.main = { ok: true, connected: rows[0]?.result === 2 };
   } catch (err) {
-    res.status(200).json({ ok: false, error: err.message, fallback: true });
+    databases.main = { ok: false, error: err.message, code: err.code };
   }
+
+  try {
+    const [rows] = await secPool.query('SELECT 1 + 1 AS result');
+    databases.sec = { ok: true, connected: rows[0]?.result === 2 };
+  } catch (err) {
+    databases.sec = { ok: false, error: err.message, code: err.code };
+  }
+
+  try {
+    const [rows] = await schoolPool.query('SELECT 1 + 1 AS result');
+    databases.school = { ok: true, connected: rows[0]?.result === 2 };
+  } catch (err) {
+    databases.school = { ok: false, error: err.message, code: err.code };
+  }
+
+  const allConnected = Object.values(databases).every(d => d.ok);
+  res.status(200).json({
+    ok: allConnected,
+    db: allConnected,
+    message: allConnected ? 'All databases connected' : 'Database connection error detected',
+    environment: envCheck,
+    databases,
+  });
 });
 
 // Departments & Teams / Core Values (mapped from ministries)
@@ -80,6 +119,7 @@ app.get(['/api/ministries', '/api/departments', '/api/departments-teams'], async
     const [rows] = await pool.query('SELECT * FROM core_values WHERE is_active = 1 ORDER BY display_order');
     res.json(rows);
   } catch (err) {
+    console.warn('[DB Error /api/ministries]:', err?.message);
     res.json(ministries);
   }
 });
@@ -89,7 +129,7 @@ app.get(['/api/ministries/:id', '/api/departments/:id'], async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM core_values WHERE id = ?', [req.params.id]);
     if (rows && rows.length > 0) return res.json(rows[0]);
   } catch (err) {
-    // Falls through to fallback
+    console.warn('[DB Error /api/ministries/:id]:', err?.message);
   }
   const item = ministries.find((m) => String(m.id) === String(req.params.id));
   if (item) return res.json(item);
@@ -104,6 +144,7 @@ app.get('/api/sermons', async (req, res) => {
     );
     res.json(rows);
   } catch (err) {
+    console.warn('[DB Error /api/sermons]:', err?.message);
     res.json(sermons);
   }
 });
@@ -117,6 +158,7 @@ app.get('/api/team', async (req, res) => {
     if (mem && mem.length) return res.json(mem);
     res.json(rows || []);
   } catch (err) {
+    console.warn('[DB Error /api/team]:', err?.message);
     const mem = getLeadershipMemory ? getLeadershipMemory() : [];
     res.json(mem && mem.length ? mem : team);
   }
@@ -158,6 +200,7 @@ app.get('/api/events', async (req, res) => {
 
     res.json(activeList);
   } catch (err) {
+    console.warn('[DB Error /api/events]:', err?.message);
     const now = new Date();
     const fallback = (events || []).map((ev) => ({
       ...ev,
