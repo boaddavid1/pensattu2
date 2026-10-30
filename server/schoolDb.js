@@ -12,11 +12,11 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 dotenv.config();
 
 const schoolPool = mysql.createPool({
-  host: process.env.SCHOOL_DB_HOST || process.env.SCH_DB_HOST || process.env.DB_HOST || 'localhost',
-  port: Number(process.env.SCHOOL_DB_PORT || process.env.SCH_DB_PORT || process.env.DB_PORT) || 3306,
-  user: process.env.SCHOOL_DB_USER || process.env.SCH_DB_USER || process.env.DB_USER || 'root',
-  password: process.env.SCHOOL_DB_PASSWORD || process.env.SCH_DB_PASSWORD || process.env.DB_PASSWORD || '',
-  database: process.env.SCHOOL_DB_NAME || process.env.SCH_DB_NAME || process.env.DB_NAME || 'u197926764_sch',
+  host: process.env.SCHOOL_DB_HOST || process.env.SCH_DB_HOST || process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
+  port: Number(process.env.SCHOOL_DB_PORT || process.env.SCH_DB_PORT || process.env.DB_PORT || process.env.MYSQL_PORT) || 3306,
+  user: process.env.SCHOOL_DB_USER || process.env.SCH_DB_USER || process.env.DB_USER || process.env.MYSQL_USER || process.env.MYSQL_USERNAME || 'root',
+  password: process.env.SCHOOL_DB_PASSWORD || process.env.SCH_DB_PASSWORD || process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || '',
+  database: process.env.SCHOOL_DB_NAME || process.env.SCH_DB_NAME || process.env.DB_NAME || process.env.MYSQL_DATABASE || 'u197926764_sch',
   waitForConnections: true,
   connectionLimit: 15,
   maxIdle: 10,

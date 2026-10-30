@@ -1,0 +1,13 @@
+node_modules
+client/node_modules
+school/node_modules
+sec/node_modules
+server/node_modules
+client/dist
+.git
+.github
+.env
+server/.env
+*.log
+npm-debug.log*
+.DS_Store

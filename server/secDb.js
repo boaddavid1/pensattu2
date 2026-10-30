@@ -13,11 +13,11 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 dotenv.config();
 
 const secPool = mysql.createPool({
-  host: process.env.SEC_DB_HOST || process.env.DB_HOST || 'localhost',
-  port: Number(process.env.SEC_DB_PORT || process.env.DB_PORT) || 3306,
-  user: process.env.SEC_DB_USER || process.env.DB_USER || 'root',
-  password: process.env.SEC_DB_PASSWORD || process.env.DB_PASSWORD || '',
-  database: process.env.SEC_DB_NAME || 'u197926764_pensattu',
+  host: process.env.SEC_DB_HOST || process.env.DB_HOST || process.env.MYSQL_HOST || 'localhost',
+  port: Number(process.env.SEC_DB_PORT || process.env.DB_PORT || process.env.MYSQL_PORT) || 3306,
+  user: process.env.SEC_DB_USER || process.env.DB_USER || process.env.MYSQL_USER || process.env.MYSQL_USERNAME || 'root',
+  password: process.env.SEC_DB_PASSWORD || process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD || '',
+  database: process.env.SEC_DB_NAME || process.env.DB_NAME || process.env.MYSQL_DATABASE || 'u197926764_pensattu',
   waitForConnections: true,
   connectionLimit: 15,
   maxIdle: 10,
@@ -26,6 +26,10 @@ const secPool = mysql.createPool({
   keepAliveInitialDelay: 10000,
   queueLimit: 0,
   connectTimeout: 30000,
+});
+
+secPool.on('error', (err) => {
+  console.warn('[secDb pool error]:', err?.message || err);
 });
 
 export default secPool;

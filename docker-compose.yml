@@ -1,17 +1,74 @@
 services:
+  # -----------------------------------------------------------------
+  # 1. MySQL Database Container
+  # -----------------------------------------------------------------
   mysql:
     image: mysql:8.0
-    container_name: grace_harbor_db
+    container_name: pensattu_mysql
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: grace_harbor
     ports:
       - "3306:3306"
     volumes:
-      - grace_harbor_data:/var/lib/mysql
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - pensattu_db_data:/var/lib/mysql
+      - ./database/00-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -prootpass || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - pensattu_net
+
+  # -----------------------------------------------------------------
+  # 2. PENSA TTU Full-Stack Application Container (Backend + Client)
+  # -----------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pensattu_app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      # Connect to the internal Docker MySQL service
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: rootpass
+      DB_NAME: grace_harbor
+      JWT_SECRET: pensattu_secret_jwt_key_2026_dev
+      # SEC module database
+      SEC_DB_HOST: mysql
+      SEC_DB_PORT: 3306
+      SEC_DB_USER: root
+      SEC_DB_PASSWORD: rootpass
+      SEC_DB_NAME: u197926764_pensattu
+      SEC_JWT_SECRET: pensattu_sec_secret_jwt_key_2026
+      # School Retreat module database
+      SCHOOL_DB_HOST: mysql
+      SCHOOL_DB_PORT: 3306
+      SCHOOL_DB_USER: root
+      SCHOOL_DB_PASSWORD: rootpass
+      SCHOOL_DB_NAME: u197926764_sch
+    networks:
+      - pensattu_net
 
 volumes:
-  grace_harbor_data:
+  pensattu_db_data:
+
+networks:
+  pensattu_net:
+    driver: bridge

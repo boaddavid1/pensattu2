@@ -45,29 +45,66 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Ensure incoming requests have the correct /api path so Express route patterns match.
-// When Vercel rewrites to a serverless function, req.originalUrl retains the client's
-// requested path (e.g. /api/events), while req.url may reflect the destination (/api/index.js).
+// When Vercel rewrites to a serverless function, headers like x-matched-path or x-forwarded-uri
+// retain the client's requested path (e.g. /api/events), while req.url may reflect /api/index.js.
 app.use((req, res, next) => {
-  const original = req.originalUrl || req.url;
-  if (original && original.startsWith('/api') && !original.startsWith('/api/index.js')) {
-    req.url = original;
-  } else if (req.url && !req.url.startsWith('/api')) {
+  const vPath =
+    req.headers['x-matched-path'] ||
+    req.headers['x-forwarded-uri'] ||
+    req.headers['x-vercel-matched-path'] ||
+    req.headers['x-original-url'];
+
+  if (vPath && vPath.startsWith('/api') && !vPath.startsWith('/api/index.js')) {
+    const queryIdx = req.url.indexOf('?');
+    const queryString = queryIdx !== -1 ? req.url.slice(queryIdx) : '';
+    req.url = vPath.split('?')[0] + queryString;
+  } else if (req.originalUrl && req.originalUrl.startsWith('/api') && !req.originalUrl.startsWith('/api/index.js')) {
+    req.url = req.originalUrl;
+  } else if (!req.url.startsWith('/api')) {
     req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
   }
   next();
 });
 
-// Ensure required tables exist (run in background; server stays operational)
-pool.on('error', () => {});
-syncSchema().catch(() => {});
-secSyncSchema().catch(() => {});
-alumniSyncSchema().catch(() => {});
-regSyncSchema().catch(() => {});
-syncRetreatSchema().catch(() => {});
+// Guarded schema sync to avoid connection pool saturation on serverless cold starts
+let isSyncing = false;
+let hasSynced = false;
+async function runAutoSync() {
+  if (hasSynced || isSyncing) return;
+  if (process.env.SKIP_AUTO_SYNC === 'true') return;
+  isSyncing = true;
+  try {
+    await syncSchema().catch((e) => console.warn('[syncSchema]', e?.message));
+    await secSyncSchema().catch((e) => console.warn('[secSyncSchema]', e?.message));
+    await alumniSyncSchema().catch((e) => console.warn('[alumniSyncSchema]', e?.message));
+    await regSyncSchema().catch((e) => console.warn('[regSyncSchema]', e?.message));
+    await syncRetreatSchema().catch((e) => console.warn('[syncRetreatSchema]', e?.message));
+    hasSynced = true;
+  } catch (err) {
+    console.warn('[runAutoSync error]:', err?.message);
+  } finally {
+    isSyncing = false;
+  }
+}
+runAutoSync().catch(() => {});
 
 // Root API status endpoint
-app.get(['/api', '/api/'], (req, res) => {
+app.get(['/api', '/api/', '/api/index.js'], (req, res) => {
   res.json({ ok: true, name: 'PENSA TTU API', status: 'online' });
+});
+
+// Optional manual sync trigger endpoint
+app.post('/api/sync-schema', async (req, res) => {
+  try {
+    await syncSchema();
+    await secSyncSchema();
+    await alumniSyncSchema();
+    await regSyncSchema();
+    await syncRetreatSchema();
+    res.json({ ok: true, message: 'All schemas synchronized successfully' });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // Comprehensive health & diagnostic check

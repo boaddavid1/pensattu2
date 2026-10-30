@@ -44,14 +44,14 @@ Your MySQL databases are hosted at `srv852.hstgr.io`. Because Vercel serverless 
 In the **Environment Variables** section of your Vercel project, add the following variables:
 
 ### Database & Authentication
-| Variable | Example / Recommended Value |
+| Variable | Value |
 |---|---|
 | `DB_HOST` | `srv852.hstgr.io` |
 | `DB_PORT` | `3306` |
 | `DB_USER` | `u197926764_cop` |
-| `DB_PASSWORD` | `YourDatabasePassword` |
+| `DB_PASSWORD` | `YourDatabasePassword` *(see local .env)* |
 | `DB_NAME` | `u197926764_cop` |
-| `JWT_SECRET` | `pensattu_secret_jwt_key_2026_dev` |
+| `JWT_SECRET` | `YourJwtSecret` *(see local .env)* |
 
 ### SEC Member Management Database
 | Variable | Value |
@@ -59,9 +59,9 @@ In the **Environment Variables** section of your Vercel project, add the followi
 | `SEC_DB_HOST` | `srv852.hstgr.io` |
 | `SEC_DB_PORT` | `3306` |
 | `SEC_DB_USER` | `u197926764_pensattu` |
-| `SEC_DB_PASSWORD` | `YourDatabasePassword` |
+| `SEC_DB_PASSWORD` | `YourSecDatabasePassword` *(see local .env)* |
 | `SEC_DB_NAME` | `u197926764_pensattu` |
-| `SEC_JWT_SECRET` | `pensattu_sec_secret_jwt_key_2026` |
+| `SEC_JWT_SECRET` | `sec-pensa-ttu-jwt-secret-2024` |
 
 ### School Retreat Module Database
 | Variable | Value |
@@ -69,30 +69,37 @@ In the **Environment Variables** section of your Vercel project, add the followi
 | `SCHOOL_DB_HOST` | `srv852.hstgr.io` |
 | `SCHOOL_DB_PORT` | `3306` |
 | `SCHOOL_DB_USER` | `u197926764_sch` |
-| `SCHOOL_DB_PASSWORD` | `YourDatabasePassword` |
+| `SCHOOL_DB_PASSWORD` | `YourSchoolDatabasePassword` *(see local .env)* |
 | `SCHOOL_DB_NAME` | `u197926764_sch` |
+| `SCH_DB_HOST` | `srv852.hstgr.io` |
+| `SCH_DB_PORT` | `3306` |
+| `SCH_DB_USER` | `u197926764_sch` |
+| `SCH_DB_PASSWORD` | `YourSchoolDatabasePassword` *(see local .env)* |
+| `SCH_DB_NAME` | `u197926764_sch` |
 
 ### Cloudinary (Media & Image Uploads)
 | Variable | Value |
 |---|---|
 | `CLOUDINARY_CLOUD_NAME` | `kw3hzord` |
-| `CLOUDINARY_API_KEY` | `YourCloudinaryApiKey` |
-| `CLOUDINARY_API_SECRET` | `YourCloudinaryApiSecret` |
+| `CLOUDINARY_API_KEY` | `358291957249418` |
+| `CLOUDINARY_API_SECRET` | `YourCloudinaryApiSecret` *(see local .env)* |
 | `CLOUDINARY_UPLOAD_PRESET` | `pensattu` |
 | `VITE_CLOUDINARY_CLOUD_NAME` | `kw3hzord` |
 | `VITE_CLOUDINARY_UPLOAD_PRESET` | `pensattu` |
 
-### Prayer Admin & Push Notifications (Optional)
+### Prayer Admin, SMS & Web Push
 | Variable | Value |
 |---|---|
-| `PRAYER_ADMIN_PASSWORD_HASH` | `$2y$10$o13F0b.vvoEi4m6qbMtP0uOq0wmnG83RUnVavUyMlaaME4604b/HK` |
-| `VAPID_PUBLIC_KEY` | *(Optional - leave blank if not used)* |
-| `VAPID_PRIVATE_KEY` | *(Optional - leave blank if not used)* |
+| `PRAYER_ADMIN_PASSWORD_HASH` | `YourPasswordHash` *(see local .env)* |
+| `ALUMNI_ADMIN_USER` | `Alumni` |
+| `ALUMNI_ADMIN_PASS` | `YourAlumniPassword` *(see local .env)* |
+| `VAPID_PUBLIC_KEY` | `BMNYBZ8ubnm3Te9ZxdCjThy_TvkcE87T_Gnnt7AEu4GI9ayVD--h1RgthZQkDJWyiCaVX-Et_4ZxTiLBpokdeNY` |
+| `VAPID_PRIVATE_KEY` | `YourVapidPrivateKey` *(see local .env)* |
 | `VAPID_SUBJECT` | `mailto:hello@pensattu.example` |
 | `ARKESEL_API_KEY` | *(Optional SMS API key)* |
 | `ARKESEL_SENDER_ID` | `PENSA-TTU` |
 
-> **Note on `VITE_API_URL`**: You **do not** need `VITE_API_URL` anymore! The frontend automatically uses the same-origin relative `/api` path when deployed to Vercel.
+> **Note on `VITE_API_URL`**: You **do not** need `VITE_API_URL` when deploying everything to Vercel! The client Vite app and Express API share the exact same domain, so the client automatically calls `/api/*` directly.
 
 ---
 
