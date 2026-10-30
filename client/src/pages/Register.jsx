@@ -2,15 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Register.css';
 
-const rawApiUrl = import.meta.env.VITE_API_URL;
-const isRenderUrl = typeof rawApiUrl === 'string' && rawApiUrl.includes('onrender.com');
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-const API_BASE =
-  (rawApiUrl && !isRenderUrl)
-    ? rawApiUrl
-    : (typeof window !== 'undefined' && window.location.origin.includes('localhost')
-      ? 'http://localhost:3001/api'
-      : '/api');
+const API_BASE = isLocalhost
+  ? (import.meta.env.VITE_API_URL || 'http://localhost:3001/api')
+  : '/api';
 
 
 const TOTAL_STEPS = 6;

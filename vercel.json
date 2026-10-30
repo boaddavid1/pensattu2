@@ -20,11 +20,11 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/index.js?url=/api/$1"
     },
     {
       "src": "/api",
-      "dest": "/api/index.js"
+      "dest": "/api/index.js?url=/api"
     },
     {
       "src": "/school",

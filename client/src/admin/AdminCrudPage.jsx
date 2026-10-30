@@ -3,15 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
-const rawApiUrl = import.meta.env.VITE_API_URL;
-const isRenderUrl = typeof rawApiUrl === 'string' && rawApiUrl.includes('onrender.com');
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 const API_ROOT = (
-  (rawApiUrl && !isRenderUrl)
-    ? rawApiUrl
-    : (typeof window !== 'undefined' && window.location.origin.includes('localhost')
-      ? 'http://localhost:3001/api'
-      : '/api')
+  isLocalhost
+    ? (import.meta.env.VITE_API_URL || 'http://localhost:3001/api')
+    : '/api'
 ).replace(/\/api\/?$/, '');
 
 

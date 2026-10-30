@@ -48,7 +48,9 @@ app.use(express.json({ limit: '10mb' }));
 // When Vercel rewrites to a serverless function, headers like x-matched-path or x-forwarded-uri
 // retain the client's requested path (e.g. /api/events), while req.url may reflect /api/index.js.
 app.use((req, res, next) => {
+  const queryUrl = req.query?.url || req.query?.__route;
   const vPath =
+    queryUrl ||
     req.headers['x-matched-path'] ||
     req.headers['x-forwarded-uri'] ||
     req.headers['x-vercel-matched-path'] ||
@@ -71,7 +73,7 @@ let isSyncing = false;
 let hasSynced = false;
 async function runAutoSync() {
   if (hasSynced || isSyncing) return;
-  if (process.env.SKIP_AUTO_SYNC === 'true') return;
+  if (process.env.VERCEL || process.env.SKIP_AUTO_SYNC === 'true') return;
   isSyncing = true;
   try {
     await syncSchema().catch((e) => console.warn('[syncSchema]', e?.message));
