@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 import app from './app.js';
 import pool from './db.js';
 import { events } from './data.js';
@@ -24,22 +25,42 @@ app.get('/student-prayers', (req, res) => {
 app.use('/operation-paga', express.static(prayerPublic, { index: false }));
 app.use('/student-prayers', express.static(prayerPublic, { index: false }));
 
-// Serve static client build in production / local runs; falls through for SPA routes
-app.use(express.static(path.join(__dirname, '../client/dist')));
+// Static client build check
+const clientDistDir = path.join(__dirname, '../client/dist');
+const clientIndexHtml = path.join(clientDistDir, 'index.html');
+const hasClientBuild = fs.existsSync(clientIndexHtml);
 
-// Ensure missing or expired hashed chunks return 404 instead of index.html fallback
-app.all('/assets/*', (req, res) => {
-  res.status(404).type('text/plain').send('Asset chunk expired or not found');
-});
+if (hasClientBuild) {
+  // Serve static client build in production / local runs; falls through for SPA routes
+  app.use(express.static(clientDistDir));
 
-// Single Page Application fallback
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+  // Ensure missing or expired hashed chunks return 404 instead of index.html fallback
+  app.all('/assets/*', (req, res) => {
+    res.status(404).type('text/plain').send('Asset chunk expired or not found');
+  });
 
-// Start local listener
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  // Single Page Application fallback
+  app.get('*', (req, res) => {
+    res.sendFile(clientIndexHtml);
+  });
+} else {
+  // Clean JSON 404 fallback for backend-only deployments
+  app.all('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ ok: false, error: 'Endpoint not found', path: req.path });
+    }
+    res.status(404).json({
+      ok: false,
+      error: 'Not found',
+      message: 'PENSA TTU Backend API is online. Frontend client is hosted separately.',
+      health: '/api/health',
+    });
+  });
+}
+
+// Start listener on 0.0.0.0
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
   // Initial sync & recurring 5-minute background check to transition upcoming -> ongoing -> past
   syncEventsDatabaseStatus(pool, events).catch(() => {});
   setInterval(() => {

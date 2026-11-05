@@ -2,11 +2,10 @@ const isLocalhost =
   typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-const API_BASE = isLocalhost
-  ? (import.meta.env.VITE_API_URL || 'http://localhost:3001/api')
-  : '/api';
-
-const API_ROOT = API_BASE.replace(/\/api\/?$/, '');
+const envApi = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+const normalizedApi = envApi ? (envApi.endsWith('/api') ? envApi : `${envApi}/api`) : '';
+export const API_BASE = normalizedApi || (isLocalhost ? 'http://localhost:3001/api' : '/api');
+export const API_ROOT = API_BASE.replace(/\/api\/?$/, '');
 
 export function getImageUrl(url, options = {}) {
   if (!url) return '';

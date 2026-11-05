@@ -3,22 +3,18 @@ services:
     name: pensa-ttu-api
     runtime: node
     plan: free
+    region: frankfurt
     branch: main
-    buildCommand: cd client && npm install && npm run build && cd ../server && npm install
-    startCommand: cd server && npm start
+    buildCommand: npm install --omit=dev --no-workspaces
+    startCommand: node server/server.js
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: 20
+      - key: NODE_ENV
+        value: production
       - key: PORT
         value: 10000
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
-      - key: CLOUDINARY_UPLOAD_PRESET
-        sync: false
       - key: DB_HOST
         sync: false
       - key: DB_PORT
@@ -31,7 +27,13 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: PRAYER_ADMIN_PASSWORD_HASH
+      - key: SEC_DB_HOST
+        sync: false
+      - key: SEC_DB_PORT
+        value: 3306
+      - key: SEC_DB_USER
+        sync: false
+      - key: SEC_DB_PASSWORD
         sync: false
       - key: SEC_DB_NAME
         value: u197926764_pensattu
@@ -47,8 +49,27 @@ services:
         sync: false
       - key: SCHOOL_DB_NAME
         value: u197926764_sch
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_UPLOAD_PRESET
+        sync: false
+      - key: PRAYER_ADMIN_PASSWORD_HASH
+        sync: false
+      - key: ALUMNI_ADMIN_USER
+        value: Alumni
+      - key: ALUMNI_ADMIN_PASS
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:hello@pensattu.example
       - key: ARKESEL_API_KEY
         sync: false
       - key: ARKESEL_SENDER_ID
         value: PENSA-TTU
-

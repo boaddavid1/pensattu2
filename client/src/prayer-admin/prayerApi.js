@@ -1,14 +1,8 @@
 // prayerApi.js — self-contained API client for the Operation Paga prayer admin.
 // Uses the same superadmin JWT token as the rest of the admin portal.
-const rawApiUrl = import.meta.env.VITE_API_URL;
-const isRenderUrl = typeof rawApiUrl === 'string' && rawApiUrl.includes('onrender.com');
-
-const API_BASE =
-  (rawApiUrl && !isRenderUrl)
-    ? rawApiUrl
-    : (typeof window !== 'undefined' && window.location.origin.includes('localhost')
-      ? 'http://localhost:3001/api'
-      : '/api');
+const envApi = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+const normalizedApi = envApi ? (envApi.endsWith('/api') ? envApi : `${envApi}/api`) : '';
+const API_BASE = normalizedApi || (typeof window !== 'undefined' && window.location.origin.includes('localhost') ? 'http://localhost:3001/api' : '/api');
 
 function getToken() {
   return sessionStorage.getItem('pensa_admin_token');

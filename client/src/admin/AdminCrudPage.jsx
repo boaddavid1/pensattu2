@@ -3,15 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { adminApi } from './adminApi';
 import { uploadImageToCloudinary } from '../cloudinaryUpload';
 
-const isLocalhost =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-const API_ROOT = (
-  isLocalhost
-    ? (import.meta.env.VITE_API_URL || 'http://localhost:3001/api')
-    : '/api'
-).replace(/\/api\/?$/, '');
+import { API_ROOT } from '../api.js';
 
 
 const fieldConfig = {

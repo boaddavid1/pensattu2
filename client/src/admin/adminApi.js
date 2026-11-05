@@ -1,11 +1,4 @@
-const isLocalhost =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-const API_BASE = isLocalhost
-  ? (import.meta.env.VITE_API_URL || 'http://localhost:3001/api')
-  : '/api';
-
+import { API_BASE, API_ROOT } from '../api.js';
 
 function getToken() {
   if (typeof window === 'undefined') return null;

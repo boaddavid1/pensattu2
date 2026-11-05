@@ -2,13 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Register.css';
 
-const isLocalhost =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-const API_BASE = isLocalhost
-  ? (import.meta.env.VITE_API_URL || 'http://localhost:3001/api')
-  : '/api';
+import { API_BASE } from '../api.js';
 
 
 const TOTAL_STEPS = 6;

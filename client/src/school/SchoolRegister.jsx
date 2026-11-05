@@ -4,9 +4,8 @@ import * as XLSX from 'xlsx';
 import BadgeCard from './BadgeCard';
 import './school.css';
 
-const API_BASE = window.location.origin.includes('localhost')
-  ? 'http://localhost:3001/api/school'
-  : '/api/school';
+import { API_BASE as MAIN_API_BASE } from '../api.js';
+const API_BASE = `${MAIN_API_BASE}/school`;
 
 export default function SchoolRegister() {
   const [formData, setFormData] = useState({

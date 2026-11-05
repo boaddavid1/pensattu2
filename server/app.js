@@ -62,7 +62,7 @@ app.use((req, res, next) => {
     req.url = vPath.split('?')[0] + queryString;
   } else if (req.originalUrl && req.originalUrl.startsWith('/api') && !req.originalUrl.startsWith('/api/index.js')) {
     req.url = req.originalUrl;
-  } else if (!req.url.startsWith('/api')) {
+  } else if (process.env.VERCEL && !req.url.startsWith('/api')) {
     req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
   }
   next();
@@ -91,7 +91,7 @@ async function runAutoSync() {
 runAutoSync().catch(() => {});
 
 // Root API status endpoint
-app.get(['/api', '/api/', '/api/index.js'], (req, res) => {
+app.get(['/', '/api', '/api/', '/api/index.js'], (req, res) => {
   res.json({ ok: true, name: 'PENSA TTU API', status: 'online' });
 });
 
@@ -110,7 +110,7 @@ app.post('/api/sync-schema', async (req, res) => {
 });
 
 // Comprehensive health & diagnostic check
-app.get('/api/health', async (req, res) => {
+app.get(['/api/health', '/health'], async (req, res) => {
   const envCheck = {
     db_host: process.env.DB_HOST ? `${process.env.DB_HOST}:${process.env.DB_PORT || 3306}` : 'MISSING (defaulting to localhost)',
     db_user: process.env.DB_USER || 'MISSING',
