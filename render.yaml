@@ -7,7 +7,7 @@ services:
     branch: main
     buildCommand: npm install --omit=dev --no-workspaces
     startCommand: node server/server.js
-    healthCheckPath: /api/health
+    healthCheckPath: /api/ping
     envVars:
       - key: NODE_VERSION
         value: 20

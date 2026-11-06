@@ -90,9 +90,9 @@ async function runAutoSync() {
 }
 runAutoSync().catch(() => {});
 
-// Root API status endpoint
-app.get(['/', '/api', '/api/', '/api/index.js'], (req, res) => {
-  res.json({ ok: true, name: 'PENSA TTU API', status: 'online' });
+// Root API status endpoint & fast health ping
+app.get(['/', '/api', '/api/', '/api/index.js', '/api/ping', '/ping'], (req, res) => {
+  res.status(200).json({ ok: true, name: 'PENSA TTU API', status: 'online' });
 });
 
 // Optional manual sync trigger endpoint
@@ -109,6 +109,15 @@ app.post('/api/sync-schema', async (req, res) => {
   }
 });
 
+const queryWithTimeout = (p, sql, timeoutMs = 3000) => {
+  return Promise.race([
+    p.query(sql),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Connection timed out after ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
+};
+
 // Comprehensive health & diagnostic check
 app.get(['/api/health', '/health'], async (req, res) => {
   const envCheck = {
@@ -122,21 +131,21 @@ app.get(['/api/health', '/health'], async (req, res) => {
   const databases = {};
 
   try {
-    const [rows] = await pool.query('SELECT 1 + 1 AS result');
+    const [rows] = await queryWithTimeout(pool, 'SELECT 1 + 1 AS result', 3000);
     databases.main = { ok: true, connected: rows[0]?.result === 2 };
   } catch (err) {
     databases.main = { ok: false, error: err.message, code: err.code };
   }
 
   try {
-    const [rows] = await secPool.query('SELECT 1 + 1 AS result');
+    const [rows] = await queryWithTimeout(secPool, 'SELECT 1 + 1 AS result', 3000);
     databases.sec = { ok: true, connected: rows[0]?.result === 2 };
   } catch (err) {
     databases.sec = { ok: false, error: err.message, code: err.code };
   }
 
   try {
-    const [rows] = await schoolPool.query('SELECT 1 + 1 AS result');
+    const [rows] = await queryWithTimeout(schoolPool, 'SELECT 1 + 1 AS result', 3000);
     databases.school = { ok: true, connected: rows[0]?.result === 2 };
   } catch (err) {
     databases.school = { ok: false, error: err.message, code: err.code };
