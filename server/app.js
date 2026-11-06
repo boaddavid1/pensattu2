@@ -33,12 +33,17 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:hello@pensattu.example';
+const VAPID_PUBLIC_KEY = (process.env.VAPID_PUBLIC_KEY || '').trim().replace(/^["']|["']$/g, '');
+const VAPID_PRIVATE_KEY = (process.env.VAPID_PRIVATE_KEY || '').trim().replace(/^["']|["']$/g, '');
+const VAPID_SUBJECT = (process.env.VAPID_SUBJECT || 'mailto:hello@pensattu.example').trim().replace(/^["']|["']$/g, '');
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  try {
+    webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    console.log('[web-push] VAPID details configured successfully');
+  } catch (err) {
+    console.warn('[web-push warning] Failed to initialize VAPID keys, push notifications disabled:', err.message);
+  }
 }
 
 app.use(cors());
