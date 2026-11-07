@@ -262,8 +262,16 @@ export default function SchoolAdmin() {
               ))}
             </select>
 
-            <Link to="/school" target="_blank" className="ret-btn ret-btn-gold" style={{ textDecoration: 'none', fontSize: '13px' }}>
-              <span>➕ Delegate Intake Form ↗</span>
+            <a href="/school/scanner.html" target="_blank" rel="noopener noreferrer" className="ret-btn ret-btn-gold" style={{ textDecoration: 'none', fontSize: '13px', fontWeight: '800' }}>
+              <span>📷 Gate Scanner Portal ↗</span>
+            </a>
+
+            <a href="/school/admin.html" target="_blank" rel="noopener noreferrer" className="ret-btn ret-btn-outline" style={{ textDecoration: 'none', fontSize: '13px' }}>
+              <span>🛡️ Admin Data Portal ↗</span>
+            </a>
+
+            <Link to="/school" target="_blank" className="ret-btn ret-btn-outline" style={{ textDecoration: 'none', fontSize: '13px' }}>
+              <span>➕ Delegate Intake ↗</span>
             </Link>
           </div>
         </div>

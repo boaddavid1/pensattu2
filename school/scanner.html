@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gate Scanner Terminal — PENSA Retreat 2026</title>
+  <meta name="description" content="Dedicated high-speed QR gate scanner terminal for ushers and gatekeepers. Instant clock-in and clock-out with audio feedback.">
+
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    /* Specific styles for dedicated Scanner Portal */
+    body.scanner-portal {
+      background: #090e17;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scan-header {
+      background: #0d1524;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .scan-header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .scan-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #ffffff;
+    }
+
+    .scan-brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .scan-brand-title {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .scan-brand-subtitle {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scan-live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse-dot 1.8s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .scan-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .scan-session-select {
+      background: #1a2336;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .scan-session-select:focus {
+      border-color: #f59e0b;
+    }
+
+    .scan-portal-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* KPI Quick Ribbon */
+    .scan-stats-ribbon {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .scan-stat-box {
+      background: #111a2d;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .scan-stat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .scan-stat-val {
+      font-size: 22px;
+      font-weight: 900;
+      font-family: var(--font-heading);
+      line-height: 1;
+    }
+
+    .scan-stat-lbl {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    /* Main Scanner Layout Grid */
+    .scan-main-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .scan-main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left: Viewfinder Card */
+    .scan-camera-card {
+      background: #111a2d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .scan-camera-header {
+      background: #17233c;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .scan-camera-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .scan-viewfinder-box {
+      position: relative;
+      background: #000;
+      width: 100%;
+      min-height: 340px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #reader {
+      width: 100% !important;
+      border: none !important;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+
+    #reader__scan_region {
+      border: none !important;
+    }
+
+    /* Target overlay box */
+    .scan-reticle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 240px;
+      height: 240px;
+      pointer-events: none;
+      border: 2px dashed rgba(245, 158, 11, 0.6);
+      border-radius: 20px;
+      box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.35);
+      z-index: 10;
+    }
+
+    .scan-reticle::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+      box-shadow: 0 0 8px #f59e0b;
+      animation: scan-line 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes scan-line {
+      0% { top: 4px; }
+      100% { top: 234px; }
+    }
+
+    /* Mode controls */
+    .scan-mode-bar {
+      padding: 16px;
+      background: #141e33;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .scan-mode-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .scan-mode-btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #1e2c47;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .scan-mode-btn.active.auto {
+      background: #3b82f6;
+      border-color: #60a5fa;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+    }
+
+    .scan-mode-btn.active.clock-in {
+      background: #10b981;
+      border-color: #34d399;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .scan-mode-btn.active.clock-out {
+      background: #f59e0b;
+      border-color: #fbbf24;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    }
+
+    /* Manual input bar */
+    .scan-manual-bar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .scan-manual-input {
+      flex: 1;
+      background: #0d1524;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #ffffff;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .scan-manual-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    .scan-manual-btn {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .scan-manual-btn:hover {
+      background: #1d4ed8;
+    }
+
+    /* Right column: Dynamic Result Feedback Card & Stream */
+    .scan-feed-col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Result Feedback Card */
+    .scan-card-feedback {
+      background: #111a2d;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      transition: all 0.25s ease;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .scan-card-feedback.ready {
+      border-color: rgba(255, 255, 255, 0.08);
+      background: #111a2d;
+      text-align: center;
+    }
+
+    .scan-card-feedback.clocked_in {
+      background: linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(16, 185, 129, 0.2) 100%);
+      border-color: #10b981;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.35);
+    }
+
+    .scan-card-feedback.clocked_out {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.2) 100%);
+      border-color: #3b82f6;
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.35);
+    }
+
+    .scan-card-feedback.warning {
+      background: linear-gradient(135deg, rgba(120, 53, 15, 0.9) 0%, rgba(245, 158, 11, 0.2) 100%);
+      border-color: #f59e0b;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.35);
+    }
+
+    .scan-card-feedback.error {
+      background: linear-gradient(135deg, rgba(127, 29, 29, 0.9) 0%, rgba(239, 68, 68, 0.2) 100%);
+      border-color: #ef4444;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.35);
+    }
+
+    /* Recent Scans Box */
+    .scan-recent-card {
+      background: #111a2d;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .scan-recent-header {
+      background: #17233c;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .scan-recent-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .scan-recent-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: #141e33;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: background 0.15s;
+    }
+
+    .scan-recent-item:hover {
+      background: #1a2742;
+    }
+  </style>
+
+  <!-- Offline QR Scanner & SheetJS Libraries -->
+  <script src="js/html5-qrcode.min.js"></script>
+</head>
+<body class="scanner-portal">
+
+  <!-- ─── TOP GATE HEADER BAR ─── -->
+  <header class="scan-header">
+    <div class="scan-header-inner">
+      <a href="scanner.html" class="scan-brand">
+        <div class="scan-brand-icon">📷</div>
+        <div>
+          <h1 class="scan-brand-title" id="scan-page-title">PENSA TTU Retreat Gate Scanner</h1>
+          <div class="scan-brand-subtitle">
+            <span class="scan-live-dot"></span>
+            <span>LIVE GATE PASS TERMINAL</span>
+            <span>• Fast QR Clock-In / Out</span>
+          </div>
+        </div>
+      </a>
+
+      <div class="scan-top-actions">
+        <!-- Active Retreat Session -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Session:</span>
+          <select id="active-session-select" class="scan-session-select" title="Active retreat session"></select>
+        </div>
+
+        <!-- Audio mute/unmute toggle -->
+        <button type="button" id="toggle-sound-btn" class="scan-mode-btn" style="padding: 7px 12px; font-size: 12px; background: #1a2336; color: #f8fafc;" title="Toggle scan chimes">
+          🔔 Sound: ON
+        </button>
+
+        <!-- Direct Link to Admin Data Portal -->
+        <a href="admin.html" class="ret-btn ret-btn-gold" style="text-decoration: none; font-size: 12.5px; padding: 7px 16px; font-weight: 800;">
+          🛡️ Admin Data Portal ➔
+        </a>
+
+        <!-- Registration Link -->
+        <a href="index.html" class="ret-btn ret-btn-outline" style="text-decoration: none; font-size: 12px; padding: 7px 12px; border-color: rgba(255,255,255,0.2); color: #94a3b8;">
+          + New Registration
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── MAIN SCANNER CONTAINER ─── -->
+  <main class="scan-portal-container">
+
+    <!-- KPI Ribbon -->
+    <section class="scan-stats-ribbon">
+      <!-- Total Clocked In -->
+      <div class="scan-stat-box" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);">
+        <div class="scan-stat-icon" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">✅</div>
+        <div>
+          <div id="stat-clocked-in" class="scan-stat-val" style="color: #34d399;">0</div>
+          <div class="scan-stat-lbl" style="color: #6ee7b7;">Inside Venue</div>
+        </div>
+      </div>
+
+      <!-- Total Clocked Out -->
+      <div class="scan-stat-box">
+        <div class="scan-stat-icon" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">🚪</div>
+        <div>
+          <div id="stat-clocked-out" class="scan-stat-val" style="color: #60a5fa;">0</div>
+          <div class="scan-stat-lbl">Clocked Out</div>
+        </div>
+      </div>
+
+      <!-- Scans Processed Today -->
+      <div class="scan-stat-box">
+        <div class="scan-stat-icon" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">⚡</div>
+        <div>
+          <div id="stat-total-scans" class="scan-stat-val" style="color: #fbbf24;">0</div>
+          <div class="scan-stat-lbl">Total Scans</div>
+        </div>
+      </div>
+
+      <!-- Total Delegates in System -->
+      <div class="scan-stat-box">
+        <div class="scan-stat-icon" style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1;">🎓</div>
+        <div>
+          <div id="stat-total-students" class="scan-stat-val" style="color: #cbd5e1;">0</div>
+          <div class="scan-stat-lbl">Registered Total</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Working Grid: Camera + Feedback/Feed -->
+    <div class="scan-main-grid">
+
+      <!-- Left Column: Camera Viewfinder -->
+      <section class="scan-camera-card">
+        <div class="scan-camera-header">
+          <div class="scan-camera-status">
+            <span id="camera-status-indicator" style="color: #34d399;">● Camera Active</span>
+            <span id="camera-fps-pill" style="font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #94a3b8;">15 FPS</span>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="flip-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.12); color: #ffffff; border: none;">
+              🔄 Flip Camera
+            </button>
+            <button type="button" id="pause-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.12); color: #ffffff; border: none;">
+              ⏸️ Pause
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Viewfinder Frame -->
+        <div class="scan-viewfinder-box">
+          <div id="reader"></div>
+          <div class="scan-reticle"></div>
+        </div>
+
+        <!-- Mode Controller (Auto Toggle / In Only / Out Only) -->
+        <div class="scan-mode-bar">
+          <div class="scan-mode-buttons">
+            <button type="button" class="scan-mode-btn active auto" data-mode="auto">
+              🔄 Auto In/Out
+            </button>
+            <button type="button" class="scan-mode-btn clock-in" data-mode="clock_in">
+              🟢 Clock In Only
+            </button>
+            <button type="button" class="scan-mode-btn clock-out" data-mode="clock_out">
+              🔵 Clock Out Only
+            </button>
+          </div>
+
+          <!-- Barcode Gun / Manual Input Keyboard Fallback -->
+          <div class="scan-manual-bar">
+            <input
+              type="text"
+              id="barcode-input"
+              class="scan-manual-input"
+              placeholder="Laser Barcode Gun or type Student ID (e.g. RET26-AUG-001)..."
+              autocomplete="off"
+              autofocus
+            />
+            <button type="button" id="barcode-submit-btn" class="scan-manual-btn">
+              ⚡ Scan ID
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Instant Feedback & Recent Stream -->
+      <section class="scan-feed-col">
+
+        <!-- Dynamic Scan Result Card -->
+        <div id="scan-feedback-card" class="scan-card-feedback ready">
+          <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 44px; margin-bottom: 10px;">📷</div>
+            <div style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: #ffffff;">
+              Ready for Next Delegate Badge
+            </div>
+            <div style="font-size: 13.5px; color: #94a3b8; margin-top: 6px; max-width: 380px; margin-left: auto; margin-right: auto;">
+              Hold up student QR badge to the camera lens or scan with barcode gun for instant clock-in or clock-out.
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Scans Stream Card -->
+        <div class="scan-recent-card">
+          <div class="scan-recent-header">
+            <div style="font-size: 14px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+              <span>⚡ Recent Gate Scans</span>
+              <span id="recent-count-pill" style="font-size: 11px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 12px; font-weight: 700;">0</span>
+            </div>
+            <span style="font-size: 11.5px; color: #10b981; font-weight: 700;">● Live Stream</span>
+          </div>
+
+          <div id="recent-scans-feed" class="scan-recent-list">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Script for Dedicated Gate Scanner -->
+  <script type="module" src="js/scanner-page.js"></script>
+</body>
+</html>

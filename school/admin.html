@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Organizer Command Center — QR Scanner & Live Attendance Terminal</title>
-  <meta name="description" content="National campus and schools spiritual retreat organizer terminal. Camera gate pass scanner (clock-in/clock-out), master attendance list, and student badge directory.">
+  <title>Admin Data Command Center — PENSA Retreat 2026</title>
+  <meta name="description" content="Official administrative terminal for collecting, managing, and exporting school and student retreat data, badges, and live attendance manifests.">
 
   <!-- Modern Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,11 +14,65 @@
   <!-- Core Styles -->
   <link rel="stylesheet" href="css/styles.css">
 
-  <!-- Offline QR Code & Scanner Libraries -->
+  <!-- Offline QR Code & Excel Engines -->
   <script src="js/qrcode.min.js"></script>
-  <script src="js/html5-qrcode.min.js"></script>
-  <!-- Excel & Spreadsheet Engine (SheetJS) -->
   <script src="js/xlsx.full.min.js"></script>
+
+  <style>
+    /* Admin specific helpers */
+    .admin-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 17, 33, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .admin-modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 550px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: modal-pop 0.2s ease-out;
+    }
+
+    @keyframes modal-pop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .admin-modal-header {
+      padding: 16px 20px;
+      background: var(--primary-900);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-modal-body {
+      padding: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .admin-modal-footer {
+      padding: 14px 20px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  </style>
 </head>
 <body>
 
@@ -28,10 +82,10 @@
       <a href="admin.html" class="ret-brand">
         <div class="ret-brand-icon">🕊️</div>
         <div class="ret-brand-text">
-          <h1 id="header-retreat-title">PENSA Schools & Campus Retreat 2026</h1>
+          <h1 id="header-retreat-title">PENSA Schools & Campus Spiritual Retreat 2026</h1>
           <p>
-            <span class="ret-live-pill"><span class="ret-live-dot"></span> LIVE COMMAND SYSTEM</span>
-            <span>• Gate Scanner & Attendance Terminal</span>
+            <span class="ret-live-pill"><span class="ret-live-dot"></span> ADMIN DATA CENTER</span>
+            <span>• Collect & Manage School & Student Delegates</span>
           </p>
         </div>
       </a>
@@ -43,14 +97,14 @@
           <select id="session-select" class="ret-session-select" title="Active retreat session"></select>
         </div>
 
-        <!-- Quick Scan Terminal Launcher -->
-        <button type="button" class="ret-btn ret-btn-gold" onclick="window.retreatApp?.switchTab('scanner');">
-          📷 Gate Scanner
-        </button>
+        <!-- Dedicated Gate Scanner Button -->
+        <a href="scanner.html" target="_blank" class="ret-btn ret-btn-gold" style="text-decoration: none; font-weight: 800; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);">
+          📷 Open Gate Scanner Terminal ➔
+        </a>
 
-        <!-- Link Back to Public Registration Form -->
-        <a href="index.html" class="ret-btn ret-btn-outline" style="text-decoration: none;">
-          ← School Registration Form
+        <!-- Public Registration Link -->
+        <a href="index.html" class="ret-btn ret-btn-outline" style="text-decoration: none; font-size: 12.5px;">
+          🌐 Public Registration Form
         </a>
       </div>
     </div>
@@ -61,19 +115,22 @@
     <div class="ret-masthead-inner">
       <div class="ret-title-row">
         <div class="ret-theme-banner">
-          <h2>Organizer Gate Command & Attendance Terminal</h2>
+          <h2>Organizer Data Collection & Management Portal</h2>
           <p id="header-retreat-theme">
             <span>📖 Ignite & Shine — Transformed for Global Impact</span> • 
             <span>📍 Takoradi Technical University Auditorium</span>
           </p>
         </div>
 
-        <div class="no-print" style="display: flex; gap: 10px;">
-          <button type="button" id="print-badges-btn" class="ret-btn ret-btn-primary">
-            🖨️ Print Badge Sheets (A4)
+        <div class="no-print" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" id="collect-data-btn" class="ret-btn ret-btn-gold" style="font-weight: 800;" onclick="window.adminApp?.switchTab('collect')">
+            ➕ Collect / Register School
           </button>
-          <button type="button" id="export-attendance-csv-btn" class="ret-btn ret-btn-outline">
-            📊 Export Attendance CSV
+          <button type="button" id="export-all-excel-btn" class="ret-btn ret-btn-primary">
+            📊 Export All to Excel (.xlsx)
+          </button>
+          <button type="button" id="print-badges-btn" class="ret-btn ret-btn-outline">
+            🖨️ Print Badge Sheets (A4)
           </button>
         </div>
       </div>
@@ -103,7 +160,7 @@
           <div class="ret-stat-icon" style="background: rgba(16, 185, 129, 0.25); color: #34d399;">✅</div>
           <div class="ret-stat-info">
             <span id="stat-clocked-in" class="ret-stat-value" style="color: #34d399;">0</span>
-            <span class="ret-stat-label" style="color: #6ee7b7;">Clocked-In (Auditorium)</span>
+            <span class="ret-stat-label" style="color: #6ee7b7;">Clocked-In (Inside Venue)</span>
           </div>
         </div>
 
@@ -128,15 +185,25 @@
     </div>
   </section>
 
-  <!-- ─── 3. SEGMENTED NAVIGATION CONTROLLER ─── -->
+  <!-- ─── 3. ADMIN NAVIGATION TABS ─── -->
   <nav class="ret-nav-tabs-wrapper no-print">
     <div class="ret-nav-tabs">
-      <button type="button" class="ret-tab-btn active" data-tab="scanner">
-        <span>📷 Live Camera Scanner (Clock-In/Out)</span>
+      <button type="button" class="ret-tab-btn active" data-tab="students">
+        <span>📋 Student Delegates Directory</span>
+        <span id="tab-badge-students" class="ret-tab-badge">0</span>
+      </button>
+
+      <button type="button" class="ret-tab-btn" data-tab="schools">
+        <span>🏛️ Schools Directory</span>
+        <span id="tab-badge-schools" class="ret-tab-badge">0</span>
+      </button>
+
+      <button type="button" class="ret-tab-btn" data-tab="collect">
+        <span>➕ Collect Data (Intake / Import)</span>
       </button>
 
       <button type="button" class="ret-tab-btn" data-tab="attendance">
-        <span>📊 Master Attendance Sheet</span>
+        <span>📊 Live Attendance Manifest</span>
         <span id="tab-badge-attendance" class="ret-tab-badge">0</span>
       </button>
 
@@ -144,107 +211,257 @@
         <span>📇 All Student QR Badges</span>
         <span id="tab-badge-badges" class="ret-tab-badge">0</span>
       </button>
-
-      <button type="button" class="ret-tab-btn" data-tab="schools">
-        <span>🏛️ Schools Directory</span>
-        <span id="tab-badge-schools" class="ret-tab-badge">0</span>
-      </button>
     </div>
   </nav>
 
-  <!-- ─── 4. MAIN APPLICATION VIEWS ─── -->
+  <!-- ─── 4. MAIN ADMIN APPLICATION VIEWS ─── -->
   <main class="ret-main">
 
     <!-- ════════════════════════════════════════════════════════════════════
-         TAB 1: LIVE QR CAMERA SCANNER TERMINAL (CLOCK-IN / CLOCK-OUT)
+         TAB 1: STUDENT DELEGATES (MANAGE DATA)
     ════════════════════════════════════════════════════════════════════ -->
-    <div id="view-scanner" class="ret-view active">
-      <div class="ret-scanner-layout">
-        <!-- Left: Live Camera Viewfinder & Mode Switcher -->
-        <div class="ret-scanner-feed-box">
-          <div class="ret-scanner-top-bar">
-            <span id="camera-status-text">○ Camera Active</span>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" id="toggle-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.15); color: #fff; border: none;">
-                🔄 Flip Camera
-              </button>
+    <div id="view-students" class="ret-view active">
+      <div class="ret-card">
+        <div class="ret-card-header">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h2 class="ret-card-title">
+              <span>📋 Student Delegates Management</span>
+            </h2>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <!-- School Filter -->
+              <select id="student-filter-school" class="ret-form-select" style="width: auto; min-width: 180px;">
+                <option value="">All Schools</option>
+              </select>
+
+              <!-- Status Filter -->
+              <select id="student-filter-status" class="ret-form-select" style="width: auto;">
+                <option value="">All Statuses</option>
+                <option value="clocked_in">Clocked In (Present)</option>
+                <option value="clocked_out">Clocked Out</option>
+                <option value="not_arrived">Not Yet Arrived</option>
+              </select>
+
+              <!-- Gender Filter -->
+              <select id="student-filter-gender" class="ret-form-select" style="width: auto;">
+                <option value="">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
             </div>
           </div>
 
-          <!-- Video element controlled by html5-qrcode -->
-          <div class="ret-camera-viewfinder">
-            <div id="reader"></div>
-            <div class="ret-scan-overlay"></div>
-          </div>
-
-          <!-- Clock In vs Clock Out Mode Controller -->
-          <div class="ret-scanner-modes">
-            <div class="ret-mode-toggle">
-              <button type="button" class="ret-mode-btn active auto" data-mode="auto">
-                🔄 Auto Toggle
-              </button>
-              <button type="button" class="ret-mode-btn clock-in" data-mode="clock_in">
-                🟢 Clock In
-              </button>
-              <button type="button" class="ret-mode-btn clock-out" data-mode="clock_out">
-                🔵 Clock Out
-              </button>
-            </div>
-            <span style="font-size: 12px; color: #94a3b8;">
-              Point delegate QR badge directly at camera
-            </span>
-          </div>
-
-          <!-- Manual barcode/ID keyboard lookup fallback -->
-          <div class="ret-manual-scan-box">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <input
               type="text"
-              id="manual-scan-input"
+              id="student-search-input"
               class="ret-form-input"
-              placeholder="Or type/paste Student ID or QR code text..."
+              placeholder="🔍 Search name, ID, class, room..."
+              style="width: 240px;"
             />
-            <button type="button" id="manual-scan-btn" class="ret-btn ret-btn-primary" style="white-space: nowrap;">
-              Process
+            <button type="button" id="export-students-excel-btn" class="ret-btn ret-btn-outline">
+              📊 Export Excel
+            </button>
+            <button type="button" id="export-students-csv-btn" class="ret-btn ret-btn-outline">
+              CSV
             </button>
           </div>
         </div>
 
-        <!-- Right: Real-time scan result and recent activity audit log -->
-        <div class="ret-scanner-sidebar">
-          <!-- Dynamic Feedback Card -->
-          <div id="scan-result-card" class="ret-scan-result-card waiting">
-            <div style="text-align: center; padding: 20px 10px;">
-              <div style="font-size: 40px; margin-bottom: 10px;">📷</div>
-              <div style="font-weight: 800; font-size: 16px; color: var(--primary-900);">Gate Scanner Ready</div>
-              <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
-                Hold up student delegate badge QR code in front of the lens for instant clock-in or clock-out.
-              </div>
-            </div>
-          </div>
-
-          <!-- Recent Scans Stream -->
-          <div class="ret-recent-scans-box">
-            <div class="ret-recent-scans-header">
-              <h3 style="font-size: 14px; font-weight: 800; margin: 0; color: var(--primary-900);">Recent Scans Stream</h3>
-              <span style="font-size: 11px; font-weight: 700; color: #10b981;">● Live Updates</span>
-            </div>
-            <div id="recent-scans-list" class="ret-recent-scans-list">
-              <!-- Rendered dynamically -->
-            </div>
+        <div class="ret-card-body" style="padding: 0;">
+          <div class="ret-table-wrap" style="margin-top: 0; border: none; border-radius: 0;">
+            <table class="ret-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Student Delegate</th>
+                  <th>School & Level</th>
+                  <th>Gender / Room</th>
+                  <th>Current Status</th>
+                  <th>Last Scanned</th>
+                  <th>Manage Actions</th>
+                </tr>
+              </thead>
+              <tbody id="students-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ════════════════════════════════════════════════════════════════════
-         TAB 2: MASTER ATTENDANCE SHEET & AUDIT LOG
+         TAB 2: SCHOOLS DIRECTORY (MANAGE DATA)
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="view-schools" class="ret-view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--primary-900); margin: 0;">Registered Schools & Campus Chapters</h2>
+          <p style="font-size: 13px; color: #64748b; margin: 2px 0 0;">View delegation size, teacher in-charge contacts, and attendance rates.</p>
+        </div>
+        <button type="button" class="ret-btn ret-btn-gold" onclick="window.adminApp?.switchTab('collect')">
+          ➕ Register New School
+        </button>
+      </div>
+
+      <div id="schools-summary-grid" class="ret-schools-grid">
+        <!-- Rendered dynamically by admin-page.js -->
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         TAB 3: COLLECT DATA (RAPID SCHOOL & STUDENT INTAKE)
+    ════════════════════════════════════════════════════════════════════ -->
+    <div id="view-collect" class="ret-view">
+      <div class="ret-card" style="max-width: 900px; margin: 0 auto;">
+        <div class="ret-card-header">
+          <div>
+            <h2 class="ret-card-title">
+              <span>➕ Collect New School & Student Delegation</span>
+            </h2>
+            <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">
+              Fill in school details and upload or paste the student attendees roster to generate QR badges immediately.
+            </p>
+          </div>
+        </div>
+
+        <div class="ret-card-body" style="padding: 24px;">
+          <form id="admin-intake-form">
+
+            <!-- Step 1: Registrant Info -->
+            <div class="ret-form-section-title">
+              <span class="ret-step-num">1</span>
+              <span>Registrant / Submitter Information</span>
+            </div>
+
+            <div class="ret-form-grid-2" style="margin-bottom: 20px;">
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="intake-registrant-name">
+                  <span>Registrant Full Name <span class="ret-req">*</span></span>
+                </label>
+                <input type="text" id="intake-registrant-name" name="registrant_name" class="ret-form-input" placeholder="e.g. Deacon Dennis Mensah" required>
+              </div>
+
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="intake-registrant-contact">
+                  <span>Registrant Contact / Phone <span class="ret-req">*</span></span>
+                </label>
+                <input type="tel" id="intake-registrant-contact" name="registrant_contact" class="ret-form-input" placeholder="e.g. +233 24 123 4567" required>
+              </div>
+            </div>
+
+            <!-- Step 2: School & Patron Details -->
+            <div class="ret-form-section-title">
+              <span class="ret-step-num">2</span>
+              <span>School & Teacher In-Charge Details</span>
+            </div>
+
+            <div class="ret-form-grid-2" style="margin-bottom: 16px;">
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="intake-school-name">
+                  <span>School / Institution Name <span class="ret-req">*</span></span>
+                </label>
+                <input type="text" id="intake-school-name" name="school_name" class="ret-form-input" placeholder="e.g. St. Augustine's College" required>
+              </div>
+
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="intake-school-category">
+                  <span>Category <span class="ret-req">*</span></span>
+                </label>
+                <select id="intake-school-category" name="school_category" class="ret-form-select">
+                  <option value="Senior High School">Senior High School (SHS)</option>
+                  <option value="Technical / Vocational">Technical / Vocational (TVET)</option>
+                  <option value="University / Tertiary">University / Tertiary</option>
+                  <option value="Basic / JHS">Basic / JHS</option>
+                  <option value="Other">Other Delegation</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="ret-form-grid-2" style="margin-bottom: 20px;">
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="intake-teacher-name">
+                  <span>Teacher In-Charge / Patron Name <span class="ret-req">*</span></span>
+                </label>
+                <input type="text" id="intake-teacher-name" name="teacher_name" class="ret-form-input" placeholder="e.g. Elder Francis Quaye" required>
+              </div>
+
+              <div class="ret-form-group">
+                <label class="ret-form-label" for="intake-teacher-contact">
+                  <span>Teacher In-Charge Contact <span class="ret-req">*</span></span>
+                </label>
+                <input type="tel" id="intake-teacher-contact" name="teacher_contact" class="ret-form-input" placeholder="e.g. +233 24 456 7891" required>
+              </div>
+            </div>
+
+            <!-- Step 3: Student Attendees Roster -->
+            <div class="ret-form-section-title">
+              <span class="ret-step-num">3</span>
+              <span>Student Attendees Roster (Upload or Paste)</span>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <button type="button" class="ret-upload-tab-btn active" data-method="paste" id="intake-tab-paste">
+                📋 Paste Roster Text
+              </button>
+              <button type="button" class="ret-upload-tab-btn" data-method="file" id="intake-tab-file">
+                📊 Upload Excel / CSV File
+              </button>
+            </div>
+
+            <!-- Paste Mode Box -->
+            <div id="intake-mode-paste">
+              <textarea
+                id="intake-roster-paste"
+                class="ret-form-textarea"
+                rows="6"
+                placeholder="Paste names here, one per line (copy from Excel or WhatsApp)...
+Format: Name, Gender, Class, Room
+Example:
+Kwame Mensah Addo, Male, Form 3 Science, St. Luke Hall
+Akosua Serwaa Boateng, Female, Form 3 Arts, Ruth House
+Emmanuel Kojo Antwi, Male, Form 2 Business"
+              ></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <span id="intake-paste-count" style="font-size: 12.5px; font-weight: 700; color: #10b981;">0 student names detected</span>
+                <span style="font-size: 11.5px; color: #64748b;">Comma or tab separated</span>
+              </div>
+            </div>
+
+            <!-- File Upload Dropzone -->
+            <div id="intake-mode-file" style="display: none;">
+              <input type="file" id="intake-file-input" accept=".xlsx, .xls, .csv, .txt" style="display: none;">
+              <div id="intake-dropzone" class="ret-dropzone-box" style="padding: 24px;">
+                <div style="font-size: 32px; margin-bottom: 6px;">📊</div>
+                <div style="font-size: 15px; font-weight: 800; color: var(--primary-900);">Click or Drag & Drop Excel / CSV File</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Supports .xlsx, .xls, .csv rosters</div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+              <button type="reset" class="ret-btn ret-btn-outline">
+                Clear Form
+              </button>
+              <button type="submit" id="intake-submit-btn" class="ret-btn ret-btn-gold" style="font-weight: 800; padding: 12px 28px; font-size: 15px;">
+                ✨ Save School & Generate QR Badges
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         TAB 4: MASTER ATTENDANCE MANIFEST & AUDIT LOG
     ════════════════════════════════════════════════════════════════════ -->
     <div id="view-attendance" class="ret-view">
       <div class="ret-card">
         <div class="ret-card-header">
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <h2 class="ret-card-title">
-              <span>📊 Live Attendance Manifest</span>
+              <span>📊 Master Attendance Manifest</span>
             </h2>
             <div style="display: flex; gap: 8px;">
               <select id="attendance-filter-school" class="ret-form-select" style="width: auto; min-width: 180px;">
@@ -259,16 +476,19 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px; align-items: center;">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <input
               type="text"
               id="attendance-search-input"
               class="ret-form-input"
-              placeholder="🔍 Search student name, ID..."
+              placeholder="🔍 Search name, ID..."
               style="width: 220px;"
             />
-            <button type="button" class="ret-btn ret-btn-outline" onclick="window.retreatApp?.exportAttendanceCsv();">
-              Export CSV
+            <button type="button" id="export-attendance-excel-btn" class="ret-btn ret-btn-primary">
+              📊 Export Excel
+            </button>
+            <button type="button" id="clear-attendance-btn" class="ret-btn ret-badge-btn-mini" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 7px 12px;">
+              🗑️ Clear Session Scans
             </button>
           </div>
         </div>
@@ -284,7 +504,7 @@
                   <th>Gender</th>
                   <th>Current Status</th>
                   <th>Last Scanned</th>
-                  <th>Manual Override</th>
+                  <th>Quick Action</th>
                 </tr>
               </thead>
               <tbody id="attendance-tbody">
@@ -297,12 +517,11 @@
     </div>
 
     <!-- ════════════════════════════════════════════════════════════════════
-         TAB 3: ALL STUDENT QR BADGES STUDIO
+         TAB 5: ALL STUDENT QR BADGES STUDIO
     ════════════════════════════════════════════════════════════════════ -->
     <div id="view-badges" class="ret-view">
       <div class="ret-badges-controls no-print">
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-          <!-- Filter by School -->
           <div style="display: flex; align-items: center; gap: 8px;">
             <label style="font-size: 13px; font-weight: 700; color: #475569;">Filter School:</label>
             <select id="badge-filter-school" class="ret-form-select" style="width: auto; min-width: 200px;">
@@ -310,7 +529,6 @@
             </select>
           </div>
 
-          <!-- Search by Name or ID -->
           <input
             type="text"
             id="badge-search-input"
@@ -327,25 +545,120 @@
         </div>
       </div>
 
-      <!-- Container where student badge cards are rendered -->
+      <!-- Badge cards rendered by badges.js -->
       <div id="badges-grid" class="ret-badges-grid">
-        <!-- Rendered dynamically by badges.js -->
-      </div>
-    </div>
-
-    <!-- ════════════════════════════════════════════════════════════════════
-         TAB 4: REGISTERED SCHOOLS DIRECTORY
-    ════════════════════════════════════════════════════════════════════ -->
-    <div id="view-schools" class="ret-view">
-      <div id="schools-summary-grid" class="ret-schools-grid">
-        <!-- Rendered dynamically by app.js -->
+        <!-- Rendered dynamically -->
       </div>
     </div>
 
   </main>
 
+  <!-- ─── 5. MODAL: EDIT STUDENT ─── -->
+  <div id="edit-student-modal" class="admin-modal-backdrop">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 style="font-size: 16px; font-weight: 800; margin: 0;">✏️ Edit Student Delegate</h3>
+        <button type="button" class="ret-badge-btn-mini" style="background: transparent; color: #fff; border: none; font-size: 18px;" onclick="window.adminApp?.closeModals()">✕</button>
+      </div>
+      <form id="edit-student-form">
+        <div class="admin-modal-body">
+          <input type="hidden" id="edit-student-id">
+          
+          <div class="ret-form-group" style="margin-bottom: 14px;">
+            <label class="ret-form-label">Full Name</label>
+            <input type="text" id="edit-student-name" class="ret-form-input" required>
+          </div>
 
-  <!-- Application Main Controller -->
-  <script type="module" src="js/app.js"></script>
+          <div class="ret-form-grid-2" style="margin-bottom: 14px;">
+            <div class="ret-form-group">
+              <label class="ret-form-label">Gender</label>
+              <select id="edit-student-gender" class="ret-form-select">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div class="ret-form-group">
+              <label class="ret-form-label">Class / Level</label>
+              <input type="text" id="edit-student-level" class="ret-form-input" placeholder="Form 3 Science">
+            </div>
+          </div>
+
+          <div class="ret-form-grid-2" style="margin-bottom: 14px;">
+            <div class="ret-form-group">
+              <label class="ret-form-label">Room / Dormitory</label>
+              <input type="text" id="edit-student-room" class="ret-form-input" placeholder="St. Luke Hall">
+            </div>
+            <div class="ret-form-group">
+              <label class="ret-form-label">Emergency Contact</label>
+              <input type="text" id="edit-student-contact" class="ret-form-input" placeholder="+233 ...">
+            </div>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="ret-btn ret-btn-outline" onclick="window.adminApp?.closeModals()">Cancel</button>
+          <button type="submit" class="ret-btn ret-btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ─── 6. MODAL: EDIT SCHOOL ─── -->
+  <div id="edit-school-modal" class="admin-modal-backdrop">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 style="font-size: 16px; font-weight: 800; margin: 0;">✏️ Edit School Details</h3>
+        <button type="button" class="ret-badge-btn-mini" style="background: transparent; color: #fff; border: none; font-size: 18px;" onclick="window.adminApp?.closeModals()">✕</button>
+      </div>
+      <form id="edit-school-form">
+        <div class="admin-modal-body">
+          <input type="hidden" id="edit-school-id">
+          
+          <div class="ret-form-group" style="margin-bottom: 14px;">
+            <label class="ret-form-label">School Name</label>
+            <input type="text" id="edit-school-name" class="ret-form-input" required>
+          </div>
+
+          <div class="ret-form-grid-2" style="margin-bottom: 14px;">
+            <div class="ret-form-group">
+              <label class="ret-form-label">Category</label>
+              <select id="edit-school-category" class="ret-form-select">
+                <option value="Senior High School">Senior High School</option>
+                <option value="Technical / Vocational">Technical / Vocational</option>
+                <option value="University / Tertiary">University / Tertiary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="ret-form-group">
+              <label class="ret-form-label">Region</label>
+              <input type="text" id="edit-school-region" class="ret-form-input">
+            </div>
+          </div>
+
+          <div class="ret-form-grid-2" style="margin-bottom: 14px;">
+            <div class="ret-form-group">
+              <label class="ret-form-label">Patron / Teacher Name</label>
+              <input type="text" id="edit-school-patron" class="ret-form-input">
+            </div>
+            <div class="ret-form-group">
+              <label class="ret-form-label">Patron Phone</label>
+              <input type="text" id="edit-school-phone" class="ret-form-input">
+            </div>
+          </div>
+
+          <div class="ret-form-group">
+            <label class="ret-form-label">Notes</label>
+            <textarea id="edit-school-notes" class="ret-form-textarea" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="ret-btn ret-btn-outline" onclick="window.adminApp?.closeModals()">Cancel</button>
+          <button type="submit" class="ret-btn ret-btn-primary">Save School</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dedicated Admin Controller -->
+  <script type="module" src="js/admin-page.js"></script>
 </body>
 </html>

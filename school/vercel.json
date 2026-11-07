@@ -4,6 +4,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/scanner",
+      "destination": "/scanner.html"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },

@@ -515,10 +515,141 @@ router.put('/settings', (req, res) => {
   }
 });
 
-// ─── 5. Reset to Sample Data or Clear Attendance ───
-router.post('/reset', (req, res) => {
+// ─── 5. Update Student Details ───
+router.put('/students/:id', async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const { full_name, gender, level_class, room_dorm, emergency_contact } = req.body;
+
+    // Update in MySQL if connected
+    try {
+      await pool.query(
+        `UPDATE retreat_students 
+         SET full_name = COALESCE(?, full_name),
+             gender = COALESCE(?, gender),
+             level_class = COALESCE(?, level_class),
+             room_dorm = COALESCE(?, room_dorm),
+             emergency_contact = COALESCE(?, emergency_contact)
+         WHERE id = ?`,
+        [full_name, gender, level_class, room_dorm, emergency_contact, studentId]
+      );
+    } catch (e) {}
+
+    // Update in memory
+    const idx = memoryStore.students.findIndex((s) => s.id === studentId);
+    if (idx >= 0) {
+      if (full_name) memoryStore.students[idx].full_name = full_name;
+      if (gender) memoryStore.students[idx].gender = gender;
+      if (level_class !== undefined) memoryStore.students[idx].level_class = level_class;
+      if (room_dorm !== undefined) memoryStore.students[idx].room_dorm = room_dorm;
+      if (emergency_contact !== undefined) memoryStore.students[idx].emergency_contact = emergency_contact;
+      return res.json({ ok: true, student: memoryStore.students[idx] });
+    }
+
+    res.json({ ok: true, message: 'Student updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to update student' });
+  }
+});
+
+// ─── 6. Delete a Student ───
+router.delete('/students/:id', async (req, res) => {
+  try {
+    const studentId = req.params.id;
+
+    // Delete in MySQL
+    try {
+      await pool.query('DELETE FROM retreat_students WHERE id = ?', [studentId]);
+      await pool.query('DELETE FROM retreat_attendance WHERE student_id = ?', [studentId]);
+    } catch (e) {}
+
+    // Delete in memory
+    memoryStore.students = memoryStore.students.filter((s) => s.id !== studentId);
+    memoryStore.attendance = memoryStore.attendance.filter((a) => a.student_id !== studentId);
+
+    res.json({ ok: true, message: `Student ${studentId} deleted` });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to delete student' });
+  }
+});
+
+// ─── 7. Update School Details ───
+router.put('/schools/:id', async (req, res) => {
+  try {
+    const schoolId = req.params.id;
+    const { name, category, region, patron_name, patron_phone, patron_email, notes, teacher_incharge_name, teacher_incharge_contact } = req.body;
+
+    // Update in MySQL
+    try {
+      await pool.query(
+        `UPDATE retreat_schools
+         SET name = COALESCE(?, name),
+             category = COALESCE(?, category),
+             region = COALESCE(?, region),
+             patron_name = COALESCE(?, patron_name),
+             patron_phone = COALESCE(?, patron_phone),
+             patron_email = COALESCE(?, patron_email),
+             notes = COALESCE(?, notes)
+         WHERE id = ?`,
+        [name, category, region, patron_name || teacher_incharge_name, patron_phone || teacher_incharge_contact, patron_email, notes, schoolId]
+      );
+    } catch (e) {}
+
+    // Update in memory
+    const idx = memoryStore.schools.findIndex((s) => s.id === schoolId);
+    if (idx >= 0) {
+      if (name) memoryStore.schools[idx].name = name;
+      if (category) memoryStore.schools[idx].category = category;
+      if (region !== undefined) memoryStore.schools[idx].region = region;
+      if (patron_name) memoryStore.schools[idx].patron_name = patron_name;
+      if (patron_phone) memoryStore.schools[idx].patron_phone = patron_phone;
+      if (patron_email !== undefined) memoryStore.schools[idx].patron_email = patron_email;
+      if (notes !== undefined) memoryStore.schools[idx].notes = notes;
+      return res.json({ ok: true, school: memoryStore.schools[idx] });
+    }
+
+    res.json({ ok: true, message: 'School updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to update school' });
+  }
+});
+
+// ─── 8. Delete a School and All its Students ───
+router.delete('/schools/:id', async (req, res) => {
+  try {
+    const schoolId = req.params.id;
+
+    // Delete in MySQL
+    try {
+      const [stuRows] = await pool.query('SELECT id FROM retreat_students WHERE school_id = ?', [schoolId]);
+      const studentIds = (stuRows || []).map((s) => s.id);
+
+      await pool.query('DELETE FROM retreat_schools WHERE id = ?', [schoolId]);
+      await pool.query('DELETE FROM retreat_students WHERE school_id = ?', [schoolId]);
+      if (studentIds.length > 0) {
+        await pool.query('DELETE FROM retreat_attendance WHERE student_id IN (?)', [studentIds]);
+      }
+    } catch (e) {}
+
+    // Delete in memory
+    memoryStore.schools = memoryStore.schools.filter((s) => s.id !== schoolId);
+    const deletedStudents = memoryStore.students.filter((st) => st.school_id === schoolId).map((st) => st.id);
+    memoryStore.students = memoryStore.students.filter((st) => st.school_id !== schoolId);
+    memoryStore.attendance = memoryStore.attendance.filter((a) => !deletedStudents.includes(a.student_id));
+
+    res.json({ ok: true, message: `School ${schoolId} and delegates deleted` });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to delete school' });
+  }
+});
+
+// ─── 9. Reset to Sample Data or Clear Attendance ───
+router.post('/reset', async (req, res) => {
   const { action } = req.body;
   if (action === 'clear_attendance') {
+    try {
+      await pool.query('TRUNCATE TABLE retreat_attendance');
+    } catch (e) {}
     memoryStore.attendance = [];
     return res.json({ ok: true, message: 'All attendance records cleared' });
   }
