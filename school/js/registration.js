@@ -1,13 +1,14 @@
 // school/js/registration.js — Dedicated School Registration & QR Badge Generation Controller
 
 import { renderBadges, printSingleBadge, downloadBadgeImage } from './badges.js';
+import { schoolApiFetch, resolveApiBase } from './api.js';
 
 // Expose badge actions globally for inline button onclick handlers
 window.printSingleBadge = printSingleBadge;
 window.downloadBadgeImage = downloadBadgeImage;
 
 const STORAGE_KEY = 'pensa_retreat_state_v1';
-const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001/api/school' : '/api/school';
+const API_BASE = resolveApiBase();
 
 class RegistrationController {
   constructor() {
@@ -677,13 +678,17 @@ class RegistrationController {
       `;
     }
 
-    // Call backend API (with graceful fallback to offline localStorage)
+    // Call backend API (with automatic fallback to cloud Render + Hostinger MySQL)
     try {
-      await fetch(`${API_BASE}/register`, {
+      const res = await schoolApiFetch('/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ school: newSchool, students: newStudents }),
       });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        console.log('Registered successfully in database:', data);
+      }
     } catch (err) {
       console.warn('API call offline, proceeding with client storage:', err);
     }

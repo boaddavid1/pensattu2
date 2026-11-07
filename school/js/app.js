@@ -3,13 +3,14 @@
 import { DEFAULT_RETREAT_SETTINGS, INITIAL_SCHOOLS, INITIAL_STUDENTS, INITIAL_ATTENDANCE } from './data.js';
 import { renderBadges, printSingleBadge, downloadBadgeImage } from './badges.js';
 import { startScanner, stopScanner, toggleCamera, setScannerMode, getScannerMode, sound } from './scanner.js';
+import { schoolApiFetch, resolveApiBase, extractBadgeCode, matchStudent } from './api.js';
 
 // Expose badge actions globally for inline button onclick handlers
 window.printSingleBadge = printSingleBadge;
 window.downloadBadgeImage = downloadBadgeImage;
 
 const STORAGE_KEY = 'pensa_retreat_state_v1';
-const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001/api/school' : '/api/school';
+const API_BASE = resolveApiBase();
 
 class RetreatApp {
   constructor() {
@@ -61,17 +62,30 @@ class RetreatApp {
 
   async fetchFromApi() {
     try {
-      const res = await fetch(`${API_BASE}/data`);
+      const res = await schoolApiFetch('/data');
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.ok) {
-        if (data.schools && data.schools.length) this.schools = data.schools;
-        if (data.students && data.students.length) this.students = data.students;
+        if (Array.isArray(data.schools) && data.schools.length) {
+          const sMap = new Map();
+          this.schools.forEach((s) => sMap.set(s.id, s));
+          data.schools.forEach((s) => sMap.set(s.id, s));
+          this.schools = Array.from(sMap.values());
+        }
+        if (Array.isArray(data.students) && data.students.length) {
+          const stMap = new Map();
+          this.students.forEach((st) => stMap.set((st.id || '').toUpperCase(), st));
+          data.students.forEach((st) => stMap.set((st.id || '').toUpperCase(), st));
+          this.students = Array.from(stMap.values());
+        }
         if (data.attendance) this.attendance = data.attendance;
         if (data.settings) this.settings = { ...this.settings, ...data.settings };
         this.saveToLocalStorage();
       }
     } catch (e) {
+      console.warn('App fetch offline:', e);
+    }
+  }
       // Backend not running, client works in standalone offline mode
     }
   }
@@ -356,19 +370,17 @@ class RetreatApp {
   }
 
   async handleScan(studentIdOrQr, mode = 'auto') {
-    const cleanId = String(studentIdOrQr).trim().toUpperCase();
+    const cleanId = extractBadgeCode(studentIdOrQr);
     const resultBox = document.getElementById('scan-result-card');
 
     try {
       // Find student locally first
-      let student = this.students.find(
-        (st) => st.id.toUpperCase() === cleanId || (st.qr_payload && st.qr_payload.toUpperCase() === cleanId)
-      );
+      let student = matchStudent(this.students, cleanId);
 
       // If online, call API for official logging
       let apiResult = null;
       try {
-        const res = await fetch(`${API_BASE}/scan`, {
+        const res = await schoolApiFetch('/scan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -378,9 +390,12 @@ class RetreatApp {
             scanner_label: 'Camera Scanner Terminal',
           }),
         });
-        if (res.ok) {
-          apiResult = await res.json();
-          if (apiResult.student) student = apiResult.student;
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.ok) {
+          apiResult = data;
+          if (data.student) student = data.student;
+        } else if (data?.student) {
+          student = data.student;
         }
       } catch (err) {}
 
@@ -672,7 +687,7 @@ class RetreatApp {
 
     // Save to API
     try {
-      await fetch(`${API_BASE}/register`, {
+      await schoolApiFetch('/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ school: newSchool, students: newStudents }),

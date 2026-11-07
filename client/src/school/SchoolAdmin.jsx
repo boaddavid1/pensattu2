@@ -9,6 +9,34 @@ import './school.css';
 import { API_BASE as MAIN_API_BASE } from '../api.js';
 const API_BASE = `${MAIN_API_BASE}/school`;
 
+function extractBadgeCode(rawInput) {
+  if (!rawInput) return '';
+  let str = String(rawInput).trim().replace(/^["']+|["']+$/g, '');
+  if (str.startsWith('{') && str.endsWith('}')) {
+    try {
+      const p = JSON.parse(str);
+      str = String(p.id || p.student_id || p.qr_payload || p.code || p.name || str).trim();
+    } catch (e) {}
+  }
+  if (str.includes('://')) {
+    try {
+      const u = new URL(str);
+      const queryId =
+        u.searchParams.get('id') ||
+        u.searchParams.get('student_id') ||
+        u.searchParams.get('badge') ||
+        u.searchParams.get('code');
+      if (queryId) str = queryId.trim();
+      else {
+        const parts = u.pathname.split('/').filter(Boolean);
+        if (parts.length > 0) str = parts[parts.length - 1].trim();
+      }
+    } catch (e) {}
+  }
+  const retMatch = str.match(/(RET\d*-[A-Za-z0-9_-]+-\d+)/i);
+  return retMatch ? retMatch[1].toUpperCase() : str.toUpperCase();
+}
+
 export default function SchoolAdmin() {
   const location = useLocation();
   const isControlPanel = location.pathname.startsWith('/control-panel');
@@ -67,11 +95,11 @@ export default function SchoolAdmin() {
   // ─── 2. Handle QR Scan ───
   const processScanCode = useCallback(
     async (rawCode) => {
-      const code = String(rawCode || '').trim();
+      const code = extractBadgeCode(rawCode);
       if (!code) return;
 
       const now = Date.now();
-      if (lastScannedRef.current.code === code && now - lastScannedRef.current.time < 3500) {
+      if (lastScannedRef.current.code === code && now - lastScannedRef.current.time < 3000) {
         return; // debounce rapid camera triggers
       }
       lastScannedRef.current = { code, time: now };
@@ -88,9 +116,9 @@ export default function SchoolAdmin() {
           }),
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
 
-        if (res.ok && data.ok) {
+        if (res.ok && data?.ok) {
           if (data.duplicate) {
             sound.playWarning();
             setLastScanResult({
@@ -125,21 +153,69 @@ export default function SchoolAdmin() {
             }
           }
         } else {
-          sound.playError();
-          setLastScanResult({
-            type: 'error',
-            message: data.error || `Unrecognized QR: ${code}`,
+          // Fallback: check locally loaded students in state
+          const localMatch = students.find((st) => {
+            const sId = (st.id || '').toUpperCase().trim();
+            const sPayload = (st.qr_payload || '').toUpperCase().trim();
+            const sName = (st.full_name || st.name || '').toUpperCase().trim();
+            const sStripped = sId.replace(/[^A-Z0-9]/g, '');
+            const codeStripped = code.replace(/[^A-Z0-9]/g, '');
+            return (
+              sId === code ||
+              sPayload === code ||
+              (codeStripped && sStripped === codeStripped) ||
+              sName === code
+            );
           });
+
+          if (localMatch) {
+            const nextAction = scannerMode === 'auto' ? 'clock_in' : scannerMode;
+            if (nextAction === 'clock_in') sound.playClockIn();
+            else sound.playClockOut();
+
+            const localRecord = {
+              id: Date.now(),
+              student_id: localMatch.id,
+              student_name: localMatch.full_name,
+              school_name: localMatch.school_name,
+              action_type: nextAction,
+              session_name: settings.active_session,
+              scanned_at: new Date().toISOString(),
+              scanned_by: 'Organizer Gate Terminal (Cached)',
+            };
+
+            setLastScanResult({
+              type: 'success',
+              message: `Recorded ${nextAction === 'clock_in' ? 'Clock In' : 'Clock Out'} (Offline Verified)`,
+              student: localMatch,
+              action: nextAction,
+            });
+
+            setStudents((prev) =>
+              prev.map((st) =>
+                st.id === localMatch.id
+                  ? { ...st, current_status: nextAction === 'clock_in' ? 'clocked_in' : 'clocked_out' }
+                  : st
+              )
+            );
+            setAttendance((prev) => [localRecord, ...prev]);
+          } else {
+            sound.playError();
+            setLastScanResult({
+              type: 'error',
+              message: data?.error || `Unrecognized QR: "${code}". Badge does not match any registered student delegate in the database.`,
+            });
+          }
         }
       } catch (err) {
         sound.playError();
         setLastScanResult({
           type: 'error',
-          message: 'Network error processing scan.',
+          message: 'Network error communicating with retreat database.',
         });
       }
     },
-    [scannerMode, settings.active_session]
+    [scannerMode, settings.active_session, students]
   );
 
   // ─── 3. Camera Scanner Start / Stop ───

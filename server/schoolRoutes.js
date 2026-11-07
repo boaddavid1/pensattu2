@@ -226,6 +226,12 @@ export async function syncRetreatSchema() {
           [st.id, st.school_id, st.school_name, st.full_name, st.gender, st.level_class, st.room_dorm, st.emergency_contact, st.qr_payload, st.created_at]
         );
       }
+    } else {
+      // Sync MySQL records into memoryStore so memory is ALWAYS complete
+      const [dbSchools] = await pool.query('SELECT * FROM retreat_schools ORDER BY name ASC');
+      const [dbStudents] = await pool.query('SELECT * FROM retreat_students ORDER BY full_name ASC');
+      if (dbSchools && dbSchools.length > 0) memoryStore.schools = dbSchools;
+      if (dbStudents && dbStudents.length > 0) memoryStore.students = dbStudents;
     }
   } catch (err) {
     // Non-fatal, falls back to memoryStore
@@ -240,6 +246,10 @@ router.get('/data', async (req, res) => {
     const [dbAttendance] = await pool.query('SELECT * FROM retreat_attendance ORDER BY scanned_at DESC LIMIT 1000');
 
     if (dbSchools && dbSchools.length > 0) {
+      memoryStore.schools = dbSchools;
+      if (dbStudents && dbStudents.length > 0) memoryStore.students = dbStudents;
+      if (dbAttendance && dbAttendance.length > 0) memoryStore.attendance = dbAttendance;
+
       // Calculate active clock-in status for each student in the active session
       const activeSession = memoryStore.settings.active_session;
       const studentStatusMap = {};
@@ -411,21 +421,80 @@ router.post('/scan', async (req, res) => {
       return res.status(400).json({ error: 'Student ID or QR code is required' });
     }
 
-    const cleanId = String(student_id).trim().toUpperCase();
+    let cleanId = String(student_id).trim().toUpperCase().replace(/^["']+|["']+$/g, '').trim();
 
-    // Find student in memory or DB
-    let student = memoryStore.students.find(
-      (s) => s.id.toUpperCase() === cleanId || (s.qr_payload && s.qr_payload.toUpperCase() === cleanId)
-    );
+    // 1. If QR payload was JSON-encoded
+    if (cleanId.startsWith('{') && cleanId.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(student_id);
+        cleanId = String(parsed.id || parsed.student_id || parsed.qr_payload || parsed.name || cleanId).trim().toUpperCase();
+      } catch (e) {}
+    }
 
+    // 2. If QR payload was a URL
+    if (cleanId.includes('HTTP://') || cleanId.includes('HTTPS://') || cleanId.includes('://')) {
+      try {
+        const u = new URL(String(student_id).trim());
+        const paramId = u.searchParams.get('id') || u.searchParams.get('student_id') || u.searchParams.get('badge') || u.searchParams.get('code');
+        if (paramId) {
+          cleanId = paramId.trim().toUpperCase();
+        } else {
+          const parts = u.pathname.split('/').filter(Boolean);
+          if (parts.length > 0) cleanId = parts[parts.length - 1].trim().toUpperCase();
+        }
+      } catch (e) {}
+    }
+
+    // 3. Extract standard RET code if contained (e.g. RET26-AUG-001)
+    const retMatch = cleanId.match(/(RET\d*-[A-Za-z0-9_-]+-\d+)/i);
+    const candidateId = retMatch ? retMatch[1].toUpperCase() : cleanId;
+    const strippedId = candidateId.replace(/[^A-Z0-9]/g, '');
+
+    // 4. Search in memoryStore
+    let student = memoryStore.students.find((s) => {
+      const sId = (s.id || '').toUpperCase().trim();
+      const sPayload = (s.qr_payload || '').toUpperCase().trim();
+      const sName = (s.full_name || '').toUpperCase().trim();
+      const sStripped = sId.replace(/[^A-Z0-9]/g, '');
+      return (
+        sId === candidateId ||
+        sPayload === candidateId ||
+        sId === cleanId ||
+        sPayload === cleanId ||
+        sName === cleanId ||
+        (strippedId && sStripped === strippedId) ||
+        cleanId.includes(sId) ||
+        (candidateId && sId.includes(candidateId)) ||
+        (cleanId.length >= 3 && sName.includes(cleanId))
+      );
+    });
+
+    // 5. Search in MySQL database
     if (!student) {
       try {
         const [rows] = await pool.query(
-          'SELECT * FROM retreat_students WHERE UPPER(id) = ? OR UPPER(qr_payload) = ? LIMIT 1',
-          [cleanId, cleanId]
+          `SELECT * FROM retreat_students 
+           WHERE UPPER(TRIM(id)) = ? 
+              OR UPPER(TRIM(qr_payload)) = ?
+              OR UPPER(TRIM(id)) = ?
+              OR UPPER(TRIM(qr_payload)) = ?
+              OR UPPER(TRIM(full_name)) = ?
+              OR UPPER(REPLACE(id, '-', '')) = ?
+              OR ? LIKE CONCAT('%', UPPER(TRIM(id)), '%')
+              OR (LENGTH(?) >= 3 AND UPPER(TRIM(full_name)) LIKE ?)
+           LIMIT 1`,
+          [candidateId, candidateId, cleanId, cleanId, cleanId, strippedId, cleanId, cleanId, `%${cleanId}%`]
         );
-        if (rows && rows.length > 0) student = rows[0];
-      } catch (err) {}
+        if (rows && rows.length > 0) {
+          student = rows[0];
+          // Cache in memory for instant lookups
+          if (!memoryStore.students.some((s) => s.id === student.id)) {
+            memoryStore.students.push(student);
+          }
+        }
+      } catch (err) {
+        console.error('MySQL student scan query error:', err);
+      }
     }
 
     if (!student) {

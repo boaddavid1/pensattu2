@@ -1,9 +1,10 @@
 // school/js/scanner-page.js — Controller for Dedicated Gate Scanner Terminal
 
 import { sound } from './scanner.js';
+import { schoolApiFetch, extractBadgeCode, matchStudent, resolveApiBase } from './api.js';
 
 const STORAGE_KEY = 'pensa_retreat_state_v1';
-const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001/api/school' : '/api/school';
+const API_BASE = resolveApiBase();
 
 class GateScannerTerminal {
   constructor() {
@@ -68,22 +69,50 @@ class GateScannerTerminal {
     } catch (e) {}
   }
 
+  upsertStudent(student) {
+    if (!student || !student.id) return;
+    const sId = String(student.id).toUpperCase().trim();
+    const idx = this.students.findIndex((s) => (s.id || '').toUpperCase().trim() === sId);
+    if (idx >= 0) {
+      this.students[idx] = { ...this.students[idx], ...student };
+    } else {
+      this.students.push(student);
+    }
+    this.saveLocalState();
+  }
+
   async fetchServerData() {
     try {
-      const res = await fetch(`${API_BASE}/data`);
+      const res = await schoolApiFetch('/data');
       if (res.ok) {
         const data = await res.json();
-        if (data.schools) this.schools = data.schools;
-        if (data.students) this.students = data.students;
-        if (data.attendance) this.attendance = data.attendance;
-        if (data.settings) this.settings = { ...this.settings, ...data.settings };
+        if (Array.isArray(data.schools) && data.schools.length) {
+          const schoolMap = new Map();
+          this.schools.forEach((s) => schoolMap.set(s.id, s));
+          data.schools.forEach((s) => schoolMap.set(s.id, s));
+          this.schools = Array.from(schoolMap.values());
+        }
+        if (Array.isArray(data.students) && data.students.length) {
+          const studentMap = new Map();
+          // Keep existing local students so they are never lost
+          this.students.forEach((s) => studentMap.set((s.id || '').toUpperCase(), s));
+          // Merge incoming server students
+          data.students.forEach((s) => studentMap.set((s.id || '').toUpperCase(), s));
+          this.students = Array.from(studentMap.values());
+        }
+        if (Array.isArray(data.attendance)) {
+          this.attendance = data.attendance;
+        }
+        if (data.settings) {
+          this.settings = { ...this.settings, ...data.settings };
+        }
         this.saveLocalState();
         this.updateStats();
         this.renderSessionSelect();
         this.renderRecentScans();
       }
     } catch (e) {
-      console.warn('Working in offline/cached mode');
+      console.warn('Working in offline/cached mode:', e);
     }
   }
 
@@ -241,7 +270,8 @@ class GateScannerTerminal {
   // ─── Scan Processing ───
   async handleScan(rawCode) {
     if (!rawCode) return;
-    const cleanId = String(rawCode).trim().toUpperCase();
+    const cleanId = extractBadgeCode(rawCode);
+    if (!cleanId) return;
 
     // Debounce rapid identical scans within 2.5 seconds
     const now = Date.now();
@@ -251,15 +281,13 @@ class GateScannerTerminal {
     this.lastScannedCode = cleanId;
     this.lastScannedTime = now;
 
-    // 1. Locate student locally or in cache
-    let student = this.students.find(
-      (st) => st.id.toUpperCase() === cleanId || (st.qr_payload && st.qr_payload.toUpperCase() === cleanId)
-    );
+    // 1. Locate student in memory/cache first
+    let student = matchStudent(this.students, cleanId);
 
-    // 2. Call API
+    // 2. Query Backend API (directly talks to Render + MySQL)
     let apiResult = null;
     try {
-      const res = await fetch(`${API_BASE}/scan`, {
+      const res = await schoolApiFetch('/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -270,14 +298,29 @@ class GateScannerTerminal {
         }),
       });
 
-      if (res.ok) {
-        apiResult = await res.json();
-        if (apiResult.student) student = apiResult.student;
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        apiResult = data;
+        if (data.student) {
+          student = data.student;
+          this.upsertStudent(student);
+        }
+      } else if (data?.student) {
+        student = data.student;
       }
     } catch (e) {
-      // Offline fallback handling
+      console.warn('Scan API network error, evaluating offline match:', e);
     }
 
+    // 3. If student not yet found, attempt one immediate data refresh from server
+    if (!student) {
+      try {
+        await this.fetchServerData();
+        student = matchStudent(this.students, cleanId);
+      } catch (e) {}
+    }
+
+    // 4. If still unrecognized after multi-strategy lookup
     if (!student) {
       if (this.soundEnabled) sound.playError();
       this.renderFeedbackCard({
@@ -288,17 +331,31 @@ class GateScannerTerminal {
       return;
     }
 
-    // 3. Determine action
+    // 5. Cooldown check if API flagged a recent duplicate
+    if (apiResult?.duplicate) {
+      if (this.soundEnabled) sound.playWarning();
+      this.renderFeedbackCard({
+        type: 'warning',
+        student,
+        title: `ALREADY ${apiResult.action_type === 'clock_in' ? 'CLOCKED IN' : 'CLOCKED OUT'}`,
+        message: apiResult.message || `Student was already recorded moments ago.`,
+      });
+      return;
+    }
+
+    // 6. Determine action (auto toggle or selected mode)
     const lastScan = this.attendance.find(
       (a) => a.student_id === student.id && a.session_name === this.settings.active_session
     );
 
-    let finalAction = this.scannerMode === 'auto'
-      ? (lastScan && lastScan.action_type === 'clock_in' ? 'clock_out' : 'clock_in')
-      : this.scannerMode;
+    let finalAction = apiResult?.action_type || (
+      this.scannerMode === 'auto'
+        ? (lastScan && lastScan.action_type === 'clock_in' ? 'clock_out' : 'clock_in')
+        : this.scannerMode
+    );
 
-    // 4. Duplicate scan cooldown check
-    if (lastScan && lastScan.action_type === finalAction && Date.now() - new Date(lastScan.scanned_at).getTime() < 10000) {
+    // Local cooldown check if offline
+    if (!apiResult && lastScan && lastScan.action_type === finalAction && Date.now() - new Date(lastScan.scanned_at).getTime() < 10000) {
       if (this.soundEnabled) sound.playWarning();
       this.renderFeedbackCard({
         type: 'warning',
@@ -309,7 +366,7 @@ class GateScannerTerminal {
       return;
     }
 
-    // 5. Create scan log entry
+    // 7. Create scan log entry
     const scanRecord = apiResult?.record || {
       id: Date.now(),
       student_id: student.id,
@@ -326,13 +383,13 @@ class GateScannerTerminal {
     this.updateStats();
     this.renderRecentScans();
 
-    // 6. Sound feedback
+    // 8. Sound feedback
     if (this.soundEnabled) {
       if (finalAction === 'clock_in') sound.playClockIn();
       else sound.playClockOut();
     }
 
-    // 7. Visual feedback
+    // 9. Visual feedback
     this.renderFeedbackCard({
       type: finalAction,
       student,

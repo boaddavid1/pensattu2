@@ -4,7 +4,12 @@ const isLocalhost =
 
 const envApi = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
 const normalizedApi = envApi ? (envApi.endsWith('/api') ? envApi : `${envApi}/api`) : '';
-export const API_BASE = normalizedApi || (isLocalhost ? 'http://localhost:3001/api' : '/api');
+const DEFAULT_API = 'https://pensa-ttu-api.onrender.com/api';
+export const API_BASE =
+  normalizedApi ||
+  (isLocalhost && typeof window !== 'undefined' && window.location.port === '3001'
+    ? 'http://localhost:3001/api'
+    : DEFAULT_API);
 export const API_ROOT = API_BASE.replace(/\/api\/?$/, '');
 
 export function getImageUrl(url, options = {}) {

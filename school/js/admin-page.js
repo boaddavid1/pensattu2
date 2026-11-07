@@ -2,13 +2,14 @@
 
 import { DEFAULT_RETREAT_SETTINGS, INITIAL_SCHOOLS, INITIAL_STUDENTS, INITIAL_ATTENDANCE } from './data.js';
 import { renderBadges, printSingleBadge, downloadBadgeImage } from './badges.js';
+import { schoolApiFetch, resolveApiBase, extractBadgeCode, matchStudent } from './api.js';
 
 // Expose globals for onclicks in rendered HTML
 window.printSingleBadge = printSingleBadge;
 window.downloadBadgeImage = downloadBadgeImage;
 
 const STORAGE_KEY = 'pensa_retreat_state_v1';
-const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3001/api/school' : '/api/school';
+const API_BASE = resolveApiBase();
 
 class AdminDataApp {
   constructor() {
@@ -58,17 +59,29 @@ class AdminDataApp {
 
   async fetchFromApi() {
     try {
-      const res = await fetch(`${API_BASE}/data`);
+      const res = await schoolApiFetch('/data');
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.ok) {
-        if (data.schools && data.schools.length) this.schools = data.schools;
-        if (data.students && data.students.length) this.students = data.students;
-        if (data.attendance) this.attendance = data.attendance;
+        if (Array.isArray(data.schools) && data.schools.length) {
+          const sMap = new Map();
+          this.schools.forEach((s) => sMap.set(s.id, s));
+          data.schools.forEach((s) => sMap.set(s.id, s));
+          this.schools = Array.from(sMap.values());
+        }
+        if (Array.isArray(data.students) && data.students.length) {
+          const stMap = new Map();
+          this.students.forEach((st) => stMap.set((st.id || '').toUpperCase(), st));
+          data.students.forEach((st) => stMap.set((st.id || '').toUpperCase(), st));
+          this.students = Array.from(stMap.values());
+        }
+        if (Array.isArray(data.attendance)) this.attendance = data.attendance;
         if (data.settings) this.settings = { ...this.settings, ...data.settings };
         this.saveToLocalStorage();
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Admin fetch offline:', e);
+    }
   }
 
   renderAll() {
@@ -449,7 +462,7 @@ class AdminDataApp {
 
     // Call API
     try {
-      await fetch(`${API_BASE}/scan`, {
+      await schoolApiFetch('/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -506,7 +519,7 @@ class AdminDataApp {
     const emergency_contact = document.getElementById('edit-student-contact').value.trim();
 
     try {
-      await fetch(`${API_BASE}/students/${id}`, {
+      await schoolApiFetch(`/students/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ full_name, gender, level_class, room_dorm, emergency_contact }),
@@ -541,7 +554,7 @@ class AdminDataApp {
     }
 
     try {
-      await fetch(`${API_BASE}/students/${studentId}`, { method: 'DELETE' });
+      await schoolApiFetch(`/students/${studentId}`, { method: 'DELETE' });
     } catch (e) {}
 
     this.students = this.students.filter((s) => s.id !== studentId);
@@ -581,7 +594,7 @@ class AdminDataApp {
     const notes = document.getElementById('edit-school-notes').value.trim();
 
     try {
-      await fetch(`${API_BASE}/schools/${id}`, {
+      await schoolApiFetch(`/schools/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, category, region, patron_name, patron_phone, notes }),
@@ -621,7 +634,7 @@ class AdminDataApp {
     }
 
     try {
-      await fetch(`${API_BASE}/schools/${schoolId}`, { method: 'DELETE' });
+      await schoolApiFetch(`/schools/${schoolId}`, { method: 'DELETE' });
     } catch (e) {}
 
     this.schools = this.schools.filter((item) => item.id !== schoolId);
@@ -705,7 +718,7 @@ class AdminDataApp {
 
     // Send to API
     try {
-      await fetch(`${API_BASE}/register`, {
+      await schoolApiFetch('/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ school: newSchool, students: newStudents }),
@@ -924,7 +937,7 @@ class AdminDataApp {
     }
 
     try {
-      await fetch(`${API_BASE}/reset`, {
+      await schoolApiFetch('/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'clear_attendance' }),
