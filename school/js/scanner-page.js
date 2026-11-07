@@ -509,3 +509,4 @@ window.addEventListener('DOMContentLoaded', () => {
   window.gateScanner = new GateScannerTerminal();
   window.gateScanner.init();
 });
+

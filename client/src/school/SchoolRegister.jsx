@@ -317,29 +317,7 @@ export default function SchoolRegister() {
 
   return (
     <div className="school-module-wrap" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* ─── Dedicated Header (No Global Footer) ─── */}
-      <header className="ret-header">
-        <div className="ret-header-inner">
-          <Link to="/school" className="ret-brand">
-            <div className="ret-brand-icon">🕊️</div>
-            <div className="ret-brand-text">
-              <h1>PENSA Schools & Campus Retreat 2026</h1>
-              <p>
-                <span className="ret-live-pill"><span className="ret-live-dot"></span> REGISTRATION PORTAL</span>
-                <span>• Official School & Student Delegate Intake</span>
-              </p>
-            </div>
-          </Link>
-
-          <div className="ret-header-actions no-print">
-            <Link to="/school/admin" className="ret-btn ret-btn-outline" style={{ textDecoration: 'none', fontSize: '13px' }}>
-              <span>📷 Gate Scanner Terminal</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* ─── Main Content ─── */}
+      {/* ─── Main Content (No Navbar) ─── */}
       <main style={{ flex: 1, padding: '24px 16px', background: '#f8fafc' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
 

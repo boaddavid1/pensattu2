@@ -1091,3 +1091,4 @@ window.addEventListener('DOMContentLoaded', () => {
   window.adminApp = new AdminDataApp();
   window.adminApp.init();
 });
+

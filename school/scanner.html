@@ -460,47 +460,7 @@
 </head>
 <body class="scanner-portal">
 
-  <!-- ─── TOP GATE HEADER BAR ─── -->
-  <header class="scan-header">
-    <div class="scan-header-inner">
-      <a href="scanner.html" class="scan-brand">
-        <div class="scan-brand-icon">📷</div>
-        <div>
-          <h1 class="scan-brand-title" id="scan-page-title">PENSA TTU Retreat Gate Scanner</h1>
-          <div class="scan-brand-subtitle">
-            <span class="scan-live-dot"></span>
-            <span>LIVE GATE PASS TERMINAL</span>
-            <span>• Fast QR Clock-In / Out</span>
-          </div>
-        </div>
-      </a>
-
-      <div class="scan-top-actions">
-        <!-- Active Retreat Session -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Session:</span>
-          <select id="active-session-select" class="scan-session-select" title="Active retreat session"></select>
-        </div>
-
-        <!-- Audio mute/unmute toggle -->
-        <button type="button" id="toggle-sound-btn" class="scan-mode-btn" style="padding: 7px 12px; font-size: 12px; background: #1a2336; color: #f8fafc;" title="Toggle scan chimes">
-          🔔 Sound: ON
-        </button>
-
-        <!-- Direct Link to Admin Data Portal -->
-        <a href="admin.html" class="ret-btn ret-btn-gold" style="text-decoration: none; font-size: 12.5px; padding: 7px 16px; font-weight: 800;">
-          🛡️ Admin Data Portal ➔
-        </a>
-
-        <!-- Registration Link -->
-        <a href="index.html" class="ret-btn ret-btn-outline" style="text-decoration: none; font-size: 12px; padding: 7px 12px; border-color: rgba(255,255,255,0.2); color: #94a3b8;">
-          + New Registration
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <!-- ─── MAIN SCANNER CONTAINER ─── -->
+  <!-- ─── MAIN SCANNER CONTAINER (NO NAVBAR) ─── -->
   <main class="scan-portal-container">
 
     <!-- KPI Ribbon -->
@@ -553,11 +513,19 @@
             <span id="camera-fps-pill" style="font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: #94a3b8;">15 FPS</span>
           </div>
 
-          <div style="display: flex; gap: 8px;">
-            <button type="button" id="flip-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.12); color: #ffffff; border: none;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <!-- Active Session Selector -->
+            <select id="active-session-select" class="scan-session-select" style="padding: 4px 8px; font-size: 11.5px;" title="Active retreat session"></select>
+
+            <!-- Audio Mute/Unmute -->
+            <button type="button" id="toggle-sound-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.12); color: #ffffff; border: none; font-size: 11.5px;" title="Toggle scan chimes">
+              🔔 Sound: ON
+            </button>
+
+            <button type="button" id="flip-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.12); color: #ffffff; border: none; font-size: 11.5px;">
               🔄 Flip Camera
             </button>
-            <button type="button" id="pause-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.12); color: #ffffff; border: none;">
+            <button type="button" id="pause-camera-btn" class="ret-badge-btn-mini" style="background: rgba(255,255,255,0.12); color: #ffffff; border: none; font-size: 11.5px;">
               ⏸️ Pause
             </button>
           </div>
@@ -641,3 +609,4 @@
   <script type="module" src="js/scanner-page.js"></script>
 </body>
 </html>
+
