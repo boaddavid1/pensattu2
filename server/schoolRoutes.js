@@ -22,132 +22,9 @@ const memoryStore = {
       { id: 'sess_5', name: 'Day 4: Communion & Commissioning Service', date: '2026-11-17', active: false },
     ],
   },
-  schools: [
-    {
-      id: 'sch_1',
-      school_code: 'AUGUS',
-      name: "St. Augustine's College",
-      category: 'Senior High School',
-      region: 'Central Region, Cape Coast',
-      patron_name: 'Elder Francis Quaye',
-      patron_phone: '+233 24 456 7891',
-      patron_email: 'fquaye@augus.edu.gh',
-      notes: 'Bus arrives Saturday morning 7:30 AM',
-      created_at: new Date('2026-10-15T08:00:00Z').toISOString(),
-    },
-    {
-      id: 'sch_2',
-      school_code: 'WGHS',
-      name: "Wesley Girls' High School",
-      category: 'Senior High School',
-      region: 'Central Region, Cape Coast',
-      patron_name: 'Mrs. Grace Annan',
-      patron_phone: '+233 20 812 3456',
-      patron_email: 'gannan@wghs.edu.gh',
-      notes: 'Special accommodation requested for 2 patrons',
-      created_at: new Date('2026-10-15T09:30:00Z').toISOString(),
-    },
-    {
-      id: 'sch_3',
-      school_code: 'PREM',
-      name: 'Prempeh College',
-      category: 'Senior High School',
-      region: 'Ashanti Region, Kumasi',
-      patron_name: 'Pastor Samuel Boakye',
-      patron_phone: '+233 55 987 6543',
-      patron_email: 'sboakye@prempeh.edu.gh',
-      notes: 'Delegation accompanied by 2 scripture union coordinators',
-      created_at: new Date('2026-10-16T11:15:00Z').toISOString(),
-    },
-    {
-      id: 'sch_4',
-      school_code: 'TTU',
-      name: 'Takoradi Technical University PENSA',
-      category: 'University / Tertiary',
-      region: 'Western Region, Takoradi',
-      patron_name: 'Deacon Dennis Mensah',
-      patron_phone: '+233 24 112 2334',
-      patron_email: 'dmensah@ttu.edu.gh',
-      notes: 'Host campus student delegates and volunteer stewards',
-      created_at: new Date('2026-10-16T14:00:00Z').toISOString(),
-    },
-  ],
-  students: [
-    // St. Augustine's College
-    { id: 'RET26-AUG-001', school_id: 'sch_1', school_name: "St. Augustine's College", full_name: 'Kwame Mensah Addo', gender: 'Male', level_class: 'Form 3 Science', room_dorm: 'St. Luke Hall', emergency_contact: '+233 24 333 4441', qr_payload: 'RET26-AUG-001', created_at: new Date().toISOString() },
-    { id: 'RET26-AUG-002', school_id: 'sch_1', school_name: "St. Augustine's College", full_name: 'Emmanuel Kojo Antwi', gender: 'Male', level_class: 'Form 2 General Arts', room_dorm: 'St. Luke Hall', emergency_contact: '+233 24 333 4442', qr_payload: 'RET26-AUG-002', created_at: new Date().toISOString() },
-    { id: 'RET26-AUG-003', school_id: 'sch_1', school_name: "St. Augustine's College", full_name: 'David Osei Poku', gender: 'Male', level_class: 'Form 3 Business', room_dorm: 'St. Peter Hall', emergency_contact: '+233 24 333 4443', qr_payload: 'RET26-AUG-003', created_at: new Date().toISOString() },
-    { id: 'RET26-AUG-004', school_id: 'sch_1', school_name: "St. Augustine's College", full_name: 'Samuel Yaw Danso', gender: 'Male', level_class: 'Form 2 Science', room_dorm: 'St. Peter Hall', emergency_contact: '+233 24 333 4444', qr_payload: 'RET26-AUG-004', created_at: new Date().toISOString() },
-    
-    // Wesley Girls' High School
-    { id: 'RET26-WGH-001', school_id: 'sch_2', school_name: "Wesley Girls' High School", full_name: 'Akosua Serwaa Boateng', gender: 'Female', level_class: 'Form 3 Science', room_dorm: 'Ruth House', emergency_contact: '+233 20 555 6661', qr_payload: 'RET26-WGH-001', created_at: new Date().toISOString() },
-    { id: 'RET26-WGH-002', school_id: 'sch_2', school_name: "Wesley Girls' High School", full_name: 'Abena Mansa Appiah', gender: 'Female', level_class: 'Form 3 General Arts', room_dorm: 'Ruth House', emergency_contact: '+233 20 555 6662', qr_payload: 'RET26-WGH-002', created_at: new Date().toISOString() },
-    { id: 'RET26-WGH-003', school_id: 'sch_2', school_name: "Wesley Girls' High School", full_name: 'Priscilla Ewurama Baidoo', gender: 'Female', level_class: 'Form 2 Home Economics', room_dorm: 'Esther House', emergency_contact: '+233 20 555 6663', qr_payload: 'RET26-WGH-003', created_at: new Date().toISOString() },
-    { id: 'RET26-WGH-004', school_id: 'sch_2', school_name: "Wesley Girls' High School", full_name: 'Blessing Nana Yaa Frimpong', gender: 'Female', level_class: 'Form 2 Visual Arts', room_dorm: 'Esther House', emergency_contact: '+233 20 555 6664', qr_payload: 'RET26-WGH-004', created_at: new Date().toISOString() },
-
-    // Prempeh College
-    { id: 'RET26-PRM-001', school_id: 'sch_3', school_name: 'Prempeh College', full_name: 'Kofi Owusu Ansah', gender: 'Male', level_class: 'Form 3 Science', room_dorm: 'Osei Tutu House', emergency_contact: '+233 55 123 4561', qr_payload: 'RET26-PRM-001', created_at: new Date().toISOString() },
-    { id: 'RET26-PRM-002', school_id: 'sch_3', school_name: 'Prempeh College', full_name: 'Michael Nana Kwesi Darko', gender: 'Male', level_class: 'Form 2 Science', room_dorm: 'Osei Tutu House', emergency_contact: '+233 55 123 4562', qr_payload: 'RET26-PRM-002', created_at: new Date().toISOString() },
-    { id: 'RET26-PRM-003', school_id: 'sch_3', school_name: 'Prempeh College', full_name: 'Stephen Kwame Frimpong', gender: 'Male', level_class: 'Form 3 Business', room_dorm: 'Freeman House', emergency_contact: '+233 55 123 4563', qr_payload: 'RET26-PRM-003', created_at: new Date().toISOString() },
-
-    // TTU PENSA
-    { id: 'RET26-TTU-001', school_id: 'sch_4', school_name: 'Takoradi Technical University PENSA', full_name: 'Caleb Joshua Eshun', gender: 'Male', level_class: 'Level 300 Electrical Eng', room_dorm: 'Host Campus', emergency_contact: '+233 24 777 8881', qr_payload: 'RET26-TTU-001', created_at: new Date().toISOString() },
-    { id: 'RET26-TTU-002', school_id: 'sch_4', school_name: 'Takoradi Technical University PENSA', full_name: 'Eunice Adwoa Nyamekye', gender: 'Female', level_class: 'Level 200 Computer Science', room_dorm: 'Host Campus', emergency_contact: '+233 24 777 8882', qr_payload: 'RET26-TTU-002', created_at: new Date().toISOString() },
-    { id: 'RET26-TTU-003', school_id: 'sch_4', school_name: 'Takoradi Technical University PENSA', full_name: 'Gabriel Kweku Dadzie', gender: 'Male', level_class: 'Level 400 Civil Eng', room_dorm: 'Host Campus', emergency_contact: '+233 24 777 8883', qr_payload: 'RET26-TTU-003', created_at: new Date().toISOString() },
-    { id: 'RET26-TTU-004', school_id: 'sch_4', school_name: 'Takoradi Technical University PENSA', full_name: 'Dorothy Maame Yeboah', gender: 'Female', level_class: 'Level 100 Hospitality Mgt', room_dorm: 'Host Campus', emergency_contact: '+233 24 777 8884', qr_payload: 'RET26-TTU-004', created_at: new Date().toISOString() },
-  ],
-  attendance: [
-    {
-      id: 1,
-      student_id: 'RET26-AUG-001',
-      student_name: 'Kwame Mensah Addo',
-      school_name: "St. Augustine's College",
-      action_type: 'clock_in',
-      session_name: 'Morning Plenary & Worship Session',
-      scanned_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-      scanned_by: 'Main Gate Scanner',
-    },
-    {
-      id: 2,
-      student_id: 'RET26-WGH-001',
-      student_name: 'Akosua Serwaa Boateng',
-      school_name: "Wesley Girls' High School",
-      action_type: 'clock_in',
-      session_name: 'Morning Plenary & Worship Session',
-      scanned_at: new Date(Date.now() - 38 * 60 * 1000).toISOString(),
-      scanned_by: 'Main Gate Scanner',
-    },
-    {
-      id: 3,
-      student_id: 'RET26-PRM-001',
-      student_name: 'Kofi Owusu Ansah',
-      school_name: 'Prempeh College',
-      action_type: 'clock_in',
-      session_name: 'Morning Plenary & Worship Session',
-      scanned_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      scanned_by: 'North Gate Scanner',
-    },
-    {
-      id: 4,
-      student_id: 'RET26-TTU-001',
-      student_name: 'Caleb Joshua Eshun',
-      school_name: 'Takoradi Technical University PENSA',
-      action_type: 'clock_in',
-      session_name: 'Morning Plenary & Worship Session',
-      scanned_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-      scanned_by: 'Main Gate Scanner',
-    },
-    {
-      id: 5,
-      student_id: 'RET26-TTU-002',
-      student_name: 'Eunice Adwoa Nyamekye',
-      school_name: 'Takoradi Technical University PENSA',
-      action_type: 'clock_in',
-      session_name: 'Morning Plenary & Worship Session',
-      scanned_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-      scanned_by: 'Main Gate Scanner',
-    },
-  ],
+  schools: [],
+  students: [],
+  attendance: [],
 };
 
 // Auto-sync schema in MySQL if available
@@ -209,30 +86,13 @@ export async function syncRetreatSchema() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
-    // Check if initial data is present in database; if not, seed from memory
-    const [existing] = await pool.query('SELECT COUNT(*) AS total FROM retreat_schools');
-    if (existing[0].total === 0) {
-      for (const s of memoryStore.schools) {
-        await pool.query(
-          `INSERT INTO retreat_schools (id, school_code, name, category, region, patron_name, patron_phone, patron_email, notes, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [s.id, s.school_code, s.name, s.category, s.region, s.patron_name, s.patron_phone, s.patron_email, s.notes, s.created_at]
-        );
-      }
-      for (const st of memoryStore.students) {
-        await pool.query(
-          `INSERT INTO retreat_students (id, school_id, school_name, full_name, gender, level_class, room_dorm, emergency_contact, qr_payload, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [st.id, st.school_id, st.school_name, st.full_name, st.gender, st.level_class, st.room_dorm, st.emergency_contact, st.qr_payload, st.created_at]
-        );
-      }
-    } else {
-      // Sync MySQL records into memoryStore so memory is ALWAYS complete
-      const [dbSchools] = await pool.query('SELECT * FROM retreat_schools ORDER BY name ASC');
-      const [dbStudents] = await pool.query('SELECT * FROM retreat_students ORDER BY full_name ASC');
-      if (dbSchools && dbSchools.length > 0) memoryStore.schools = dbSchools;
-      if (dbStudents && dbStudents.length > 0) memoryStore.students = dbStudents;
-    }
+    // Sync MySQL records into memoryStore so memory is ALWAYS complete
+    const [dbSchools] = await pool.query('SELECT * FROM retreat_schools ORDER BY name ASC');
+    const [dbStudents] = await pool.query('SELECT * FROM retreat_students ORDER BY full_name ASC');
+    const [dbAttendance] = await pool.query('SELECT * FROM retreat_attendance ORDER BY scanned_at DESC LIMIT 1000');
+    if (dbSchools) memoryStore.schools = dbSchools;
+    if (dbStudents) memoryStore.students = dbStudents;
+    if (dbAttendance) memoryStore.attendance = dbAttendance;
   } catch (err) {
     // Non-fatal, falls back to memoryStore
   }
@@ -722,8 +582,21 @@ router.post('/reset', async (req, res) => {
     memoryStore.attendance = [];
     return res.json({ ok: true, message: 'All attendance records cleared' });
   }
+
+  if (action === 'wipe_all_production') {
+    try {
+      await pool.query('TRUNCATE TABLE retreat_attendance');
+      await pool.query('TRUNCATE TABLE retreat_students');
+      await pool.query('TRUNCATE TABLE retreat_schools');
+    } catch (e) {}
+    memoryStore.schools = [];
+    memoryStore.students = [];
+    memoryStore.attendance = [];
+    return res.json({ ok: true, message: 'All retreat database data permanently cleared for production.' });
+  }
+
   // Full reset
-  res.json({ ok: true, message: 'Retreat system reset to initial sample data' });
+  res.json({ ok: true, message: 'Reset handled' });
 });
 
 export default router;
